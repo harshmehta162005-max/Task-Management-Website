@@ -147,7 +147,8 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    require("fs").writeFileSync("api-error.log", error.stack || error.toString());
     return handleApiError(error);
   }
 }

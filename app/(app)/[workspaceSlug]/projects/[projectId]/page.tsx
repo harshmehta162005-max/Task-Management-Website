@@ -226,7 +226,18 @@ export default function ProjectPage() {
       </div>
 
       {drawerTask && (
-        <TaskDrawer open task={drawerTask} onClose={closeTask} workspaceMembers={workspaceMembers} isManager={true} />
+        <TaskDrawer
+          open
+          task={drawerTask}
+          projectTasks={tasks}
+          onClose={() => { closeTask(); loadProject(); }}
+          workspaceMembers={workspaceMembers}
+          isManager={true}
+          workspaceSlug={workspaceSlug}
+          onTaskDeleted={() => { closeTask(); loadProject(); }}
+          onTaskDuplicated={() => { loadProject(); }}
+          onTaskMoved={() => { closeTask(); loadProject(); }}
+        />
       )}
 
       <RenameProjectModal

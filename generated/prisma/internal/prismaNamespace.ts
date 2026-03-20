@@ -393,7 +393,8 @@ export const ModelName = {
   ProjectMember: 'ProjectMember',
   Task: 'Task',
   TaskAssignee: 'TaskAssignee',
-  TaskDependency: 'TaskDependency',
+  TaskUserDependency: 'TaskUserDependency',
+  Attachment: 'Attachment',
   Tag: 'Tag',
   TaskTag: 'TaskTag',
   Comment: 'Comment',
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskDependency" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation"
+    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1085,77 +1086,151 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    TaskDependency: {
-      payload: Prisma.$TaskDependencyPayload<ExtArgs>
-      fields: Prisma.TaskDependencyFieldRefs
+    TaskUserDependency: {
+      payload: Prisma.$TaskUserDependencyPayload<ExtArgs>
+      fields: Prisma.TaskUserDependencyFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.TaskDependencyFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload> | null
+          args: Prisma.TaskUserDependencyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.TaskDependencyFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>
+          args: Prisma.TaskUserDependencyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>
         }
         findFirst: {
-          args: Prisma.TaskDependencyFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload> | null
+          args: Prisma.TaskUserDependencyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.TaskDependencyFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>
+          args: Prisma.TaskUserDependencyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>
         }
         findMany: {
-          args: Prisma.TaskDependencyFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>[]
+          args: Prisma.TaskUserDependencyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>[]
         }
         create: {
-          args: Prisma.TaskDependencyCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>
+          args: Prisma.TaskUserDependencyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>
         }
         createMany: {
-          args: Prisma.TaskDependencyCreateManyArgs<ExtArgs>
+          args: Prisma.TaskUserDependencyCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.TaskDependencyCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>[]
+          args: Prisma.TaskUserDependencyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>[]
         }
         delete: {
-          args: Prisma.TaskDependencyDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>
+          args: Prisma.TaskUserDependencyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>
         }
         update: {
-          args: Prisma.TaskDependencyUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>
+          args: Prisma.TaskUserDependencyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>
         }
         deleteMany: {
-          args: Prisma.TaskDependencyDeleteManyArgs<ExtArgs>
+          args: Prisma.TaskUserDependencyDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.TaskDependencyUpdateManyArgs<ExtArgs>
+          args: Prisma.TaskUserDependencyUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.TaskDependencyUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>[]
+          args: Prisma.TaskUserDependencyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>[]
         }
         upsert: {
-          args: Prisma.TaskDependencyUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDependencyPayload>
+          args: Prisma.TaskUserDependencyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskUserDependencyPayload>
         }
         aggregate: {
-          args: Prisma.TaskDependencyAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskDependency>
+          args: Prisma.TaskUserDependencyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskUserDependency>
         }
         groupBy: {
-          args: Prisma.TaskDependencyGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TaskDependencyGroupByOutputType>[]
+          args: Prisma.TaskUserDependencyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskUserDependencyGroupByOutputType>[]
         }
         count: {
-          args: Prisma.TaskDependencyCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TaskDependencyCountAggregateOutputType> | number
+          args: Prisma.TaskUserDependencyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskUserDependencyCountAggregateOutputType> | number
+        }
+      }
+    }
+    Attachment: {
+      payload: Prisma.$AttachmentPayload<ExtArgs>
+      fields: Prisma.AttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.AttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.AttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.AttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.AttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AttachmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>[]
+        }
+        delete: {
+          args: Prisma.AttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>
+        }
+        update: {
+          args: Prisma.AttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.AttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AttachmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.AttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.AttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAttachment>
+        }
+        groupBy: {
+          args: Prisma.AttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttachmentCountAggregateOutputType> | number
         }
       }
     }
@@ -1762,13 +1837,25 @@ export const TaskAssigneeScalarFieldEnum = {
 export type TaskAssigneeScalarFieldEnum = (typeof TaskAssigneeScalarFieldEnum)[keyof typeof TaskAssigneeScalarFieldEnum]
 
 
-export const TaskDependencyScalarFieldEnum = {
+export const TaskUserDependencyScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
-  dependsOnId: 'dependsOnId'
+  userId: 'userId',
+  isBlocking: 'isBlocking'
 } as const
 
-export type TaskDependencyScalarFieldEnum = (typeof TaskDependencyScalarFieldEnum)[keyof typeof TaskDependencyScalarFieldEnum]
+export type TaskUserDependencyScalarFieldEnum = (typeof TaskUserDependencyScalarFieldEnum)[keyof typeof TaskUserDependencyScalarFieldEnum]
+
+
+export const AttachmentScalarFieldEnum = {
+  id: 'id',
+  taskId: 'taskId',
+  name: 'name',
+  size: 'size',
+  createdAt: 'createdAt'
+} as const
+
+export type AttachmentScalarFieldEnum = (typeof AttachmentScalarFieldEnum)[keyof typeof AttachmentScalarFieldEnum]
 
 
 export const TagScalarFieldEnum = {
@@ -2165,7 +2252,8 @@ export type GlobalOmitConfig = {
   projectMember?: Prisma.ProjectMemberOmit
   task?: Prisma.TaskOmit
   taskAssignee?: Prisma.TaskAssigneeOmit
-  taskDependency?: Prisma.TaskDependencyOmit
+  taskUserDependency?: Prisma.TaskUserDependencyOmit
+  attachment?: Prisma.AttachmentOmit
   tag?: Prisma.TagOmit
   taskTag?: Prisma.TaskTagOmit
   comment?: Prisma.CommentOmit

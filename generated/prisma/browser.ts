@@ -63,10 +63,15 @@ export type Task = Prisma.TaskModel
  */
 export type TaskAssignee = Prisma.TaskAssigneeModel
 /**
- * Model TaskDependency
+ * Model TaskUserDependency
  * 
  */
-export type TaskDependency = Prisma.TaskDependencyModel
+export type TaskUserDependency = Prisma.TaskUserDependencyModel
+/**
+ * Model Attachment
+ * 
+ */
+export type Attachment = Prisma.AttachmentModel
 /**
  * Model Tag
  * 

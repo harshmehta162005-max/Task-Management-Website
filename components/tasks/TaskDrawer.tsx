@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, CheckCircle2 } from "lucide-react";
 import {
   DrawerActivity,
   DrawerAttachment,
@@ -23,23 +23,35 @@ import { CommentInput } from "./CommentInput";
 import { ActivityLogSection } from "./ActivityLogSection";
 import { SubtasksSection } from "./SubtasksSection";
 import { DependenciesSection } from "./DependenciesSection";
+import { MoveToProjectModal } from "./MoveToProjectModal";
+import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 
 type Props = {
   open: boolean;
   task: DrawerTask;
+  projectTasks?: any[];
   onClose: () => void;
   workspaceMembers?: DrawerAssignee[];
   tagSuggestions?: string[];
   isManager?: boolean;
+  workspaceSlug?: string;
+  onTaskDeleted?: () => void;
+  onTaskDuplicated?: () => void;
+  onTaskMoved?: () => void;
 };
 
 export function TaskDrawer({
   open,
   task,
+  projectTasks = [],
   onClose,
   workspaceMembers = [],
   tagSuggestions,
   isManager = true,
+  workspaceSlug = "",
+  onTaskDeleted,
+  onTaskDuplicated,
+  onTaskMoved,
 }: Props) {
   // Use the server-computed isCreator flag. Default to true (editable) if not provided.
   const readOnly = task.isCreator === false;
@@ -60,6 +72,19 @@ export function TaskDrawer({
     blockedBy: DrawerDependency[];
     blocking: DrawerDependency[];
   }>(task.dependencies ?? { blockedBy: [], blocking: [] });
+
+  // Modal states
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     setTitle(task.title);
@@ -83,10 +108,44 @@ export function TaskDrawer({
     return url.toString();
   }, [task.id]);
 
+  // ─── Action handlers ──────────────────────────────────────────────────────
+
   const handleCopyLink = () => {
     if (!shareLink) return;
     navigator.clipboard?.writeText(shareLink);
+    setToast("Link copied to clipboard!");
   };
+
+  const handleDuplicate = async () => {
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/duplicate`, { method: "POST" });
+      if (res.ok) {
+        setToast("Task duplicated!");
+        onTaskDuplicated?.();
+      }
+    } catch {
+      // silent
+    }
+  };
+
+  const handleMove = () => setShowMoveModal(true);
+
+  const handleMoved = (projectName: string) => {
+    setShowMoveModal(false);
+    setToast(`Moved to ${projectName}`);
+    onTaskMoved?.();
+    onClose();
+  };
+
+  const handleDelete = () => setShowDeleteModal(true);
+
+  const handleDeleted = () => {
+    setShowDeleteModal(false);
+    onTaskDeleted?.();
+    onClose();
+  };
+
+  // ─── Existing handlers ─────────────────────────────────────────────────────
 
   const addAttachment = (file: DrawerAttachment) => {
     setAttachments((prev) => {
@@ -141,6 +200,7 @@ export function TaskDrawer({
           assigneeIds: assignees.map(a => a.id),
           subtasks,
           dependencies,
+          attachments,
         }),
       });
     } catch (err) {
@@ -164,9 +224,9 @@ export function TaskDrawer({
           <div className="flex items-center gap-1">
             <TaskActionMenu
               onCopy={handleCopyLink}
-              onDuplicate={() => {}}
-              onMove={() => {}}
-              onDelete={() => {}}
+              onDuplicate={handleDuplicate}
+              onMove={handleMove}
+              onDelete={handleDelete}
               isManager={isManager && !readOnly}
             />
             <button
@@ -234,6 +294,43 @@ export function TaskDrawer({
           </div>
         )}
       </div>
+
+      {/* Move to Project Modal */}
+      <MoveToProjectModal
+        open={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        taskId={task.id}
+        currentProjectId={task.projectId}
+        workspaceSlug={workspaceSlug}
+        onMoved={handleMoved}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        taskId={task.id}
+        taskTitle={title}
+        onDeleted={handleDeleted}
+      />
+
+      {/* Inline Toast */}
+      {toast && (
+        <div className="pointer-events-none fixed bottom-6 right-4 z-[70] flex flex-col gap-2">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-3 text-sm font-semibold text-emerald-100 shadow-lg shadow-emerald-900/20 backdrop-blur-sm">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <span>{toast}</span>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/10"
+              aria-label="Close toast"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </TaskDrawerShell>
   );
 }

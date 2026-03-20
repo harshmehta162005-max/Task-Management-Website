@@ -12,7 +12,7 @@ export type DrawerComment = {
 };
 export type DrawerActivity = { id: string; text: string; createdAt: string };
 export type DrawerSubtask = { id: string; title: string; completed: boolean };
-export type DrawerDependency = { id: string; title: string; status: DrawerStatus };
+export type DrawerDependency = { id: string; name: string; avatar?: string };
 
 export type DrawerTask = {
   id: string;
@@ -28,6 +28,7 @@ export type DrawerTask = {
   activity?: DrawerActivity[];
   subtasks?: DrawerSubtask[];
   dependencies?: { blockedBy: DrawerDependency[]; blocking: DrawerDependency[] };
+  projectId?: string;
   creatorId?: string;
   isCreator?: boolean;
 };

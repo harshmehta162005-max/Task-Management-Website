@@ -60,7 +60,8 @@ export const ModelName = {
   ProjectMember: 'ProjectMember',
   Task: 'Task',
   TaskAssignee: 'TaskAssignee',
-  TaskDependency: 'TaskDependency',
+  TaskUserDependency: 'TaskUserDependency',
+  Attachment: 'Attachment',
   Tag: 'Tag',
   TaskTag: 'TaskTag',
   Comment: 'Comment',
@@ -205,13 +206,25 @@ export const TaskAssigneeScalarFieldEnum = {
 export type TaskAssigneeScalarFieldEnum = (typeof TaskAssigneeScalarFieldEnum)[keyof typeof TaskAssigneeScalarFieldEnum]
 
 
-export const TaskDependencyScalarFieldEnum = {
+export const TaskUserDependencyScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
-  dependsOnId: 'dependsOnId'
+  userId: 'userId',
+  isBlocking: 'isBlocking'
 } as const
 
-export type TaskDependencyScalarFieldEnum = (typeof TaskDependencyScalarFieldEnum)[keyof typeof TaskDependencyScalarFieldEnum]
+export type TaskUserDependencyScalarFieldEnum = (typeof TaskUserDependencyScalarFieldEnum)[keyof typeof TaskUserDependencyScalarFieldEnum]
+
+
+export const AttachmentScalarFieldEnum = {
+  id: 'id',
+  taskId: 'taskId',
+  name: 'name',
+  size: 'size',
+  createdAt: 'createdAt'
+} as const
+
+export type AttachmentScalarFieldEnum = (typeof AttachmentScalarFieldEnum)[keyof typeof AttachmentScalarFieldEnum]
 
 
 export const TagScalarFieldEnum = {

@@ -50,6 +50,7 @@ export function KanbanFilterBar({ onSearchChange, onAssigneeChange, onPriorityCh
           { value: "marcus", label: "Marcus" },
         ]}
         className="w-40"
+        portal={false}
       />
 
       <Select
@@ -66,6 +67,7 @@ export function KanbanFilterBar({ onSearchChange, onAssigneeChange, onPriorityCh
           { value: "LOW", label: "Low" },
         ]}
         className="w-36"
+        portal={false}
       />
 
       {(search || assignee || priority) && (

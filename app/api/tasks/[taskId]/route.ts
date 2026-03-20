@@ -1,6 +1,8 @@
+// Cache bust 2: Forcing Webpack to recompile after Prisma generate
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import fs from "fs";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -37,11 +39,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
           select: { id: true, title: true, status: true, priority: true },
           orderBy: { position: "asc" },
         },
-        dependencies: {
-          include: { dependsOn: { select: { id: true, title: true, status: true } } },
+        userDependencies: {
+          include: { user: { select: { id: true, name: true, avatarUrl: true } } },
         },
-        dependents: {
-          include: { task: { select: { id: true, title: true, status: true } } },
+        attachments: {
+          select: { id: true, name: true, size: true },
         },
         _count: { select: { comments: true } },
       },
@@ -55,6 +57,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       description: task.description ?? "",
       status: task.status,
       priority: task.priority,
+      projectId: task.projectId,
       creatorId: task.creatorId,
       isCreator: currentDbUserId === task.creatorId,
       dueDate: task.dueDate?.toISOString() ?? null,
@@ -76,10 +79,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
         completed: s.status === "DONE",
       })),
       dependencies: {
-        blockedBy: task.dependencies.map((d) => d.dependsOn),
-        blocking: task.dependents.map((d) => d.task),
+        blockedBy: task.userDependencies.filter((d: any) => d.isBlocking === false).map((d: any) => ({ id: d.user.id, name: d.user.name ?? "", avatar: d.user.avatarUrl })),
+        blocking: task.userDependencies.filter((d: any) => d.isBlocking === true).map((d: any) => ({ id: d.user.id, name: d.user.name ?? "", avatar: d.user.avatarUrl })),
       },
-      attachments: [],
+      attachments: task.attachments.map((a: any) => ({
+        id: a.id,
+        name: a.name,
+        size: a.size,
+      })),
       activity: [],
     });
   } catch (error) {
@@ -94,11 +101,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
     const body = await req.json();
-    const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies } = body;
+    const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies, attachments } = body;
 
     const existingTask = await db.task.findUnique({
       where: { id: taskId },
-      select: { projectId: true, creatorId: true },
+      select: {
+        projectId: true,
+        creatorId: true,
+        project: { select: { workspaceId: true } },
+      },
     });
     if (!existingTask) throw new ApiError(404, "Task not found");
 
@@ -116,34 +127,64 @@ export async function PATCH(req: NextRequest, { params }: Params) {
             create: assigneeIds.map((id: string) => ({ userId: id })),
           },
         }),
-        ...(tags !== undefined && {
-          tags: {
-            deleteMany: {},
-            create: tags.map((name: string) => ({
-              tag: { connectOrCreate: { where: { name }, create: { name, color: "slate" } } },
-            })),
-          },
-        }),
       },
       select: { id: true, title: true, status: true, priority: true, dueDate: true, updatedAt: true },
     });
 
-    // Handle dependencies separately to avoid nested write conflicts
-    if (dependencies !== undefined) {
-      // Clear existing and recreate
-      await db.taskDependency.deleteMany({ where: { taskId } });
-      await db.taskDependency.deleteMany({ where: { dependsOnId: taskId } });
+    // Handle tags separately — Tag has @@unique([name, workspaceId]) compound key
+    if (tags !== undefined && Array.isArray(tags)) {
+      const workspaceId = existingTask.project.workspaceId;
+
+      // Remove existing tag associations
+      await db.taskTag.deleteMany({ where: { taskId } });
+
+      // Create or find tags and associate them
+      for (const tagName of tags) {
+        const tag = await db.tag.upsert({
+          where: { name_workspaceId: { name: tagName, workspaceId } },
+          update: {},
+          create: { name: tagName, color: "#6366f1", workspaceId },
+        });
+        await db.taskTag.create({
+          data: { taskId, tagId: tag.id },
+        });
+      }
+    }
+
+    if (attachments !== undefined && Array.isArray(attachments)) {
+      const existingAtt = await db.attachment.findMany({ where: { taskId } });
+      const incomingIds = attachments.map((a: any) => a.id);
       
-      // blockedBy: this task depends on others
-      if (dependencies.blockedBy?.length > 0) {
-        for (const d of dependencies.blockedBy) {
-          await db.taskDependency.create({ data: { taskId, dependsOnId: d.id } });
+      const toDelete = existingAtt.filter(e => !incomingIds.includes(e.id)).map(e => e.id);
+      if (toDelete.length > 0) {
+        await db.attachment.deleteMany({ where: { id: { in: toDelete } } });
+      }
+
+      for (const a of attachments) {
+        const exists = existingAtt.find(e => e.id === a.id);
+        if (!exists) {
+          await db.attachment.create({
+            data: { id: a.id, name: a.name, size: a.size, taskId }
+          });
         }
       }
-      // blocking: others depend on this task
+    }
+
+    // Handle user dependencies separately to avoid nested write conflicts
+    if (dependencies !== undefined) {
+      // Clear existing user dependencies for this task
+      await db.taskUserDependency.deleteMany({ where: { taskId } });
+      
+      // blockedBy: users that block this task
+      if (dependencies.blockedBy?.length > 0) {
+        for (const u of dependencies.blockedBy) {
+          await db.taskUserDependency.create({ data: { taskId, userId: u.id, isBlocking: false } });
+        }
+      }
+      // blocking: users that are blocked by this task
       if (dependencies.blocking?.length > 0) {
-        for (const d of dependencies.blocking) {
-          await db.taskDependency.create({ data: { taskId: d.id, dependsOnId: taskId } });
+        for (const u of dependencies.blocking) {
+          await db.taskUserDependency.create({ data: { taskId, userId: u.id, isBlocking: true } });
         }
       }
     }
@@ -179,7 +220,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     return Response.json(updated);
-  } catch (error) {
+  } catch (error: any) {
+    fs.writeFileSync("api-error.log", error.stack || error.toString());
     return handleApiError(error);
   }
 }
@@ -192,7 +234,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const { taskId } = await params;
     await db.task.delete({ where: { id: taskId } });
     return Response.json({ deleted: true });
-  } catch (error) {
+  } catch (error: any) {
+    fs.writeFileSync("api-error.log", error.stack || error.toString());
     return handleApiError(error);
   }
 }

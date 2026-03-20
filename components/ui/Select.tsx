@@ -14,7 +14,7 @@ type SelectProps = {
   placeholder?: string;
   className?: string;
   size?: "sm" | "md";
-  portal?: boolean; 
+  portal?: boolean;
   disabled?: boolean;
 };
 
@@ -59,33 +59,33 @@ export function Select({ value, onChange, options, placeholder, className, size 
       style={portal ? menuStyle : undefined}
     >
       <ul className="py-2 m-0 flex flex-col">
-  {options.map((opt) => {
-    const active = opt.value === value;
-    return (
-      <li key={opt.value}>
-        <button
-          type="button"
-          onClick={() => {
-            onChange(opt.value);
-            setOpen(false);
-          }}
-          className={cn(
-            "flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-slate-200 transition-all duration-150 hover:bg-slate-700/50",
-            active && "bg-primary/20 text-white"
-          )}
-        >
-          {active ? (
-            <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)] shrink-0" />
-          ) : (
-            <span className="h-2 w-2 shrink-0" />
-          )}
+        {options.map((opt) => {
+          const active = opt.value === value;
+          return (
+            <li key={opt.value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-slate-200 transition-all duration-150 hover:bg-slate-700/50",
+                  active && "bg-primary/20 text-white"
+                )}
+              >
+                {active ? (
+                  <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)] shrink-0" />
+                ) : (
+                  <span className="h-2 w-2 shrink-0" />
+                )}
 
-          <span className="font-medium">{opt.label}</span>
-        </button>
-      </li>
-    );
-  })}
-</ul>
+                <span className="font-medium">{opt.label}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 
