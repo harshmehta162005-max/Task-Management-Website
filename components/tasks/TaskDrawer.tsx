@@ -118,7 +118,11 @@ export function TaskDrawer({
 
   const handleDuplicate = async () => {
     try {
-      const res = await fetch(`/api/tasks/${task.id}/duplicate`, { method: "POST" });
+      const res = await fetch(`/api/tasks/${task.id}/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceSlug }),
+      });
       if (res.ok) {
         setToast("Task duplicated!");
         onTaskDuplicated?.();
@@ -173,7 +177,7 @@ export function TaskDrawer({
       await fetch(`/api/tasks/${task.id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
+        body: JSON.stringify({ body, workspaceSlug }),
       });
     } catch {
       // silent
@@ -201,6 +205,7 @@ export function TaskDrawer({
           subtasks,
           dependencies,
           attachments,
+          workspaceSlug,
         }),
       });
     } catch (err) {
@@ -250,7 +255,13 @@ export function TaskDrawer({
             readOnly={readOnly}
           />
 
-          <AssigneeSelector assignees={assignees} workspaceMembers={workspaceMembers} onChange={setAssignees} readOnly={readOnly} />
+          <AssigneeSelector
+            assignees={assignees}
+            workspaceMembers={workspaceMembers}
+            onChange={setAssignees}
+            readOnly={readOnly}
+            excludeUserIds={task.creatorId ? [task.creatorId] : []}
+          />
 
           <TagInput tags={tags} suggestions={tagSuggestions} onChange={setTags} readOnly={readOnly} />
 
@@ -261,7 +272,14 @@ export function TaskDrawer({
           {/* Subtask checkboxes: enabled for assigned members. New subtask creation: owner only */}
           <SubtasksSection subtasks={subtasks} onChange={setSubtasks} readOnly={readOnly} canCreate={task.isCreator !== false} />
 
-          <DependenciesSection dependencies={dependencies} onChange={setDependencies} taskId={task.id} workspaceMembers={workspaceMembers} readOnly={readOnly} />
+          <DependenciesSection
+            dependencies={dependencies}
+            onChange={setDependencies}
+            taskId={task.id}
+            workspaceMembers={workspaceMembers}
+            readOnly={readOnly}
+            excludeUserIds={assignees.map(a => a.id)}
+          />
 
           {/* Activity toggle — contains activity items AND posted comments */}
           <ActivityLogSection
@@ -293,6 +311,7 @@ export function TaskDrawer({
             </button>
           </div>
         )}
+        <div id="portal-root" className="relative z-[9999]" />
       </div>
 
       {/* Move to Project Modal */}
@@ -311,6 +330,7 @@ export function TaskDrawer({
         onClose={() => setShowDeleteModal(false)}
         taskId={task.id}
         taskTitle={title}
+        workspaceSlug={workspaceSlug}
         onDeleted={handleDeleted}
       />
 

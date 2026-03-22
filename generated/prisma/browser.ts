@@ -102,3 +102,8 @@ export type Activity = Prisma.ActivityModel
  * 
  */
 export type Automation = Prisma.AutomationModel
+/**
+ * Model CalendarNote
+ * 
+ */
+export type CalendarNote = Prisma.CalendarNoteModel

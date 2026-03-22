@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -13,17 +14,7 @@ type Props = {
   onClose: () => void;
 };
 
-const projects = [
-  { id: "mobile-app", name: "Mobile App" },
-  { id: "marketing-site", name: "Marketing Website" },
-  { id: "design-system", name: "Design System" },
-];
-
-const members: DrawerAssignee[] = [
-  { id: "alex", name: "Alex Rivera" },
-  { id: "sarah", name: "Sarah Chen" },
-  { id: "marcus", name: "Marcus Wright" },
-];
+type Project = { id: string; name: string };
 
 export function CreateTaskModal({ open, onClose }: Props) {
   const router = useRouter();
@@ -34,11 +25,48 @@ export function CreateTaskModal({ open, onClose }: Props) {
   useEffect(() => setMounted(true), []);
 
   const [title, setTitle] = useState("");
-  const [projectId, setProjectId] = useState(projects[0].id);
+  const [projectId, setProjectId] = useState("");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [toast, setToast] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [members, setMembers] = useState<DrawerAssignee[]>([]);
+  const [fetching, setFetching] = useState(false);
+
+  useEffect(() => {
+    if (!open || !ws || ws === "workspace") return;
+    async function load() {
+      setFetching(true);
+      try {
+        const [projRes, memberRes] = await Promise.all([
+          fetch(`/api/projects?workspaceSlug=${ws}`),
+          fetch(`/api/workspaces/${ws}/members`)
+        ]);
+        if (projRes.ok) {
+          const data = await projRes.json();
+          setProjects(data.map((p: any) => ({ id: p.id, name: p.name })));
+          if (data.length > 0 && !projectId) setProjectId(data[0].id);
+        }
+        if (memberRes.ok) {
+          const data = await memberRes.json();
+          const mems = (data.members || data).map((m: any) => ({
+            id: m.id,
+            name: m.name || "User",
+            avatarUrl: m.avatarUrl || ""
+          }));
+          setMembers(mems);
+        }
+      } catch {
+        // quiet fail
+      } finally {
+        setFetching(false);
+      }
+    }
+    load();
+  }, [open, ws, projectId]);
 
   const toggleAssignee = (id: string) => {
     setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -46,29 +74,54 @@ export function CreateTaskModal({ open, onClose }: Props) {
 
   const assignees = useMemo(() => members.filter((m) => assigneeIds.includes(m.id)), [assigneeIds]);
 
-  const handleSubmit = () => {
-    if (!title.trim()) return;
-    setToast("Task created");
-    const taskId = `task_${Date.now()}`;
-    setTimeout(() => {
-      router.push(`/${ws}/projects/${projectId}?taskId=${taskId}`);
-      setToast(null);
-      onClose();
-      setTitle("");
-      setAssigneeIds([]);
-      setDue("");
-      setPriority("MEDIUM");
-    }, 600);
+  const handleSubmit = async () => {
+    if (!title.trim() || !projectId || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceSlug: ws,
+          projectId,
+          title: title.trim(),
+          priority,
+          dueDate: due || null,
+          assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined
+        }),
+      });
+
+      if (res.ok) {
+        setToast("Task created");
+        const data = await res.json();
+        setTimeout(() => {
+          router.push(`/${ws}/projects/${projectId}?taskId=${data.id}`);
+          setToast(null);
+          onClose();
+          setTitle("");
+          setAssigneeIds([]);
+          setDue("");
+          setPriority("MEDIUM");
+        }, 600);
+      } else {
+        setToast("Failed to create task");
+      }
+    } catch {
+      setToast("Error creating task");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!open || !mounted) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-10 backdrop-blur-sm sm:items-center">
-      
+
       {/* Removed overflow-hidden */}
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-[#0f172a]">
-        
+
         {/* Added rounded-t-2xl */}
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800 rounded-t-2xl">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create Task</h3>
@@ -76,7 +129,7 @@ export function CreateTaskModal({ open, onClose }: Props) {
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         {/* Removed max-h-[70vh] overflow-y-auto */}
         <div className="space-y-4 px-5 py-4">
           <div>
@@ -152,7 +205,7 @@ export function CreateTaskModal({ open, onClose }: Props) {
             </div>
           </div>
         </div>
-        
+
         {/* Added rounded-b-2xl */}
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-[#0f172a]/60 rounded-b-2xl">
           <button
@@ -163,9 +216,10 @@ export function CreateTaskModal({ open, onClose }: Props) {
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
+            disabled={isSubmitting}
+            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Create task
+            {isSubmitting ? "Creating..." : "Create task"}
           </button>
         </div>
         {toast && (

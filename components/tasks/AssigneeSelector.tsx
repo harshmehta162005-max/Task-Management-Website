@@ -9,9 +9,10 @@ type Props = {
   workspaceMembers: DrawerAssignee[];
   onChange: (next: DrawerAssignee[]) => void;
   readOnly?: boolean;
+  excludeUserIds?: string[];
 };
 
-export function AssigneeSelector({ assignees, workspaceMembers, onChange, readOnly = false }: Props) {
+export function AssigneeSelector({ assignees, workspaceMembers, onChange, readOnly = false, excludeUserIds = [] }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,9 +38,9 @@ export function AssigneeSelector({ assignees, workspaceMembers, onChange, readOn
     const q = search.toLowerCase();
     return workspaceMembers.filter((m) => {
       const name = m.name || "Unknown Member";
-      return name.toLowerCase().includes(q) && !currentIds.has(m.id);
+      return name.toLowerCase().includes(q) && !currentIds.has(m.id) && !excludeUserIds.includes(m.id);
     });
-  }, [workspaceMembers, search, currentIds]);
+  }, [workspaceMembers, search, currentIds, excludeUserIds]);
 
   const addAssignee = (member: DrawerAssignee) => {
     if (currentIds.has(member.id)) return;

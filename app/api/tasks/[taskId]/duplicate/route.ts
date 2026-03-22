@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
-import { getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -12,10 +12,14 @@ export async function POST(_req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
 
-    const user = await getDbUser();
+    const body = await _req.json();
+    const { workspaceSlug } = body;
 
-    const original = await db.task.findUnique({
-      where: { id: taskId },
+    if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
+    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+
+    const original = await db.task.findFirst({
+      where: { id: taskId, project: { workspaceId: workspace.id } },
       include: {
         assignees: { select: { userId: true } },
         tags: { include: { tag: true } },

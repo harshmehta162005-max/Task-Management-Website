@@ -7,9 +7,10 @@ type Props = {
   onChange: (field: "name" | "description", value: string) => void;
   onSkip: () => void;
   onSubmit: (e: FormEvent) => void;
+  isSubmitting?: boolean;
 };
 
-export function CreateProjectStep({ name, description, onChange, onSkip, onSubmit }: Props) {
+export function CreateProjectStep({ name, description, onChange, onSkip, onSubmit, isSubmitting }: Props) {
   return (
     <div className="rounded-2xl border border-white/10 bg-[#111827] p-8 shadow-2xl">
       <div className="mb-8">
@@ -56,9 +57,10 @@ export function CreateProjectStep({ name, description, onChange, onSkip, onSubmi
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98]"
+            disabled={isSubmitting}
+            className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Create Project
+            {isSubmitting ? "Creating..." : "Create Project"}
           </button>
         </div>
       </form>

@@ -46,7 +46,7 @@ export default function SignupPage() {
     try {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: "/api/auth/callback",
+        redirectUrl: "/sso-callback",
         redirectUrlComplete: "/create-workspace",
       });
     } catch (err: any) {

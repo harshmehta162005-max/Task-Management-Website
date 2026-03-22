@@ -33,6 +33,9 @@ export default function OnboardingPage() {
   const [taskPriority, setTaskPriority] = useState<"Low" | "Medium" | "High" | "Urgent">("Medium");
   const [taskAssignee, setTaskAssignee] = useState<string>("");
 
+  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+  const [isSubmittingTask, setIsSubmittingTask] = useState(false);
+
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
     return () => clearTimeout(t);
@@ -40,11 +43,36 @@ export default function OnboardingPage() {
 
   const onExit = () => router.push("/workspace-selector");
 
-  const handleProjectSubmit = (e: React.FormEvent) => {
+  const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectName.trim()) return;
-    setToast("Project created");
-    setCurrentStep(2);
+    if (!projectName.trim() || isSubmittingProject) return;
+    
+    setIsSubmittingProject(true);
+    try {
+      const slug = sessionStorage.getItem("onboarding_workspace_slug");
+      if (!slug) throw new Error("Missing slug");
+
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceSlug: slug,
+          name: projectName.trim(),
+          description: projectDescription.trim() || undefined,
+        }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      sessionStorage.setItem("onboarding_project_id", data.id);
+      setToast("Project created");
+      setCurrentStep(2);
+    } catch {
+      setToast("Failed to create project");
+    } finally {
+      setIsSubmittingProject(false);
+    }
   };
 
   const handleInvitesContinue = () => {
@@ -52,10 +80,41 @@ export default function OnboardingPage() {
     setCurrentStep(3);
   };
 
-  const handleTaskFinish = () => {
-    if (!taskTitle.trim()) return;
-    setToast("Task created");
-    setCurrentStep(4);
+  const handleTaskFinish = async () => {
+    if (!taskTitle.trim() || isSubmittingTask) return;
+    
+    setIsSubmittingTask(true);
+    try {
+      const slug = sessionStorage.getItem("onboarding_workspace_slug");
+      const projectId = sessionStorage.getItem("onboarding_project_id");
+      
+      if (!slug || !projectId) {
+        setCurrentStep(4);
+        return;
+      }
+
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceSlug: slug,
+          projectId: projectId,
+          title: taskTitle.trim(),
+          description: taskDescription.trim() || undefined,
+          priority: taskPriority.toUpperCase(),
+          dueDate: taskDue || undefined,
+        }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      setToast("Task created");
+      setCurrentStep(4);
+    } catch {
+      setToast("Failed to create task");
+    } finally {
+      setIsSubmittingTask(false);
+    }
   };
 
   const assignees = useMemo(() => invites.map((i) => ({ email: i.email, role: i.role })), [invites]);
@@ -85,6 +144,7 @@ export default function OnboardingPage() {
               }}
               onSkip={() => setCurrentStep(2)}
               onSubmit={handleProjectSubmit}
+              isSubmitting={isSubmittingProject}
             />
           )}
           {currentStep === 2 && (
@@ -112,6 +172,7 @@ export default function OnboardingPage() {
               }}
               onSkip={() => setCurrentStep(4)}
               onSubmit={handleTaskFinish}
+              isSubmitting={isSubmittingTask}
             />
           )}
           {currentStep === 4 && <OnboardingSuccess onFinish={() => {

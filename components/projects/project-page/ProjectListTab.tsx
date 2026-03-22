@@ -1,18 +1,23 @@
 import { useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { TaskTable } from "@/components/tasks/TaskTable";
 import { TaskFiltersPopover, TaskListFilters } from "@/components/tasks/TaskFiltersPopover";
 import { SortControls } from "@/components/tasks/SortControls";
 import { KanbanTask } from "@/components/tasks/KanbanBoard";
 
 type Props = {
-  tasks: (KanbanTask & { updatedAt: string })[];
+  tasks: (KanbanTask & { updatedAt: string; creatorId: string })[];
   onOpenTask: (id: string) => void;
+  onAddTask: () => void;
+  onReload?: () => void;
+  currentUserId?: string;
+  workspaceMembers?: { id: string; name: string; avatar?: string }[];
 };
 
-export function ProjectListTab({ tasks, onOpenTask }: Props) {
+export function ProjectListTab({ tasks, onOpenTask, onAddTask, onReload, currentUserId, workspaceMembers = [] }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
 
   const filters: TaskListFilters = {
     status: searchParams.get("status") || "",
@@ -65,6 +70,12 @@ export function ProjectListTab({ tasks, onOpenTask }: Props) {
       });
   }, [tasks, filters, sort]);
 
+  const availableTags = useMemo(() => {
+    const s = new Set<string>();
+    tasks.forEach((t) => t.tags.forEach((tag) => s.add(tag)));
+    return Array.from(s).sort((a, b) => a.localeCompare(b));
+  }, [tasks]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#111827] md:flex-row md:items-center md:justify-between">
@@ -81,15 +92,19 @@ export function ProjectListTab({ tasks, onOpenTask }: Props) {
               className="w-48 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-100"
             />
           </div>
-          <TaskFiltersPopover filters={filters} onChange={(patch) => updateParams(patch as Record<string, string>)} />
+          <TaskFiltersPopover 
+            filters={filters} 
+            onChange={(patch) => updateParams(patch as Record<string, string>)} 
+            availableTags={availableTags}
+          />
           <SortControls value={sort} onChange={(v) => updateParams({ sort: v })} />
-          <button className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90">
+          <button onClick={onAddTask} className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90">
             New task
           </button>
         </div>
       </div>
 
-      <TaskTable tasks={filtered} onRowClick={onOpenTask} />
+      <TaskTable tasks={filtered} onRowClick={onOpenTask} currentUserId={currentUserId} onReload={onReload} workspaceSlug={params.workspaceSlug as string} workspaceMembers={workspaceMembers} />
     </div>
   );
 }

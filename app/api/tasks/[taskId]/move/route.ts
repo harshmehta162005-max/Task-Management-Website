@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
-import { getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -13,26 +13,27 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
     const body = await req.json();
-    const { projectId } = body;
+    const { workspaceSlug, projectId } = body;
 
+    if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!projectId) throw new ApiError(400, "projectId is required");
 
-    // Verify user is authenticated
-    await getDbUser();
+    // Verify user has access to workspace
+    const { workspace } = await resolveWorkspace(workspaceSlug);
 
-    // Verify task exists
-    const task = await db.task.findUnique({
-      where: { id: taskId },
+    // Verify task exists and belongs to the workspace
+    const task = await db.task.findFirst({
+      where: { id: taskId, project: { workspaceId: workspace.id } },
       select: { id: true, projectId: true },
     });
-    if (!task) throw new ApiError(404, "Task not found");
+    if (!task) throw new ApiError(404, "Task not found in this workspace");
 
-    // Verify target project exists
-    const project = await db.project.findUnique({
-      where: { id: projectId },
+    // Verify target project exists and belongs to the workspace
+    const project = await db.project.findFirst({
+      where: { id: projectId, workspaceId: workspace.id },
       select: { id: true, name: true },
     });
-    if (!project) throw new ApiError(404, "Target project not found");
+    if (!project) throw new ApiError(404, "Target project not found in this workspace");
 
     if (task.projectId === projectId) {
       throw new ApiError(400, "Task is already in this project");

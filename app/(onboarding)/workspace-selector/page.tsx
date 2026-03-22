@@ -6,7 +6,7 @@ import { WorkspaceSelectorHeader } from "@/components/onboarding/WorkspaceSelect
 import { WorkspaceGrid } from "@/components/onboarding/WorkspaceGrid";
 import { AutoRedirectBanner } from "@/components/onboarding/AutoRedirectBanner";
 import type { Workspace } from "@/components/onboarding/WorkspaceCard";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 const ACCENT_COLORS = [
   "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30",
@@ -20,6 +20,7 @@ const ACCENT_COLORS = [
 export default function WorkspaceSelectorPage() {
   const router = useRouter();
   const { user } = useUser();
+  const { signOut } = useClerk();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -88,9 +89,15 @@ export default function WorkspaceSelectorPage() {
             <a className="text-slate-500 transition-colors hover:text-primary" href="#">
               Help Center
             </a>
-            <a className="text-slate-500 transition-colors hover:text-primary" href="#">
+            <button 
+              className="text-slate-500 transition-colors hover:text-primary" 
+              onClick={async () => {
+                await signOut();
+                router.push("/login");
+              }}
+            >
               Log out
-            </a>
+            </button>
           </div>
         </div>
       </div>

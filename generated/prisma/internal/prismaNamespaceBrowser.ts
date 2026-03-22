@@ -67,7 +67,8 @@ export const ModelName = {
   Comment: 'Comment',
   Notification: 'Notification',
   Activity: 'Activity',
-  Automation: 'Automation'
+  Automation: 'Automation',
+  CalendarNote: 'CalendarNote'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -301,6 +302,19 @@ export const AutomationScalarFieldEnum = {
 } as const
 
 export type AutomationScalarFieldEnum = (typeof AutomationScalarFieldEnum)[keyof typeof AutomationScalarFieldEnum]
+
+
+export const CalendarNoteScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  content: 'content',
+  projectId: 'projectId',
+  authorId: 'authorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CalendarNoteScalarFieldEnum = (typeof CalendarNoteScalarFieldEnum)[keyof typeof CalendarNoteScalarFieldEnum]
 
 
 export const SortOrder = {

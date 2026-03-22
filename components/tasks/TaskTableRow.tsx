@@ -8,9 +8,10 @@ type Props = {
   selected: boolean;
   onToggle: () => void;
   onClick: () => void;
+  disableSelection?: boolean;
 };
 
-export function TaskTableRow({ task, selected, onToggle, onClick }: Props) {
+export function TaskTableRow({ task, selected, onToggle, onClick, disableSelection }: Props) {
   return (
     <tr
       className={cn(
@@ -19,12 +20,13 @@ export function TaskTableRow({ task, selected, onToggle, onClick }: Props) {
       )}
       onClick={onClick}
     >
-      <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+      <td className="w-12 px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
           checked={selected}
           onChange={onToggle}
-          className="rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900"
+          disabled={disableSelection}
+          className="rounded border-slate-300 text-primary focus:ring-primary disabled:opacity-30 dark:border-slate-700 dark:bg-slate-900"
         />
       </td>
       <td className="py-3 px-4">

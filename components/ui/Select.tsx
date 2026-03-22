@@ -35,16 +35,46 @@ export function Select({ value, onChange, options, placeholder, className, size 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!open || !ref.current || !portal) return;
+    if (!open || !ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    setMenuStyle({
-      position: "fixed",
-      top: rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 99999, // Guarantees it stays above the modal
-    });
-  }, [open, portal]);
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuHeight = options.length * 42 + 20;
+
+    let top: number | undefined = rect.bottom + 8;
+    let bottom: number | undefined = undefined;
+
+    let shouldFlip = false;
+    if (portal) {
+      if (spaceBelow < menuHeight && spaceAbove > spaceBelow) shouldFlip = true;
+    } else {
+      // If absolute, page might be scrollable. Less aggressive flipping.
+      if (spaceBelow < 120 && spaceAbove > spaceBelow) shouldFlip = true;
+    }
+
+    if (shouldFlip) {
+      top = undefined;
+      bottom = window.innerHeight - rect.top + 8;
+    }
+
+    if (portal) {
+      setMenuStyle({
+        position: "fixed",
+        top,
+        bottom,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 99999,
+      });
+    } else {
+      setMenuStyle(
+        bottom !== undefined
+          ? { bottom: "100%", marginBottom: "8px", zIndex: 99999, position: "absolute", left: 0, right: 0 }
+          : { top: "100%", marginTop: "8px", zIndex: 99999, position: "absolute", left: 0, right: 0 }
+      );
+    }
+  }, [open, portal, options.length]);
 
   const selected = options.find((o) => o.value === value);
   const padding = size === "sm" ? "px-3 py-2 text-sm" : "px-3.5 py-2.5 text-sm";
@@ -52,11 +82,10 @@ export function Select({ value, onChange, options, placeholder, className, size 
   const menu = (
     <div
       className={cn(
-        // h-fit guarantees it ONLY wraps the content. shadow-xl removes the giant dark blur.
-        "h-fit w-full overflow-hidden rounded-xl border border-slate-700 bg-[#0f172a] text-slate-100 shadow-xl",
-        portal ? "fixed" : "absolute left-0 right-0 top-full mt-2 z-[99999]"
+        "w-full overflow-y-auto rounded-xl border border-slate-700 bg-[#0f172a] text-slate-100 shadow-xl",
+        portal ? "fixed" : ""
       )}
-      style={portal ? menuStyle : undefined}
+      style={{ ...menuStyle, maxHeight: "300px" }}
     >
       <ul className="py-2 m-0 flex flex-col">
         {options.map((opt) => {

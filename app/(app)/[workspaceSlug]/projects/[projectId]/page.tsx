@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AssignTaskModal } from "@/components/dashboard/AssignTaskModal";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   ProjectHeader,
   ProjectMembersRow,
@@ -29,10 +30,10 @@ type Project = {
   name: string;
   description: string;
   members: string[];
-  memberDetails?: { id: string; name: string; avatarUrl?: string; role: string }[];
+  memberDetails?: { id: string; name: string; avatarUrl?: string; role: string; clerkId?: string }[];
 };
 
-type Task = KanbanTask & { updatedAt: string };
+type Task = KanbanTask & { updatedAt: string; creatorId: string };
 
 const TAB_KEYS: TabKey[] = ["board", "list", "calendar", "activity", "insights"];
 
@@ -42,6 +43,7 @@ export default function ProjectPage() {
   const params = useParams<{ workspaceSlug: string; projectId: string }>();
   const workspaceSlug = params.workspaceSlug;
   const projectId = params.projectId;
+  const { user } = useUser();
 
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,8 +54,21 @@ export default function ProjectPage() {
 
   const workspaceMembers: DrawerAssignee[] = useMemo(() => {
     if (!project?.memberDetails) return [];
-    return project.memberDetails.map((m) => ({ id: m.id, name: m.name }));
+    return project.memberDetails
+      .map((m) => ({ id: m.id, name: m.name, avatar: m.avatarUrl }))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }, [project]);
+
+  const dbUserId = useMemo(() => {
+    if (!user || !project?.memberDetails) return undefined;
+    return project.memberDetails.find(m => m.clerkId === user.id)?.id;
+  }, [user, project]);
+
+  const isManager = useMemo(() => {
+    if (!user || !project?.memberDetails) return false;
+    const member = project.memberDetails.find(m => m.clerkId === user.id);
+    return member ? ["MANAGER", "OWNER"].includes(member.role) : false;
+  }, [user, project]);
 
   // Fetch project + tasks from API
   const loadProject = useCallback(async () => {
@@ -115,7 +130,7 @@ export default function ProjectPage() {
     }
     async function loadTask() {
       try {
-        const res = await fetch(`/api/tasks/${taskId}`);
+        const res = await fetch(`/api/tasks/${taskId}?workspaceSlug=${workspaceSlug}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         setDrawerTask(data);
@@ -160,7 +175,7 @@ export default function ProjectPage() {
       await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, workspaceSlug }),
       });
     } catch (err) {
       console.error("Failed to update task status:", err);
@@ -185,7 +200,7 @@ export default function ProjectPage() {
   if (!project) return <ProjectNotFound workspaceSlug={params.workspaceSlug} />;
 
   return (
-    <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-10">
+    <main className="min-h-screen min-w-0 flex-1 px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-10">
       <nav className="mb-6 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
         <Link href={`/${workspaceSlug}/projects`} className="font-medium hover:text-primary">
           Projects
@@ -217,10 +232,10 @@ export default function ProjectPage() {
         <ProjectTabs currentTab={currentTab} onChange={handleTabChange} />
       </div>
 
-      <div className="mt-6 grid gap-4">
-        {currentTab === "board" && <ProjectBoardTab tasks={tasks} onMove={updateTaskStatus} onOpenTask={openTask} />}
-        {currentTab === "list" && <ProjectListTab tasks={tasks} onOpenTask={openTask} />}
-        {currentTab === "calendar" && <ProjectCalendarTab tasks={tasks} onOpenTask={openTask} />}
+      <div className="mt-6 flex min-w-0 flex-col gap-4">
+        {currentTab === "board" && <ProjectBoardTab tasks={tasks} onMove={updateTaskStatus} onOpenTask={openTask} onAddTask={handleAddTask} />}
+        {currentTab === "list" && <ProjectListTab tasks={tasks} onOpenTask={openTask} onAddTask={handleAddTask} onReload={loadProject} currentUserId={dbUserId} workspaceMembers={workspaceMembers} />}
+        {currentTab === "calendar" && <ProjectCalendarTab tasks={tasks} onOpenTask={openTask} onAddTask={handleAddTask} isManager={isManager} projectId={projectId} workspaceSlug={workspaceSlug} />}
         {currentTab === "activity" && <ProjectActivityTab projectId={projectId} workspaceSlug={workspaceSlug} />}
         {currentTab === "insights" && <ProjectInsightsTab tasks={tasks} />}
       </div>
@@ -253,6 +268,7 @@ export default function ProjectPage() {
         open={showTaskModal}
         onClose={() => setShowTaskModal(false)}
         onCreated={loadProject}
+        defaultProjectId={projectId}
       />
     </main>
   );

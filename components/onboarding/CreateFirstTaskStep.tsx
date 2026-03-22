@@ -13,6 +13,7 @@ type Props = {
   onChange: (field: string, value: string) => void;
   onSkip: () => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 };
 
 const priorities: Array<Props["priority"]> = ["Low", "Medium", "High", "Urgent"];
@@ -27,6 +28,7 @@ export function CreateFirstTaskStep({
   onChange,
   onSkip,
   onSubmit,
+  isSubmitting,
 }: Props) {
   const hasAssignees = assignees.length > 0;
 
@@ -134,9 +136,10 @@ export function CreateFirstTaskStep({
           <button
             type="button"
             onClick={onSubmit}
-            className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98]"
+            disabled={isSubmitting}
+            className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Create task & finish
+            {isSubmitting ? "Creating..." : "Create task & finish"}
           </button>
         </div>
       </div>

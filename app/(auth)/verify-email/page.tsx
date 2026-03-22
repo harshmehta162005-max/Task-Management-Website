@@ -44,7 +44,7 @@ export default function VerifyEmailPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.push("/create-workspace");
+        router.push("/workspace-selector");
       } else {
         setError("Verification incomplete. Please try again.");
       }
@@ -57,11 +57,7 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#0B0F17] px-4 py-10 text-slate-200">
-      <div className="absolute inset-0 -z-10 overflow-hidden opacity-20">
-        <div className="absolute -top-[10%] -right-[10%] h-[500px] w-[500px] rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -left-[10%] h-[500px] w-[500px] rounded-full bg-indigo-900/10 blur-[120px]" />
-      </div>
+    <div className="mesh-gradient flex min-h-screen items-center justify-center bg-background-light px-6 py-10 text-slate-900 dark:bg-background-dark">
 
       <div className="w-full max-w-[520px]">
         <VerifyEmailCard
@@ -72,12 +68,12 @@ export default function VerifyEmailPage() {
         >
           {/* Verification code input */}
           <div className="mt-6 space-y-3">
-            <label className="text-sm font-medium text-slate-300">Enter verification code</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Enter verification code</label>
             <input
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="Enter the 6-digit code"
-              className="w-full rounded-xl border border-white/10 bg-[#0B0F17]/50 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-[#0B0F17]/50 dark:text-white"
               type="text"
               inputMode="numeric"
               maxLength={6}
@@ -92,7 +88,7 @@ export default function VerifyEmailPage() {
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="text-sm font-semibold text-slate-400 underline underline-offset-4 transition hover:text-white"
+              className="text-sm font-semibold text-slate-500 underline underline-offset-4 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
             >
               Change email address
             </button>

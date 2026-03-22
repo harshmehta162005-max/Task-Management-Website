@@ -8,16 +8,17 @@ type Props = {
   onClose: () => void;
   taskId: string;
   taskTitle: string;
+  workspaceSlug: string;
   onDeleted: () => void;
 };
 
-export function ConfirmDeleteModal({ open, onClose, taskId, taskTitle, onDeleted }: Props) {
+export function ConfirmDeleteModal({ open, onClose, taskId, taskTitle, workspaceSlug, onDeleted }: Props) {
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+      const res = await fetch(`/api/tasks/${taskId}?workspaceSlug=${workspaceSlug}`, { method: "DELETE" });
       if (res.ok) {
         onDeleted();
       }

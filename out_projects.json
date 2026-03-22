@@ -1,0 +1,52 @@
+[
+  {
+    "id": "cmmusagg10006uof3m1x884zp",
+    "name": "Website Redesign",
+    "description": "Complete redesign of the company website",
+    "status": "ACTIVE",
+    "visibility": "WORKSPACE",
+    "workspaceId": "cmmueawxv000490f3lam9kx12",
+    "createdAt": "2026-03-17T15:45:23.659Z",
+    "updatedAt": "2026-03-17T15:45:23.659Z"
+  },
+  {
+    "id": "cmmyk81zc000h4gf38lisw1o8",
+    "name": "Bug Reproduction Project",
+    "description": "Investigating task drawer saving bug.",
+    "status": "ACTIVE",
+    "visibility": "WORKSPACE",
+    "workspaceId": "cmmyk6qfk000b4gf3zesjfid3",
+    "createdAt": "2026-03-20T07:10:39.382Z",
+    "updatedAt": "2026-03-20T07:10:39.382Z"
+  },
+  {
+    "id": "cmmyn621j002c4gf3g7hb7d5f",
+    "name": "Test Project",
+    "description": null,
+    "status": "ACTIVE",
+    "visibility": "WORKSPACE",
+    "workspaceId": "cmmyn4gvx00264gf34vtbt744",
+    "createdAt": "2026-03-20T08:33:04.971Z",
+    "updatedAt": "2026-03-20T08:33:04.971Z"
+  },
+  {
+    "id": "cmn0k6k1z000kesf3jjg9j50c",
+    "name": "Project0",
+    "description": "This is an project.",
+    "status": "ACTIVE",
+    "visibility": "WORKSPACE",
+    "workspaceId": "cmn0k5zy1000iesf3m3uogoqc",
+    "createdAt": "2026-03-21T16:45:01.835Z",
+    "updatedAt": "2026-03-21T16:45:01.835Z"
+  },
+  {
+    "id": "cmn1ffme3000zesf375a4cgp1",
+    "name": "ProjectTest",
+    "description": "TestProject.",
+    "status": "ACTIVE",
+    "visibility": "WORKSPACE",
+    "workspaceId": "cmn1ff57c000xesf3ca0dxqi9",
+    "createdAt": "2026-03-22T07:19:52.870Z",
+    "updatedAt": "2026-03-22T07:19:52.870Z"
+  }
+]

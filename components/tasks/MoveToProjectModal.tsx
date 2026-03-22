@@ -42,7 +42,7 @@ export function MoveToProjectModal({
       const res = await fetch(`/api/tasks/${taskId}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId }),
+        body: JSON.stringify({ projectId, workspaceSlug }),
       });
       if (res.ok) {
         onMoved(projectName);

@@ -14,14 +14,14 @@ export async function GET(req: NextRequest, { params }: Params) {
     const slug = req.nextUrl.searchParams.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
-    await resolveWorkspace(slug);
+    const { workspace } = await resolveWorkspace(slug);
 
-    const project = await db.project.findUnique({
-      where: { id: projectId },
+    const project = await db.project.findFirst({
+      where: { id: projectId, workspaceId: workspace.id },
       include: {
         members: {
           include: {
-            user: { select: { id: true, name: true, avatarUrl: true, email: true } },
+            user: { select: { id: true, name: true, avatarUrl: true, email: true, clerkId: true } },
           },
         },
         tasks: {
@@ -56,6 +56,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         name: m.user.name ?? m.user.email,
         avatarUrl: m.user.avatarUrl,
         role: m.role,
+        clerkId: m.user.clerkId,
       })),
       tasks: project.tasks.map((t) => ({
         id: t.id,
@@ -90,7 +91,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { name, description, status, workspaceSlug } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
-    await resolveWorkspace(workspaceSlug);
+    const { workspace } = await resolveWorkspace(workspaceSlug);
+
+    const existing = await db.project.findFirst({
+      where: { id: projectId, workspaceId: workspace.id },
+    });
+    if (!existing) throw new ApiError(404, "Project not found in this workspace");
 
     const updated = await db.project.update({
       where: { id: projectId },
@@ -116,7 +122,12 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const { projectId } = await params;
     const slug = req.nextUrl.searchParams.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
-    await resolveWorkspace(slug);
+    const { workspace } = await resolveWorkspace(slug);
+
+    const existing = await db.project.findFirst({
+      where: { id: projectId, workspaceId: workspace.id },
+    });
+    if (!existing) throw new ApiError(404, "Project not found in this workspace");
 
     await db.project.delete({ where: { id: projectId } });
     return Response.json({ deleted: true });

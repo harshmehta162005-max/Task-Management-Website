@@ -12,7 +12,19 @@ const isPublicRoute = createRouteMatcher([
   '/api/auth/(.*)',
 ]);
 
+const isAuthRoute = createRouteMatcher([
+  '/login(.*)',
+  '/signup(.*)',
+  '/sso-callback(.*)'
+]);
+
 export default clerkMiddleware(async (auth, request) => {
+  const { userId } = await auth();
+  
+  if (userId && isAuthRoute(request)) {
+    return Response.redirect(new URL('/workspace-selector', request.url));
+  }
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }

@@ -31,6 +31,7 @@ model User {
   activities        Activity[]
   invitesSent       WorkspaceInvite[]
   taskUserDependencies TaskUserDependency[]
+  calendarNotes     CalendarNote[]
 
   @@map("users")
 }
@@ -141,6 +142,7 @@ model Project {
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   members   ProjectMember[]
   tasks     Task[]
+  calendarNotes CalendarNote[]
 
   @@map("projects")
 }
@@ -384,4 +386,22 @@ model Automation {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@map("automations")
+}
+
+// ─── CALENDAR NOTE ───────────────────────────────────────────────────────────
+
+model CalendarNote {
+  id        String   @id @default(cuid())
+  date      DateTime
+  content   String
+  projectId String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+  @@map("calendar_notes")
 }

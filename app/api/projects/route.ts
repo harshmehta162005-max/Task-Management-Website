@@ -55,6 +55,11 @@ export async function GET(req: NextRequest) {
             year: "numeric",
           }),
           members: p.members.map((m) => m.user.avatarUrl ?? ""),
+          memberDetails: p.members.map((m) => ({
+            id: m.user.id,
+            name: m.user.name ?? "",
+            avatarUrl: m.user.avatarUrl ?? "",
+          })),
           totalTasks: p._count.tasks,
           completedTasks: countMap["DONE"] ?? 0,
           blockedTasks: countMap["BLOCKED"] ?? 0,
@@ -134,6 +139,11 @@ export async function POST(req: NextRequest) {
           year: "numeric",
         }),
         members: project.members.map((m) => m.user.avatarUrl ?? ""),
+        memberDetails: project.members.map((m) => ({
+          id: m.user.id,
+          name: m.user.name ?? "",
+          avatarUrl: m.user.avatarUrl ?? "",
+        })),
         totalTasks: 0,
         completedTasks: 0,
         blockedTasks: 0,

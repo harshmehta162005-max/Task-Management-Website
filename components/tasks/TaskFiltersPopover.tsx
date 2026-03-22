@@ -16,9 +16,11 @@ export type TaskListFilters = {
 type Props = {
   filters: TaskListFilters;
   onChange: (next: Partial<TaskListFilters>) => void;
+  availableTags?: string[];
+  availableAssignees?: { id: string; name: string }[];
 };
 
-export function TaskFiltersPopover({ filters, onChange }: Props) {
+export function TaskFiltersPopover({ filters, onChange, availableTags, availableAssignees = [] }: Props) {
   const [open, setOpen] = useState(false);
 
   const apply = (patch: Partial<TaskListFilters>) => {
@@ -59,13 +61,16 @@ export function TaskFiltersPopover({ filters, onChange }: Props) {
             <SelectField
               label="Assignee"
               value={filters.assignee}
-              options={["", "alex", "sarah", "marcus", "emily", "lucas"]}
+              options={[
+                { value: "", label: "Any" },
+                ...availableAssignees.map(a => ({ value: a.id, label: a.name }))
+              ]}
               onChange={(v) => apply({ assignee: v })}
             />
             <SelectField
               label="Tag"
               value={filters.tag}
-              options={["", "Design", "Backend", "Bug", "Marketing", "QA", "Dev", "Infra", "Mobile", "Legal"]}
+              options={["", ...(availableTags || ["Design", "Backend", "Bug", "Marketing", "QA", "Dev", "Infra", "Mobile", "Legal"])]}
               onChange={(v) => apply({ tag: v })}
             />
             <DateRangePicker
@@ -88,7 +93,7 @@ function SelectField({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: (string | { value: string; label: string })[];
   onChange: (v: string) => void;
 }) {
   return (
@@ -97,8 +102,13 @@ function SelectField({
       <Select
         value={value}
         onChange={onChange}
-        options={options.map((opt) => ({ value: opt, label: opt === "" ? "Any" : opt.replace("_", " ") }))}
+        options={options.map((opt) => 
+          typeof opt === "string" 
+            ? { value: opt, label: opt === "" ? "Any" : opt.replace("_", " ") }
+            : opt
+        )}
         size="sm"
+        portal={false}
       />
     </label>
   );

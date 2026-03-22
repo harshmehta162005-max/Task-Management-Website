@@ -1,3 +1,4 @@
+// Cache bust 3: Recompile API with PrismaV5
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
@@ -78,13 +79,18 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { workspaceSlug, projectId, title, description, priority, dueDate, assigneeIds, status } = body;
+    const { workspaceSlug, projectId, title, description, priority, dueDate, assigneeIds, status, tags, subtasks, attachments } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!projectId) throw new ApiError(400, "projectId is required");
     if (!title) throw new ApiError(400, "Title is required");
 
     const { user, workspace } = await resolveWorkspace(workspaceSlug);
+
+    const project = await db.project.findFirst({
+      where: { id: projectId, workspaceId: workspace.id },
+    });
+    if (!project) throw new ApiError(404, "Project not found in this workspace");
 
     // Get max position in project
     const maxPos = await db.task.aggregate({
@@ -105,6 +111,26 @@ export async function POST(req: NextRequest) {
         assignees: assigneeIds?.length
           ? { create: assigneeIds.map((userId: string) => ({ userId })) }
           : { create: { userId: user.id } },
+        ...(subtasks && subtasks.length > 0 && {
+          subtasks: {
+            create: subtasks.map((st: any) => ({
+              title: st.text,
+              status: st.done ? "DONE" : "TODO",
+              priority: "MEDIUM",
+              projectId,
+              creatorId: user.id,
+            }))
+          }
+        }),
+        ...(attachments && attachments.length > 0 && {
+          attachments: {
+            create: attachments.map((a: any) => ({
+              id: a.id,
+              name: a.name,
+              size: a.size
+            }))
+          }
+        })
       },
       include: {
         project: { select: { id: true, name: true } },
@@ -113,6 +139,19 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    if (tags && tags.length > 0) {
+      for (const tagName of tags) {
+        const tag = await db.tag.upsert({
+          where: { name_workspaceId: { name: tagName, workspaceId: workspace.id } },
+          update: {},
+          create: { name: tagName, color: "#6366f1", workspaceId: workspace.id },
+        });
+        await db.taskTag.create({
+          data: { taskId: task.id, tagId: tag.id },
+        });
+      }
+    }
 
     // Log activity
     await db.activity.create({

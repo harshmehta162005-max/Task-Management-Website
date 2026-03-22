@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Loader2, Plus, X, Upload, Trash2, Bold, Italic, List, Link2, Code } from "lucide-react";
+import { Loader2, Plus, X, Trash2, Bold, Italic, List, Link2, Code } from "lucide-react";
+import { Select } from "@/components/ui/Select";
+import { AttachmentSection } from "@/components/tasks/AttachmentSection";
+import { DrawerAttachment, DrawerAssignee } from "@/components/tasks/task-drawer/types";
+import { AssigneeSelector } from "@/components/tasks/AssigneeSelector";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { useUser } from "@clerk/nextjs";
 
-type Project = { id: string; name: string };
+type Project = { id: string; name: string; memberDetails: { id: string; name: string; avatarUrl: string }[] };
 type Member = { id: string; name: string; avatarUrl: string };
 
 type Props = {
@@ -11,24 +17,27 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onCreated?: () => void;
+  defaultProjectId?: string; // New prop to lock active project
 };
 
-export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Props) {
+export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defaultProjectId }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
 
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [projectId, setProjectId] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState<Date | undefined>();
   const [status, setStatus] = useState<"TODO" | "IN_PROGRESS">("TODO");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT">("MEDIUM");
-  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<DrawerAssignee[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [subtasks, setSubtasks] = useState<{ text: string; done: boolean }[]>([]);
   const [newSubtask, setNewSubtask] = useState("");
+  const [attachments, setAttachments] = useState<DrawerAttachment[]>([]);
 
   // Data from API
   const [projects, setProjects] = useState<Project[]>([]);
@@ -49,16 +58,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
         ]);
         if (projRes.ok) {
           const data = await projRes.json();
-          setProjects(data.map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })));
-        }
-        if (memberRes.ok) {
-          const data = await memberRes.json();
-          const mems = (data.members || data).map((m: { id: string; name: string; avatarUrl: string }) => ({
-            id: m.id,
-            name: m.name || "User",
-            avatarUrl: m.avatarUrl || "",
-          }));
-          setMembers(mems);
+          setProjects(data.map((p: any) => ({ id: p.id, name: p.name, memberDetails: p.memberDetails })));
         }
       } catch {
         // silent
@@ -74,13 +74,14 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
     if (open) {
       setTitle("");
       setDescription("");
-      setProjectId("");
-      setDueDate("");
+      setProjectId(defaultProjectId || "");
+      setDueDate(undefined);
       setStatus("TODO");
       setPriority("MEDIUM");
       setSelectedAssignees([]);
       setTags([]);
       setSubtasks([]);
+      setAttachments([]);
       setError(null);
     }
   }, [open]);
@@ -100,11 +101,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
     if (e.target === overlayRef.current) onClose();
   };
 
-  const toggleAssignee = (id: string) => {
-    setSelectedAssignees((prev) =>
-      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
-    );
-  };
+
 
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -124,6 +121,9 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
   };
 
   const removeSubtask = (idx: number) => setSubtasks(subtasks.filter((_, i) => i !== idx));
+
+  const addAttachment = (file: DrawerAttachment) => setAttachments((prev) => [...prev, file]);
+  const removeAttachment = (id: string) => setAttachments((prev) => prev.filter((a) => a.id !== id));
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -148,8 +148,11 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
           description: description.trim() || null,
           status,
           priority,
-          dueDate: dueDate || null,
-          assigneeIds: selectedAssignees.length > 0 ? selectedAssignees : undefined,
+          dueDate: dueDate ? dueDate.toISOString() : null,
+          assigneeIds: selectedAssignees.length > 0 ? selectedAssignees.map(a => a.id) : undefined,
+          tags: tags.length > 0 ? tags : undefined,
+          subtasks: subtasks.length > 0 ? subtasks : undefined,
+          attachments: attachments.length > 0 ? attachments : undefined,
         }),
       });
 
@@ -195,7 +198,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
       style={{ animation: "fadeIn 0.2s ease-out" }}
     >
       <div
-        className="relative w-full max-w-[820px] overflow-hidden rounded-2xl border border-white/10 bg-white shadow-2xl dark:bg-[#0f1520]"
+        className="relative w-full max-w-[820px] overflow-visible rounded-2xl border border-white/10 bg-white shadow-2xl dark:bg-[#0f1520]"
         style={{ animation: "slideUp 0.25s ease-out" }}
       >
         {/* Header */}
@@ -253,21 +256,14 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
                     Project
                   </label>
                   <div className="relative">
-                    <select
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 outline-none transition-all focus:ring-2 focus:ring-primary dark:border-white/10 dark:bg-slate-900/50"
+                    <Select
                       value={projectId}
-                      onChange={(e) => setProjectId(e.target.value)}
-                    >
-                      <option value="">Select a project</option>
-                      {projects.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                    <svg className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
+                      onChange={setProjectId}
+                      options={projects.map((p) => ({ value: p.id, label: p.name }))}
+                      placeholder="Select a project"
+                      portal={false}
+                      disabled={!!defaultProjectId}
+                    />
                   </div>
                 </section>
 
@@ -276,11 +272,10 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
                     Due Date
                   </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 outline-none transition-all focus:ring-2 focus:ring-primary dark:border-white/10 dark:bg-slate-900/50"
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
+                  <DatePicker
+                    date={dueDate}
+                    onChange={setDueDate}
+                    disabled={{ before: new Date() }}
                   />
                 </section>
               </div>
@@ -294,21 +289,19 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
                   <div className="flex gap-2">
                     <button
                       onClick={() => setStatus("TODO")}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${
-                        status === "TODO"
+                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${status === "TODO"
                           ? "border-primary/30 bg-primary/10 text-primary"
                           : "border-slate-200 bg-slate-100 text-slate-500 dark:border-white/10 dark:bg-slate-800"
-                      }`}
+                        }`}
                     >
                       To Do
                     </button>
                     <button
                       onClick={() => setStatus("IN_PROGRESS")}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${
-                        status === "IN_PROGRESS"
+                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${status === "IN_PROGRESS"
                           ? "border-primary/30 bg-primary/10 text-primary"
                           : "border-slate-200 bg-slate-100 text-slate-500 dark:border-white/10 dark:bg-slate-800"
-                      }`}
+                        }`}
                     >
                       Active
                     </button>
@@ -325,9 +318,8 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
                       <button
                         key={p}
                         onClick={() => setPriority(p)}
-                        className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition ${
-                          priority === p ? priorityConfig[p].active : priorityConfig[p].inactive
-                        }`}
+                        className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition ${priority === p ? priorityConfig[p].active : priorityConfig[p].inactive
+                          }`}
                       >
                         {priorityConfig[p].label}
                       </button>
@@ -362,31 +354,17 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Assignees */}
                 <section>
-                  <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Assignees
-                  </label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {members.map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => toggleAssignee(m.id)}
-                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition ${
-                          selectedAssignees.includes(m.id)
-                            ? "border-primary bg-primary/20 text-primary shadow-md shadow-primary/20"
-                            : "border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500"
-                        }`}
-                        title={m.name}
-                      >
-                        {m.avatarUrl ? (
-                          <img src={m.avatarUrl} alt={m.name} className="h-full w-full rounded-full object-cover" />
-                        ) : (
-                          m.name.charAt(0).toUpperCase()
-                        )}
-                      </button>
-                    ))}
-                    {members.length === 0 && (
-                      <p className="text-sm text-slate-500">No members found</p>
-                    )}
+                  <div className="flex flex-col">
+                    <AssigneeSelector
+                      assignees={selectedAssignees}
+                      workspaceMembers={
+                        projectId
+                          ? (projects.find((p) => p.id === projectId)?.memberDetails || []).map(m => ({ id: m.id, name: m.name, avatar: m.avatarUrl }))
+                          : []
+                      }
+                      onChange={setSelectedAssignees}
+                      excludeUserIds={user?.id ? [user.id] : []}
+                    />
                   </div>
                 </section>
 
@@ -469,17 +447,12 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
               </section>
 
               {/* Attachments */}
-              <section>
-                <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Attachments
-                </label>
-                <div className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/10 bg-slate-900/20 p-8 transition-colors hover:bg-slate-900/40">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Upload className="h-5 w-5" />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-200">Click to upload or drag and drop</p>
-                  <p className="text-xs text-slate-500">SVG, PNG, JPG or GIF (max. 800x400px)</p>
-                </div>
+              <section className="mb-6">
+                <AttachmentSection
+                  attachments={attachments}
+                  onAdd={addAttachment}
+                  onDelete={removeAttachment}
+                />
               </section>
             </div>
 
@@ -519,6 +492,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated }: Pro
             </div>
           </>
         )}
+        <div id="portal-root" className="relative z-[9999]" />
       </div>
 
       {/* Animations */}

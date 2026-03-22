@@ -22,8 +22,8 @@ type Props = {
 };
 
 const columns: { id: KanbanTask["status"]; title: string; wip?: string }[] = [
-  { id: "TODO", title: "Todo", wip: "WIP 0/5" },
-  { id: "IN_PROGRESS", title: "In Progress", wip: "WIP 2/5" },
+  { id: "TODO", title: "To Do" },
+  { id: "IN_PROGRESS", title: "In Progress" },
   { id: "BLOCKED", title: "Blocked" },
   { id: "DONE", title: "Done" },
 ];
@@ -55,7 +55,7 @@ export function KanbanBoard({ tasks, onMove, onTaskClick }: Props) {
 
   return (
     <>
-      <div className="grid grid-flow-col auto-cols-[320px] gap-4 overflow-x-auto rounded-2xl bg-transparent">
+      <div className="grid grid-flow-col auto-cols-[320px] gap-4 overflow-x-auto bg-transparent pb-4 pt-1 px-1">
         {columns.map((col) => (
           <KanbanColumn
             key={col.id}

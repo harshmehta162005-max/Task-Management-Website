@@ -400,7 +400,8 @@ export const ModelName = {
   Comment: 'Comment',
   Notification: 'Notification',
   Activity: 'Activity',
-  Automation: 'Automation'
+  Automation: 'Automation',
+  CalendarNote: 'CalendarNote'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation"
+    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation" | "calendarNote"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1678,6 +1679,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CalendarNote: {
+      payload: Prisma.$CalendarNotePayload<ExtArgs>
+      fields: Prisma.CalendarNoteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CalendarNoteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CalendarNoteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>
+        }
+        findFirst: {
+          args: Prisma.CalendarNoteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CalendarNoteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>
+        }
+        findMany: {
+          args: Prisma.CalendarNoteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>[]
+        }
+        create: {
+          args: Prisma.CalendarNoteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>
+        }
+        createMany: {
+          args: Prisma.CalendarNoteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CalendarNoteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>[]
+        }
+        delete: {
+          args: Prisma.CalendarNoteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>
+        }
+        update: {
+          args: Prisma.CalendarNoteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>
+        }
+        deleteMany: {
+          args: Prisma.CalendarNoteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CalendarNoteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CalendarNoteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>[]
+        }
+        upsert: {
+          args: Prisma.CalendarNoteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarNotePayload>
+        }
+        aggregate: {
+          args: Prisma.CalendarNoteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCalendarNote>
+        }
+        groupBy: {
+          args: Prisma.CalendarNoteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarNoteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CalendarNoteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarNoteCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1932,6 +2007,19 @@ export const AutomationScalarFieldEnum = {
 } as const
 
 export type AutomationScalarFieldEnum = (typeof AutomationScalarFieldEnum)[keyof typeof AutomationScalarFieldEnum]
+
+
+export const CalendarNoteScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  content: 'content',
+  projectId: 'projectId',
+  authorId: 'authorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CalendarNoteScalarFieldEnum = (typeof CalendarNoteScalarFieldEnum)[keyof typeof CalendarNoteScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2260,6 +2348,7 @@ export type GlobalOmitConfig = {
   notification?: Prisma.NotificationOmit
   activity?: Prisma.ActivityOmit
   automation?: Prisma.AutomationOmit
+  calendarNote?: Prisma.CalendarNoteOmit
 }
 
 /* Types for Logging */

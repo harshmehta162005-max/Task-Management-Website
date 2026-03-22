@@ -39,7 +39,6 @@ export function KanbanColumn({ title, wip, tasks, onTaskClick, onDrop, onDragSta
         {tasks.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
             <span className="text-lg">No tasks here</span>
-            <button className="text-primary font-semibold">Add task</button>
           </div>
         ) : (
           tasks.map((task) => (
@@ -53,11 +52,6 @@ export function KanbanColumn({ title, wip, tasks, onTaskClick, onDrop, onDragSta
             </div>
           ))
         )}
-
-        <button className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary/60">
-          <Plus className="h-4 w-4" />
-          Add task
-        </button>
       </div>
     </div>
   );

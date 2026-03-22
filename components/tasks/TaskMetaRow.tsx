@@ -1,5 +1,6 @@
 import { DrawerPriority, DrawerStatus } from "./task-drawer/types";
 import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 type Props = {
   status: DrawerStatus;
@@ -36,12 +37,11 @@ export function TaskMetaRow({ status, priority, dueDate, onStatusChange, onPrior
         />
       </Field>
       <Field label="Due date">
-        <input
-          type="date"
-          value={dueDate ? dueDate.slice(0, 10) : ""}
-          onChange={(e) => { if (!readOnly) onDueChange(e.target.value ? e.target.value : null) }}
-          disabled={readOnly}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-[#111827] dark:text-slate-100 disabled:opacity-50"
+        <DatePicker
+          date={dueDate ? new Date(dueDate) : undefined}
+          onChange={(val) => { if (!readOnly) onDueChange(val ? val.toISOString() : null) }}
+          disabled={readOnly ? true : { before: new Date(new Date().setHours(0,0,0,0)) }}
+          className="w-full"
         />
       </Field>
     </div>

@@ -224,6 +224,7 @@ export type UserWhereInput = {
   activities?: Prisma.ActivityListRelationFilter
   invitesSent?: Prisma.WorkspaceInviteListRelationFilter
   taskUserDependencies?: Prisma.TaskUserDependencyListRelationFilter
+  calendarNotes?: Prisma.CalendarNoteListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -246,6 +247,7 @@ export type UserOrderByWithRelationInput = {
   activities?: Prisma.ActivityOrderByRelationAggregateInput
   invitesSent?: Prisma.WorkspaceInviteOrderByRelationAggregateInput
   taskUserDependencies?: Prisma.TaskUserDependencyOrderByRelationAggregateInput
+  calendarNotes?: Prisma.CalendarNoteOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -271,6 +273,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   activities?: Prisma.ActivityListRelationFilter
   invitesSent?: Prisma.WorkspaceInviteListRelationFilter
   taskUserDependencies?: Prisma.TaskUserDependencyListRelationFilter
+  calendarNotes?: Prisma.CalendarNoteListRelationFilter
 }, "id" | "clerkId" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -323,6 +326,7 @@ export type UserCreateInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -345,6 +349,7 @@ export type UserUncheckedCreateInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUpdateInput = {
@@ -367,6 +372,7 @@ export type UserUpdateInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -389,6 +395,7 @@ export type UserUncheckedUpdateInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -620,6 +627,20 @@ export type UserUpdateOneRequiredWithoutActivitiesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutActivitiesInput, Prisma.UserUpdateWithoutActivitiesInput>, Prisma.UserUncheckedUpdateWithoutActivitiesInput>
 }
 
+export type UserCreateNestedOneWithoutCalendarNotesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCalendarNotesInput, Prisma.UserUncheckedCreateWithoutCalendarNotesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCalendarNotesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCalendarNotesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCalendarNotesInput, Prisma.UserUncheckedCreateWithoutCalendarNotesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCalendarNotesInput
+  upsert?: Prisma.UserUpsertWithoutCalendarNotesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCalendarNotesInput, Prisma.UserUpdateWithoutCalendarNotesInput>, Prisma.UserUncheckedUpdateWithoutCalendarNotesInput>
+}
+
 export type UserCreateWithoutOwnedWorkspacesInput = {
   id?: string
   clerkId: string
@@ -639,6 +660,7 @@ export type UserCreateWithoutOwnedWorkspacesInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutOwnedWorkspacesInput = {
@@ -660,6 +682,7 @@ export type UserUncheckedCreateWithoutOwnedWorkspacesInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutOwnedWorkspacesInput = {
@@ -697,6 +720,7 @@ export type UserUpdateWithoutOwnedWorkspacesInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOwnedWorkspacesInput = {
@@ -718,6 +742,7 @@ export type UserUncheckedUpdateWithoutOwnedWorkspacesInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutWorkspaceMembersInput = {
@@ -739,6 +764,7 @@ export type UserCreateWithoutWorkspaceMembersInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
@@ -760,6 +786,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutWorkspaceMembersInput = {
@@ -797,6 +824,7 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
@@ -818,6 +846,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutInvitesSentInput = {
@@ -839,6 +868,7 @@ export type UserCreateWithoutInvitesSentInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutInvitesSentInput = {
@@ -860,6 +890,7 @@ export type UserUncheckedCreateWithoutInvitesSentInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutInvitesSentInput = {
@@ -897,6 +928,7 @@ export type UserUpdateWithoutInvitesSentInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitesSentInput = {
@@ -918,6 +950,7 @@ export type UserUncheckedUpdateWithoutInvitesSentInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutProjectMembersInput = {
@@ -939,6 +972,7 @@ export type UserCreateWithoutProjectMembersInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutProjectMembersInput = {
@@ -960,6 +994,7 @@ export type UserUncheckedCreateWithoutProjectMembersInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutProjectMembersInput = {
@@ -997,6 +1032,7 @@ export type UserUpdateWithoutProjectMembersInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectMembersInput = {
@@ -1018,6 +1054,7 @@ export type UserUncheckedUpdateWithoutProjectMembersInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutCreatedTasksInput = {
@@ -1039,6 +1076,7 @@ export type UserCreateWithoutCreatedTasksInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutCreatedTasksInput = {
@@ -1060,6 +1098,7 @@ export type UserUncheckedCreateWithoutCreatedTasksInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutCreatedTasksInput = {
@@ -1097,6 +1136,7 @@ export type UserUpdateWithoutCreatedTasksInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedTasksInput = {
@@ -1118,6 +1158,7 @@ export type UserUncheckedUpdateWithoutCreatedTasksInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutTaskAssignmentsInput = {
@@ -1139,6 +1180,7 @@ export type UserCreateWithoutTaskAssignmentsInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
@@ -1160,6 +1202,7 @@ export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutTaskAssignmentsInput = {
@@ -1197,6 +1240,7 @@ export type UserUpdateWithoutTaskAssignmentsInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
@@ -1218,6 +1262,7 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutTaskUserDependenciesInput = {
@@ -1239,6 +1284,7 @@ export type UserCreateWithoutTaskUserDependenciesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutTaskUserDependenciesInput = {
@@ -1260,6 +1306,7 @@ export type UserUncheckedCreateWithoutTaskUserDependenciesInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutTaskUserDependenciesInput = {
@@ -1297,6 +1344,7 @@ export type UserUpdateWithoutTaskUserDependenciesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTaskUserDependenciesInput = {
@@ -1318,6 +1366,7 @@ export type UserUncheckedUpdateWithoutTaskUserDependenciesInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutCommentsInput = {
@@ -1339,6 +1388,7 @@ export type UserCreateWithoutCommentsInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutCommentsInput = {
@@ -1360,6 +1410,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutCommentsInput = {
@@ -1397,6 +1448,7 @@ export type UserUpdateWithoutCommentsInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCommentsInput = {
@@ -1418,6 +1470,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -1439,6 +1492,7 @@ export type UserCreateWithoutNotificationsInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -1460,6 +1514,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1497,6 +1552,7 @@ export type UserUpdateWithoutNotificationsInput = {
   activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1518,6 +1574,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutActivitiesInput = {
@@ -1539,6 +1596,7 @@ export type UserCreateWithoutActivitiesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutActivitiesInput = {
@@ -1560,6 +1618,7 @@ export type UserUncheckedCreateWithoutActivitiesInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutActivitiesInput = {
@@ -1597,6 +1656,7 @@ export type UserUpdateWithoutActivitiesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActivitiesInput = {
@@ -1618,6 +1678,111 @@ export type UserUncheckedUpdateWithoutActivitiesInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutCalendarNotesInput = {
+  id?: string
+  clerkId: string
+  email: string
+  name?: string | null
+  avatarUrl?: string | null
+  timezone?: string
+  language?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  ownedWorkspaces?: Prisma.WorkspaceCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  createdTasks?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
+  invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
+  taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutCalendarNotesInput = {
+  id?: string
+  clerkId: string
+  email: string
+  name?: string | null
+  avatarUrl?: string | null
+  timezone?: string
+  language?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  ownedWorkspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  createdTasks?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
+  invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
+  taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutCalendarNotesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCalendarNotesInput, Prisma.UserUncheckedCreateWithoutCalendarNotesInput>
+}
+
+export type UserUpsertWithoutCalendarNotesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCalendarNotesInput, Prisma.UserUncheckedUpdateWithoutCalendarNotesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCalendarNotesInput, Prisma.UserUncheckedCreateWithoutCalendarNotesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCalendarNotesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCalendarNotesInput, Prisma.UserUncheckedUpdateWithoutCalendarNotesInput>
+}
+
+export type UserUpdateWithoutCalendarNotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  ownedWorkspaces?: Prisma.WorkspaceUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  createdTasks?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
+  invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
+  taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCalendarNotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  ownedWorkspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  createdTasks?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
+  invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
+  taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1636,6 +1801,7 @@ export type UserCountOutputType = {
   activities: number
   invitesSent: number
   taskUserDependencies: number
+  calendarNotes: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1649,6 +1815,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   activities?: boolean | UserCountOutputTypeCountActivitiesArgs
   invitesSent?: boolean | UserCountOutputTypeCountInvitesSentArgs
   taskUserDependencies?: boolean | UserCountOutputTypeCountTaskUserDependenciesArgs
+  calendarNotes?: boolean | UserCountOutputTypeCountCalendarNotesArgs
 }
 
 /**
@@ -1731,6 +1898,13 @@ export type UserCountOutputTypeCountTaskUserDependenciesArgs<ExtArgs extends run
   where?: Prisma.TaskUserDependencyWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCalendarNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CalendarNoteWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1752,6 +1926,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   activities?: boolean | Prisma.User$activitiesArgs<ExtArgs>
   invitesSent?: boolean | Prisma.User$invitesSentArgs<ExtArgs>
   taskUserDependencies?: boolean | Prisma.User$taskUserDependenciesArgs<ExtArgs>
+  calendarNotes?: boolean | Prisma.User$calendarNotesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1803,6 +1978,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   activities?: boolean | Prisma.User$activitiesArgs<ExtArgs>
   invitesSent?: boolean | Prisma.User$invitesSentArgs<ExtArgs>
   taskUserDependencies?: boolean | Prisma.User$taskUserDependenciesArgs<ExtArgs>
+  calendarNotes?: boolean | Prisma.User$calendarNotesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1821,6 +1997,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     activities: Prisma.$ActivityPayload<ExtArgs>[]
     invitesSent: Prisma.$WorkspaceInvitePayload<ExtArgs>[]
     taskUserDependencies: Prisma.$TaskUserDependencyPayload<ExtArgs>[]
+    calendarNotes: Prisma.$CalendarNotePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2236,6 +2413,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   activities<T extends Prisma.User$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitesSent<T extends Prisma.User$invitesSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$invitesSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskUserDependencies<T extends Prisma.User$taskUserDependenciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$taskUserDependenciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskUserDependencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  calendarNotes<T extends Prisma.User$calendarNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$calendarNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CalendarNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2904,6 +3082,30 @@ export type User$taskUserDependenciesArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.TaskUserDependencyScalarFieldEnum | Prisma.TaskUserDependencyScalarFieldEnum[]
+}
+
+/**
+ * User.calendarNotes
+ */
+export type User$calendarNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CalendarNote
+   */
+  select?: Prisma.CalendarNoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CalendarNote
+   */
+  omit?: Prisma.CalendarNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CalendarNoteInclude<ExtArgs> | null
+  where?: Prisma.CalendarNoteWhereInput
+  orderBy?: Prisma.CalendarNoteOrderByWithRelationInput | Prisma.CalendarNoteOrderByWithRelationInput[]
+  cursor?: Prisma.CalendarNoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CalendarNoteScalarFieldEnum | Prisma.CalendarNoteScalarFieldEnum[]
 }
 
 /**

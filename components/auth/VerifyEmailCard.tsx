@@ -12,22 +12,22 @@ type Props = {
 
 export function VerifyEmailCard({ email, onContinue, onResend, loadingResend = false, children }: Props) {
   return (
-    <div className="w-full max-w-[520px] rounded-2xl border border-white/10 bg-[#111827] p-8 shadow-2xl sm:p-10">
+    <div className="w-full max-w-[520px] rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl dark:border-white/10 dark:bg-[#111827] sm:p-10">
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
           <ShieldCheck className="h-7 w-7 text-primary" />
         </div>
         <div className="mb-2 flex items-center justify-center gap-2">
-          <span className="text-xl font-bold tracking-tight text-white">TeamOS</span>
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">TeamOS</span>
         </div>
-        <h1 className="mb-2 text-2xl font-semibold tracking-tight text-white">Verify your email</h1>
-        <p className="text-sm leading-relaxed text-slate-400">
+        <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Verify your email</h1>
+        <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
           We’ve sent a verification link to your inbox. Please follow the instructions to secure your account.
         </p>
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B0F17]/50 px-4 py-3">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-[#0B0F17]/50">
           <Mail className="h-4 w-4 text-slate-500" />
           <span className="text-sm font-medium text-primary">{email}</span>
         </div>
@@ -40,8 +40,8 @@ export function VerifyEmailCard({ email, onContinue, onResend, loadingResend = f
               'Click the "Verify Email" button in the message.',
               "Return to this window to continue your setup.",
             ].map((text, idx) => (
-              <li key={text} className="flex items-start gap-3 text-sm text-slate-300">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-slate-300">
+              <li key={text} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
                   {idx + 1}
                 </span>
                 <span className="leading-snug">{text}</span>
@@ -69,7 +69,7 @@ export function VerifyEmailCard({ email, onContinue, onResend, loadingResend = f
             onClick={onResend}
             disabled={loadingResend}
             className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 font-medium text-slate-200 transition hover:bg-white/5",
+              "flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-transparent dark:text-slate-200 dark:hover:bg-white/5",
               loadingResend && "opacity-60"
             )}
           >

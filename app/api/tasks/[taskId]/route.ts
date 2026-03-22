@@ -1,7 +1,7 @@
-// Cache bust 2: Forcing Webpack to recompile after Prisma generate
+// Cache bust 3: Recompile API with PrismaV5
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
-import { getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
 import fs from "fs";
 
 type Params = { params: Promise<{ taskId: string }> };
@@ -22,8 +22,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
       // Not authenticated — treat as non-creator
     }
 
-    const task = await db.task.findUnique({
-      where: { id: taskId },
+    const slug = _req.nextUrl.searchParams.get("workspaceSlug");
+    if (!slug) throw new ApiError(400, "workspaceSlug is required");
+    const { workspace } = await resolveWorkspace(slug);
+
+    const task = await db.task.findFirst({
+      where: { id: taskId, project: { workspaceId: workspace.id } },
       include: {
         project: { select: { id: true, name: true } },
         creator: { select: { clerkId: true } },
@@ -101,17 +105,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
     const body = await req.json();
-    const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies, attachments } = body;
+    const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies, attachments, workspaceSlug } = body;
 
-    const existingTask = await db.task.findUnique({
-      where: { id: taskId },
+    if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
+    const { workspace } = await resolveWorkspace(workspaceSlug);
+
+    const existingTask = await db.task.findFirst({
+      where: { id: taskId, project: { workspaceId: workspace.id } },
       select: {
         projectId: true,
         creatorId: true,
         project: { select: { workspaceId: true } },
       },
     });
-    if (!existingTask) throw new ApiError(404, "Task not found");
+    if (!existingTask) throw new ApiError(404, "Task not found in this workspace");
 
     const updated = await db.task.update({
       where: { id: taskId },
@@ -232,6 +239,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
+    const slug = _req.nextUrl.searchParams.get("workspaceSlug");
+    if (!slug) throw new ApiError(400, "workspaceSlug is required");
+    const { workspace } = await resolveWorkspace(slug);
+
+    const existing = await db.task.findFirst({
+      where: { id: taskId, project: { workspaceId: workspace.id } },
+    });
+    if (!existing) throw new ApiError(404, "Task not found in this workspace");
+
     await db.task.delete({ where: { id: taskId } });
     return Response.json({ deleted: true });
   } catch (error: any) {

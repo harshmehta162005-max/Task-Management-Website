@@ -14,6 +14,6 @@ const options = [
 
 export function SortControls({ value, onChange }: Props) {
   return (
-    <Select value={value} onChange={onChange} options={options} size="sm" />
+    <Select value={value} onChange={onChange} options={options} size="sm" portal={false} className="w-[170px]" />
   );
 }

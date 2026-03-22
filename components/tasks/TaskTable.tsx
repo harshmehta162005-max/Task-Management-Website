@@ -5,28 +5,54 @@ import { BulkActionBar } from "./BulkActionBar";
 import type { KanbanTask } from "./KanbanBoard";
 
 type Props = {
-  tasks: (KanbanTask & { updatedAt?: string })[];
+  tasks: (KanbanTask & { updatedAt?: string; creatorId: string })[];
   loading?: boolean;
   onRowClick: (id: string) => void;
+  currentUserId?: string;
+  onReload?: () => void;
+  workspaceSlug?: string;
+  workspaceMembers?: { id: string; name: string; avatar?: string }[];
 };
 
-export function TaskTable({ tasks, loading, onRowClick }: Props) {
+export function TaskTable({ tasks, loading, onRowClick, currentUserId, onReload, workspaceSlug, workspaceMembers = [] }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (loading) return <TaskTableSkeleton />;
 
   const toggleAll = () => {
-    if (selected.length === tasks.length) setSelected([]);
-    else setSelected(tasks.map((t) => t.id));
+    const selectable = tasks.filter((t) => currentUserId && t.creatorId === currentUserId);
+    if (selected.length === selectable.length && selectable.length > 0) setSelected([]);
+    else setSelected(selectable.map((t) => t.id));
   };
 
   const toggle = (id: string) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  const handleBulkAction = async (action: string, payload?: any) => {
+    if (!selected.length || isProcessing) return;
+    try {
+      setIsProcessing(true);
+      const res = await fetch(`/api/tasks/bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, taskIds: selected, workspaceSlug, value: payload }),
+      });
+      if (!res.ok) throw new Error("Bulk action failed");
+      setSelected([]);
+      onReload?.();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to perform bulk action");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#0f172a]">
-      <BulkActionBar count={selected.length} onClear={() => setSelected([])} />
+    <div className={`relative rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#0f172a] ${isProcessing ? "opacity-70 pointer-events-none" : ""}`}>
+      <BulkActionBar count={selected.length} onClear={() => setSelected([])} onAction={handleBulkAction} workspaceMembers={workspaceMembers} />
       <div className={selected.length ? "mt-[52px]" : ""}>
         <table className="w-full min-w-[960px] text-left">
           <thead>
@@ -34,7 +60,10 @@ export function TaskTable({ tasks, loading, onRowClick }: Props) {
               <th className="py-3 px-4 w-12">
                 <input
                   type="checkbox"
-                  checked={selected.length === tasks.length && tasks.length > 0}
+                  checked={
+                    tasks.filter((t) => currentUserId && t.creatorId === currentUserId).length > 0 &&
+                    selected.length === tasks.filter((t) => currentUserId && t.creatorId === currentUserId).length
+                  }
                   onChange={toggleAll}
                   className="rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900"
                 />
@@ -56,6 +85,7 @@ export function TaskTable({ tasks, loading, onRowClick }: Props) {
                 selected={selected.includes(task.id)}
                 onToggle={() => toggle(task.id)}
                 onClick={() => onRowClick(task.id)}
+                disableSelection={!currentUserId || task.creatorId !== currentUserId}
               />
             ))}
             {tasks.length === 0 ? (

@@ -11,9 +11,10 @@ type Props = {
   taskId?: string;
   workspaceMembers?: DrawerAssignee[];
   readOnly?: boolean;
+  excludeUserIds?: string[];
 };
 
-export function DependenciesSection({ dependencies, onChange, taskId, workspaceMembers = [], readOnly = false }: Props) {
+export function DependenciesSection({ dependencies, onChange, taskId, workspaceMembers = [], readOnly = false, excludeUserIds = [] }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,9 +37,9 @@ export function DependenciesSection({ dependencies, onChange, taskId, workspaceM
     const q = search.toLowerCase();
     return workspaceMembers.filter((m) => {
       const name = m.name || "Unknown User";
-      return name.toLowerCase().includes(q) && !dependencies.blocking.some(b => b.id === m.id);
+      return name.toLowerCase().includes(q) && !dependencies.blocking.some(b => b.id === m.id) && !excludeUserIds.includes(m.id);
     });
-  }, [workspaceMembers, search, dependencies.blocking]);
+  }, [workspaceMembers, search, dependencies.blocking, excludeUserIds]);
 
   const addBlocking = (memberEntity: DrawerAssignee) => {
     if (dependencies.blocking.some(b => b.id === memberEntity.id)) return;

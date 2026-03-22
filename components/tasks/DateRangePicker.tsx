@@ -16,8 +16,13 @@ export function DateRangePicker({ from, to, onChange }: Props) {
           <input
             type="date"
             value={from}
+            onClick={(e) => {
+              try {
+                e.currentTarget.showPicker?.();
+              } catch {}
+            }}
             onChange={(e) => onChange(e.target.value, to)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-2 py-2 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100 [&::-webkit-calendar-picker-indicator]:hidden"
           />
         </div>
         <div className="relative">
@@ -25,8 +30,13 @@ export function DateRangePicker({ from, to, onChange }: Props) {
           <input
             type="date"
             value={to}
+            onClick={(e) => {
+              try {
+                e.currentTarget.showPicker?.();
+              } catch {}
+            }}
             onChange={(e) => onChange(from, e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-2 py-2 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100 [&::-webkit-calendar-picker-indicator]:hidden"
           />
         </div>
       </div>

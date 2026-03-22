@@ -7,9 +7,10 @@ type Props = {
   tasks: KanbanTask[];
   onMove: (id: string, status: KanbanTask["status"]) => void;
   onOpenTask: (id: string) => void;
+  onAddTask: () => void;
 };
 
-export function ProjectBoardTab({ tasks, onMove, onOpenTask }: Props) {
+export function ProjectBoardTab({ tasks, onMove, onOpenTask, onAddTask }: Props) {
   const [loading] = useState(false);
   const [search, setSearch] = useState("");
   const [assignee, setAssignee] = useState("");
@@ -27,9 +28,20 @@ export function ProjectBoardTab({ tasks, onMove, onOpenTask }: Props) {
     });
   }, [tasks, search, assignee, priority]);
 
+  const availableAssignees = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    tasks.forEach(t => t.assignees.forEach(a => map.set(a.id, { id: a.id, name: a.name })));
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [tasks]);
+
   return (
     <div className="space-y-4">
-      <KanbanFilterBar onSearchChange={setSearch} onAssigneeChange={setAssignee} onPriorityChange={setPriority} />
+      <KanbanFilterBar 
+        onSearchChange={setSearch} 
+        onAssigneeChange={setAssignee} 
+        onPriorityChange={setPriority} 
+        availableAssignees={availableAssignees}
+      />
       {loading ? (
         <KanbanBoardSkeleton />
       ) : filteredTasks.length === 0 ? (
@@ -38,9 +50,9 @@ export function ProjectBoardTab({ tasks, onMove, onOpenTask }: Props) {
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Add tasks to start organizing work in this project.
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm">
+          <div className="mt-4"><button onClick={onAddTask} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm">
             + Add task
-          </div>
+          </button></div>
         </div>
       ) : (
         <KanbanBoard tasks={filteredTasks} onMove={onMove} onTaskClick={onOpenTask} />

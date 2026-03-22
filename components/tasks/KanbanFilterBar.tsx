@@ -6,9 +6,10 @@ type Props = {
   onSearchChange: (v: string) => void;
   onAssigneeChange: (v: string) => void;
   onPriorityChange: (v: string) => void;
+  availableAssignees?: { id: string; name: string }[];
 };
 
-export function KanbanFilterBar({ onSearchChange, onAssigneeChange, onPriorityChange }: Props) {
+export function KanbanFilterBar({ onSearchChange, onAssigneeChange, onPriorityChange, availableAssignees = [] }: Props) {
   const [search, setSearch] = useState("");
   const [assignee, setAssignee] = useState("");
   const [priority, setPriority] = useState("");
@@ -45,9 +46,7 @@ export function KanbanFilterBar({ onSearchChange, onAssigneeChange, onPriorityCh
         }}
         options={[
           { value: "", label: "Assignee" },
-          { value: "alex", label: "Alex" },
-          { value: "sarah", label: "Sarah" },
-          { value: "marcus", label: "Marcus" },
+          ...availableAssignees.map(a => ({ value: a.id, label: a.name }))
         ]}
         className="w-40"
         portal={false}
