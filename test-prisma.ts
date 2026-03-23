@@ -1,58 +1,38 @@
-import { PrismaClient } from "./generated/prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import * as dotenv from "dotenv";
+import { db } from "./lib/db/prisma";
 
-dotenv.config({ path: ".env.local" });
-
-async function main() {
-  const adapter = new PrismaNeon({
-    connectionString: process.env.DATABASE_URL
-  });
-  const db = new PrismaClient({ adapter });
-
-  console.log("Connected to Prisma.");
+async function run() {
   try {
-    const user = await db.user.findFirst();
-    const project = await db.project.findFirst();
+    const activities = await db.activity.findMany({
+      where: {
+        action: { startsWith: "commented on" },
+      },
+    });
 
-    if (!user || !project) {
-      console.log("No user or project found to test with.");
-      return;
+    let count = 0;
+    for (const activity of activities) {
+      if (activity.entityType === "TASK" && activity.entityId) {
+        const task = await db.task.findUnique({
+          where: { id: activity.entityId },
+          select: { title: true },
+        });
+
+        if (task) {
+          await db.activity.update({
+            where: { id: activity.id },
+            data: {
+              action: `commented on "${task.title}"`,
+            },
+          });
+          count++;
+        }
+      }
     }
-
-    console.log("Testing db.task.create...");
-    const maxPos = await db.task.aggregate({
-      where: { projectId: project.id },
-      _max: { position: true },
-    });
-
-    const task = await db.task.create({
-      data: {
-        title: "Test Task",
-        description: null,
-        status: "TODO",
-        priority: "MEDIUM",
-        dueDate: null,
-        position: (maxPos._max.position || 0) + 1,
-        projectId: project.id,
-        creatorId: user.id,
-        assignees: { create: { userId: user.id } },
-      },
-      include: {
-        project: { select: { id: true, name: true } },
-        assignees: {
-          include: { user: { select: { id: true, name: true, avatarUrl: true } } },
-        },
-      },
-    });
-
-    console.log("Created successfully!", task.id);
-  } catch (e) {
-    console.error("PRISMA ERROR CAUGHT:");
-    console.error(e);
+    console.log(`Updated ${count} activity logs.`);
+  } catch (error) {
+    console.error("Error migrating activities:", error);
   } finally {
-    await db.$disconnect();
+    process.exit(0);
   }
 }
 
-main().catch(console.error);
+run();

@@ -4,6 +4,7 @@ import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/reso
 
 /**
  * PATCH /api/projects/[projectId]/calendar-notes/[noteId]
+ * Only the note's author can edit their own note.
  */
 export async function PATCH(
   req: NextRequest,
@@ -12,32 +13,36 @@ export async function PATCH(
   try {
     const { projectId, noteId } = await params;
     const body = await req.json();
-    const { content, workspaceSlug } = body;
+    const { content, workspaceSlug, isPublic } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!content || (typeof content === "string" && !content.trim())) throw new ApiError(400, "content is required");
 
     const { workspace, user } = await resolveWorkspace(workspaceSlug);
 
-    const isWorkspaceOwner = workspace.ownerId === user.id;
+    // Verify note exists and user is the author
+    const existing = await db.calendarNote.findUnique({ where: { id: noteId } });
+    if (!existing || existing.projectId !== projectId) throw new ApiError(404, "Note not found");
+    if (existing.authorId !== user.id) throw new ApiError(403, "You can only edit your own notes");
+
+    // Members always private; managers/owners can toggle
     const membership = await db.projectMember.findUnique({
       where: { userId_projectId: { userId: user.id, projectId } },
     });
-    const isProjectManager = membership && ["MANAGER", "OWNER"].includes(membership.role);
-    if (!isWorkspaceOwner && !isProjectManager) {
-      throw new ApiError(403, "Only managers and owners can edit notes");
-    }
+    const isManagerOrOwner = (membership && ["MANAGER", "OWNER"].includes(membership.role)) || workspace.ownerId === user.id;
+    const noteIsPublic = isManagerOrOwner ? (isPublic === true) : false;
 
     const note = await db.calendarNote.update({
       where: { id: noteId },
       data: {
         content: typeof content === "string" ? content : JSON.stringify(content),
-        authorId: user.id,
+        isPublic: noteIsPublic,
       },
       select: {
         id: true,
         date: true,
         content: true,
+        isPublic: true,
         author: { select: { id: true, name: true, avatarUrl: true } },
       },
     });
@@ -50,6 +55,7 @@ export async function PATCH(
 
 /**
  * DELETE /api/projects/[projectId]/calendar-notes/[noteId]
+ * Only the note's author can delete their own note.
  */
 export async function DELETE(
   req: NextRequest,
@@ -61,16 +67,11 @@ export async function DELETE(
     const slug = sp.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
-    const { workspace, user } = await resolveWorkspace(slug);
+    const { user } = await resolveWorkspace(slug);
 
-    const isWorkspaceOwner = workspace.ownerId === user.id;
-    const membership = await db.projectMember.findUnique({
-      where: { userId_projectId: { userId: user.id, projectId } },
-    });
-    const isProjectManager = membership && ["MANAGER", "OWNER"].includes(membership.role);
-    if (!isWorkspaceOwner && !isProjectManager) {
-      throw new ApiError(403, "Only managers and owners can delete notes");
-    }
+    const existing = await db.calendarNote.findUnique({ where: { id: noteId } });
+    if (!existing || existing.projectId !== projectId) throw new ApiError(404, "Note not found");
+    if (existing.authorId !== user.id) throw new ApiError(403, "You can only delete your own notes");
 
     await db.calendarNote.delete({ where: { id: noteId } });
 

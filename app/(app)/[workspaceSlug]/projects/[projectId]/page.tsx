@@ -24,6 +24,7 @@ import { ProjectNotFound } from "@/components/projects/project-page/ProjectNotFo
 import { TaskDrawer } from "@/components/tasks/TaskDrawer";
 import type { DrawerTask, DrawerAssignee } from "@/components/tasks/task-drawer/types";
 import { KanbanTask } from "@/components/tasks/KanbanBoard";
+import { Loader2 } from "lucide-react";
 
 type Project = {
   id: string;
@@ -73,7 +74,9 @@ export default function ProjectPage() {
   // Fetch project + tasks from API
   const loadProject = useCallback(async () => {
     try {
-      const res = await fetch(`/api/projects/${projectId}?workspaceSlug=${workspaceSlug}`);
+      const res = await fetch(`/api/projects/${projectId}?workspaceSlug=${workspaceSlug}`, {
+        cache: "no-store",
+      });
       if (!res.ok) {
         setProject(null);
         return;
@@ -196,6 +199,40 @@ export default function ProjectPage() {
     setShowRename(false);
   };
 
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+
+  const handleArchive = async () => {
+    setIsProcessingAction(true);
+    try {
+      await fetch(`/api/projects/${projectId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "archived", workspaceSlug }),
+      });
+      router.push(`/${workspaceSlug}/projects`);
+    } catch (err) {
+      console.error("Failed to archive project:", err);
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsProcessingAction(true);
+    try {
+      await fetch(`/api/projects/${projectId}?workspaceSlug=${workspaceSlug}`, {
+        method: "DELETE",
+      });
+      router.push(`/${workspaceSlug}/projects`);
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   if (loading) return <ProjectPageSkeleton />;
   if (!project) return <ProjectNotFound workspaceSlug={params.workspaceSlug} />;
 
@@ -216,13 +253,15 @@ export default function ProjectPage() {
           onAddTask={handleAddTask}
           onSummarize={handleSummarize}
           settingsMenu={
-            <ProjectSettingsMenu
-              isManager={true}
-              onRename={() => setShowRename(true)}
-              onManageMembers={() => router.push(`/${workspaceSlug}/projects/${projectId}/settings`)}
-              onArchive={() => {}}
-              onDelete={() => {}}
-            />
+            isManager ? (
+              <ProjectSettingsMenu
+                isManager={isManager}
+                onRename={() => setShowRename(true)}
+                onManageMembers={() => router.push(`/${workspaceSlug}/projects/${projectId}/settings`)}
+                onArchive={() => setShowArchiveConfirm(true)}
+                onDelete={() => setShowDeleteConfirm(true)}
+              />
+            ) : undefined
           }
         />
         <ProjectMembersRow members={project.members} total={project.members.length} onInvite={() => setShowInvite(true)} />
@@ -235,7 +274,7 @@ export default function ProjectPage() {
       <div className="mt-6 flex min-w-0 flex-col gap-4">
         {currentTab === "board" && <ProjectBoardTab tasks={tasks} onMove={updateTaskStatus} onOpenTask={openTask} onAddTask={handleAddTask} />}
         {currentTab === "list" && <ProjectListTab tasks={tasks} onOpenTask={openTask} onAddTask={handleAddTask} onReload={loadProject} currentUserId={dbUserId} workspaceMembers={workspaceMembers} />}
-        {currentTab === "calendar" && <ProjectCalendarTab tasks={tasks} onOpenTask={openTask} onAddTask={handleAddTask} isManager={isManager} projectId={projectId} workspaceSlug={workspaceSlug} />}
+        {currentTab === "calendar" && <ProjectCalendarTab tasks={tasks} onOpenTask={openTask} onAddTask={handleAddTask} isManager={isManager} projectId={projectId} workspaceSlug={workspaceSlug} currentUserId={dbUserId} />}
         {currentTab === "activity" && <ProjectActivityTab projectId={projectId} workspaceSlug={workspaceSlug} />}
         {currentTab === "insights" && <ProjectInsightsTab tasks={tasks} />}
       </div>
@@ -270,6 +309,46 @@ export default function ProjectPage() {
         onCreated={loadProject}
         defaultProjectId={projectId}
       />
+
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isProcessingAction && setShowArchiveConfirm(false)} />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+            <div className="mb-4 text-center">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Archive Project</h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Are you sure you want to archive this project? You can restore it later from settings.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button disabled={isProcessingAction} onClick={() => setShowArchiveConfirm(false)} className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">Cancel</button>
+              <button disabled={isProcessingAction} onClick={handleArchive} className="flex-1 flex justify-center items-center rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-600">
+                {isProcessingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : "Archive"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isProcessingAction && setShowDeleteConfirm(false)} />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+            <div className="mb-4 text-center">
+              <h3 className="text-lg font-bold text-red-600 dark:text-red-400">Delete Project</h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Are you sure you want to permanently delete <span className="font-semibold text-slate-700 dark:text-slate-200">&ldquo;{project.name}&rdquo;</span>? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button disabled={isProcessingAction} onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">Cancel</button>
+              <button disabled={isProcessingAction} onClick={handleDelete} className="flex-1 flex justify-center items-center rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">
+                {isProcessingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Filter, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ActivityFeed } from "./ActivityFeed";
+import { Select } from "@/components/ui/Select";
 
 type Activity = {
   id: string;
@@ -18,15 +19,25 @@ type Props = {
   workspaceSlug: string;
 };
 
+const FILTER_OPTIONS = [
+  { value: "all", label: "All Activity" },
+  { value: "comments", label: "Comments" },
+  { value: "tasks_created", label: "Tasks Created" },
+  { value: "tasks_completed", label: "Tasks Completed" },
+  { value: "notes_created", label: "Notes Created" },
+];
+
 export function ProjectActivityTab({ projectId, workspaceSlug }: Props) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
       try {
         const res = await fetch(
-          `/api/projects/${projectId}/activity?workspaceSlug=${workspaceSlug}`
+          `/api/projects/${projectId}/activity?workspaceSlug=${workspaceSlug}&filter=${filter}`
         );
         if (res.ok) {
           const data = await res.json();
@@ -39,7 +50,7 @@ export function ProjectActivityTab({ projectId, workspaceSlug }: Props) {
       }
     }
     load();
-  }, [projectId, workspaceSlug]);
+  }, [projectId, workspaceSlug, filter]);
 
   return (
     <div className="space-y-4">
@@ -48,10 +59,14 @@ export function ProjectActivityTab({ projectId, workspaceSlug }: Props) {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Project activity</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">Recent updates from your team.</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-200">
-          <Filter className="h-4 w-4" />
-          All activity
-        </button>
+        <div className="w-48">
+          <Select
+            value={filter}
+            onChange={setFilter}
+            options={FILTER_OPTIONS}
+            portal={false}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -60,7 +75,7 @@ export function ProjectActivityTab({ projectId, workspaceSlug }: Props) {
         </div>
       ) : activities.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-[#0f172a]">
-          <p className="text-sm text-slate-500">No activity yet. Create tasks to see activity here.</p>
+          <p className="text-sm text-slate-500">No activity here.</p>
         </div>
       ) : (
         <ActivityFeed items={activities} />

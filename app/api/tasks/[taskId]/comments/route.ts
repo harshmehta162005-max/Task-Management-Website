@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const task = await db.task.findFirst({
       where: { id: taskId, project: { workspaceId: workspace.id } },
-      select: { id: true, projectId: true, project: { select: { workspaceId: true } } },
+      select: { id: true, title: true, projectId: true, project: { select: { workspaceId: true } } },
     });
     if (!task) throw new ApiError(404, "Task not found in this workspace");
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     // Log activity
     await db.activity.create({
       data: {
-        action: `commented on "${task.id}"`,
+        action: `commented on "${task.title}"`,
         entityType: "TASK",
         entityId: taskId,
         metadata: { projectId: task.projectId, comment: commentBody.trim().slice(0, 100) },

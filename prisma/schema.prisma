@@ -394,6 +394,7 @@ model CalendarNote {
   id        String   @id @default(cuid())
   date      DateTime
   content   String
+  isPublic  Boolean  @default(false)
   projectId String
   authorId  String
   createdAt DateTime @default(now())
@@ -402,6 +403,6 @@ model CalendarNote {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, date])
+  @@index([projectId, date])
   @@map("calendar_notes")
 }

@@ -108,14 +108,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies, attachments, workspaceSlug } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
-    const { workspace } = await resolveWorkspace(workspaceSlug);
+    const { workspace, user } = await resolveWorkspace(workspaceSlug);
 
     const existingTask = await db.task.findFirst({
       where: { id: taskId, project: { workspaceId: workspace.id } },
       select: {
         projectId: true,
         creatorId: true,
-        project: { select: { workspaceId: true } },
+        title: true,
+        status: true,
+        project: { select: { workspaceId: true, name: true } },
       },
     });
     if (!existingTask) throw new ApiError(404, "Task not found in this workspace");
@@ -224,6 +226,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           });
         }
       }
+    }
+
+    if (body.status === "DONE" && existingTask.status !== "DONE") {
+      await db.activity.create({
+        data: {
+          action: `completed task "${existingTask.title}"`,
+          entityType: "TASK",
+          entityId: taskId,
+          metadata: { projectId: existingTask.projectId, projectName: existingTask.project.name },
+          actorId: user.id,
+          workspaceId: workspace.id,
+        },
+      });
     }
 
     return Response.json(updated);

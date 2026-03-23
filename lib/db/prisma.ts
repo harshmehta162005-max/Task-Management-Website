@@ -2,7 +2,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@/generated/prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
-  prismaV6: PrismaClient | undefined;
+  prismaV7: PrismaClient | undefined;
 };
 
 function createPrismaClient() {
@@ -12,8 +12,8 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const db = globalForPrisma.prismaV6 ?? createPrismaClient();
+export const db = globalForPrisma.prismaV7 ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prismaV6 = db;
+  globalForPrisma.prismaV7 = db;
 }

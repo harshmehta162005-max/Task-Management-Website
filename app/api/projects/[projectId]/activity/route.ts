@@ -12,16 +12,28 @@ export async function GET(req: NextRequest, { params }: Params) {
   try {
     const { projectId } = await params;
     const slug = req.nextUrl.searchParams.get("workspaceSlug");
+    const filterParam = req.nextUrl.searchParams.get("filter") || "all";
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
     await resolveWorkspace(slug);
 
+    let actionFilter: any = undefined;
+    if (filterParam === "comments") actionFilter = { startsWith: "commented on" };
+    else if (filterParam === "tasks_created") actionFilter = { startsWith: "created task" };
+    else if (filterParam === "tasks_completed") actionFilter = { startsWith: "completed task" };
+    else if (filterParam === "notes_created") actionFilter = { startsWith: "created note" };
+
     // Fetch activities related to this project
     const activities = await db.activity.findMany({
       where: {
-        OR: [
-          { entityType: "PROJECT", entityId: projectId },
-          { entityType: "TASK", metadata: { path: ["projectId"], equals: projectId } },
+        AND: [
+          {
+            OR: [
+              { entityType: "PROJECT", entityId: projectId },
+              { entityType: "TASK", metadata: { path: ["projectId"], equals: projectId } },
+            ],
+          },
+          actionFilter ? { action: actionFilter } : {},
         ],
       },
       include: {
@@ -32,7 +44,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     });
 
     // If no project-specific activities, get workspace-level ones
-    if (activities.length === 0) {
+    if (activities.length === 0 && filterParam === "all") {
       const wsActivities = await db.activity.findMany({
         where: { workspace: { slug } },
         include: {

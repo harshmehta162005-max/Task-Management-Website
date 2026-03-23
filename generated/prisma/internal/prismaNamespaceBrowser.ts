@@ -308,6 +308,7 @@ export const CalendarNoteScalarFieldEnum = {
   id: 'id',
   date: 'date',
   content: 'content',
+  isPublic: 'isPublic',
   projectId: 'projectId',
   authorId: 'authorId',
   createdAt: 'createdAt',

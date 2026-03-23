@@ -4,6 +4,9 @@ import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/reso
 
 /**
  * GET /api/projects/[projectId]/calendar-notes?workspaceSlug=xxx&month=2026-03
+ * Returns notes visible to the current user:
+ *   - All public notes for this project/month
+ *   - All private notes owned by the current user
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   try {
@@ -12,30 +15,36 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
     const slug = sp.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
-    await resolveWorkspace(slug);
+    const { user } = await resolveWorkspace(slug);
 
     const monthParam = sp.get("month");
-    const where: any = { projectId };
-
+    const dateFilter: any = {};
     if (monthParam) {
       const [year, month] = monthParam.split("-").map(Number);
-      const start = new Date(Date.UTC(year, month - 1, 1));
-      const end = new Date(Date.UTC(year, month, 0));
-      where.date = { gte: start, lte: end };
+      dateFilter.gte = new Date(Date.UTC(year, month - 1, 1));
+      dateFilter.lte = new Date(Date.UTC(year, month, 0));
     }
 
     const notes = await db.calendarNote.findMany({
-      where,
+      where: {
+        projectId,
+        ...(monthParam ? { date: dateFilter } : {}),
+        OR: [
+          { isPublic: true },
+          { authorId: user.id },
+        ],
+      },
       select: {
         id: true,
         date: true,
         content: true,
+        isPublic: true,
         authorId: true,
         createdAt: true,
         updatedAt: true,
         author: { select: { id: true, name: true, avatarUrl: true } },
       },
-      orderBy: { date: "asc" },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(notes);
@@ -46,14 +55,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
 
 /**
  * POST /api/projects/[projectId]/calendar-notes
- * Create or upsert a note on a specific date. Manager/Owner only.
- * Body: { date: "2026-03-15", content: "...", workspaceSlug: "..." }
+ * Any project member can create a note.
+ * Members: always private. Managers/owners: respect isPublic from body.
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   try {
     const { projectId } = await params;
     const body = await req.json();
-    const { date, content, workspaceSlug } = body;
+    const { date, content, workspaceSlug, isPublic } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!date) throw new ApiError(400, "date is required");
@@ -61,34 +70,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
     const { workspace, user } = await resolveWorkspace(workspaceSlug);
 
-    // Permission: workspace owner OR project MANAGER/OWNER
-    const isWorkspaceOwner = workspace.ownerId === user.id;
+    // Must be a project member
     const membership = await db.projectMember.findUnique({
       where: { userId_projectId: { userId: user.id, projectId } },
     });
-    const isProjectManager = membership && ["MANAGER", "OWNER"].includes(membership.role);
-    if (!isWorkspaceOwner && !isProjectManager) {
-      throw new ApiError(403, "Only managers and owners can create notes");
-    }
+    if (!membership) throw new ApiError(403, "You must be a project member");
+
+    // Members always private; managers/owners can toggle
+    const isManagerOrOwner = ["MANAGER", "OWNER"].includes(membership.role) || workspace.ownerId === user.id;
+    const noteIsPublic = isManagerOrOwner ? (isPublic === true) : false;
 
     const dateObj = new Date(date + "T00:00:00.000Z");
 
-    const note = await db.calendarNote.upsert({
-      where: { projectId_date: { projectId, date: dateObj } },
-      create: {
+    const note = await db.calendarNote.create({
+      data: {
         date: dateObj,
         content: typeof content === "string" ? content : JSON.stringify(content),
+        isPublic: noteIsPublic,
         projectId,
-        authorId: user.id,
-      },
-      update: {
-        content: typeof content === "string" ? content : JSON.stringify(content),
         authorId: user.id,
       },
       select: {
         id: true,
         date: true,
         content: true,
+        isPublic: true,
         authorId: true,
         author: { select: { id: true, name: true, avatarUrl: true } },
       },

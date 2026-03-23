@@ -28,6 +28,7 @@ export type CalendarNoteMinAggregateOutputType = {
   id: string | null
   date: Date | null
   content: string | null
+  isPublic: boolean | null
   projectId: string | null
   authorId: string | null
   createdAt: Date | null
@@ -38,6 +39,7 @@ export type CalendarNoteMaxAggregateOutputType = {
   id: string | null
   date: Date | null
   content: string | null
+  isPublic: boolean | null
   projectId: string | null
   authorId: string | null
   createdAt: Date | null
@@ -48,6 +50,7 @@ export type CalendarNoteCountAggregateOutputType = {
   id: number
   date: number
   content: number
+  isPublic: number
   projectId: number
   authorId: number
   createdAt: number
@@ -60,6 +63,7 @@ export type CalendarNoteMinAggregateInputType = {
   id?: true
   date?: true
   content?: true
+  isPublic?: true
   projectId?: true
   authorId?: true
   createdAt?: true
@@ -70,6 +74,7 @@ export type CalendarNoteMaxAggregateInputType = {
   id?: true
   date?: true
   content?: true
+  isPublic?: true
   projectId?: true
   authorId?: true
   createdAt?: true
@@ -80,6 +85,7 @@ export type CalendarNoteCountAggregateInputType = {
   id?: true
   date?: true
   content?: true
+  isPublic?: true
   projectId?: true
   authorId?: true
   createdAt?: true
@@ -163,6 +169,7 @@ export type CalendarNoteGroupByOutputType = {
   id: string
   date: Date
   content: string
+  isPublic: boolean
   projectId: string
   authorId: string
   createdAt: Date
@@ -194,6 +201,7 @@ export type CalendarNoteWhereInput = {
   id?: Prisma.StringFilter<"CalendarNote"> | string
   date?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
   content?: Prisma.StringFilter<"CalendarNote"> | string
+  isPublic?: Prisma.BoolFilter<"CalendarNote"> | boolean
   projectId?: Prisma.StringFilter<"CalendarNote"> | string
   authorId?: Prisma.StringFilter<"CalendarNote"> | string
   createdAt?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
@@ -206,6 +214,7 @@ export type CalendarNoteOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -216,24 +225,25 @@ export type CalendarNoteOrderByWithRelationInput = {
 
 export type CalendarNoteWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  projectId_date?: Prisma.CalendarNoteProjectIdDateCompoundUniqueInput
   AND?: Prisma.CalendarNoteWhereInput | Prisma.CalendarNoteWhereInput[]
   OR?: Prisma.CalendarNoteWhereInput[]
   NOT?: Prisma.CalendarNoteWhereInput | Prisma.CalendarNoteWhereInput[]
   date?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
   content?: Prisma.StringFilter<"CalendarNote"> | string
+  isPublic?: Prisma.BoolFilter<"CalendarNote"> | boolean
   projectId?: Prisma.StringFilter<"CalendarNote"> | string
   authorId?: Prisma.StringFilter<"CalendarNote"> | string
   createdAt?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "projectId_date">
+}, "id">
 
 export type CalendarNoteOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -250,6 +260,7 @@ export type CalendarNoteScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"CalendarNote"> | string
   date?: Prisma.DateTimeWithAggregatesFilter<"CalendarNote"> | Date | string
   content?: Prisma.StringWithAggregatesFilter<"CalendarNote"> | string
+  isPublic?: Prisma.BoolWithAggregatesFilter<"CalendarNote"> | boolean
   projectId?: Prisma.StringWithAggregatesFilter<"CalendarNote"> | string
   authorId?: Prisma.StringWithAggregatesFilter<"CalendarNote"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CalendarNote"> | Date | string
@@ -260,6 +271,7 @@ export type CalendarNoteCreateInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutCalendarNotesInput
@@ -270,6 +282,7 @@ export type CalendarNoteUncheckedCreateInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   projectId: string
   authorId: string
   createdAt?: Date | string
@@ -280,6 +293,7 @@ export type CalendarNoteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutCalendarNotesNestedInput
@@ -290,6 +304,7 @@ export type CalendarNoteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -300,6 +315,7 @@ export type CalendarNoteCreateManyInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   projectId: string
   authorId: string
   createdAt?: Date | string
@@ -310,6 +326,7 @@ export type CalendarNoteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -318,6 +335,7 @@ export type CalendarNoteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -334,15 +352,11 @@ export type CalendarNoteOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type CalendarNoteProjectIdDateCompoundUniqueInput = {
-  projectId: string
-  date: Date | string
-}
-
 export type CalendarNoteCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -353,6 +367,7 @@ export type CalendarNoteMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -363,6 +378,7 @@ export type CalendarNoteMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -457,6 +473,7 @@ export type CalendarNoteCreateWithoutAuthorInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutCalendarNotesInput
@@ -466,6 +483,7 @@ export type CalendarNoteUncheckedCreateWithoutAuthorInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   projectId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -504,6 +522,7 @@ export type CalendarNoteScalarWhereInput = {
   id?: Prisma.StringFilter<"CalendarNote"> | string
   date?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
   content?: Prisma.StringFilter<"CalendarNote"> | string
+  isPublic?: Prisma.BoolFilter<"CalendarNote"> | boolean
   projectId?: Prisma.StringFilter<"CalendarNote"> | string
   authorId?: Prisma.StringFilter<"CalendarNote"> | string
   createdAt?: Prisma.DateTimeFilter<"CalendarNote"> | Date | string
@@ -514,6 +533,7 @@ export type CalendarNoteCreateWithoutProjectInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   author: Prisma.UserCreateNestedOneWithoutCalendarNotesInput
@@ -523,6 +543,7 @@ export type CalendarNoteUncheckedCreateWithoutProjectInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   authorId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -558,6 +579,7 @@ export type CalendarNoteCreateManyAuthorInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   projectId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -567,6 +589,7 @@ export type CalendarNoteUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutCalendarNotesNestedInput
@@ -576,6 +599,7 @@ export type CalendarNoteUncheckedUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -585,6 +609,7 @@ export type CalendarNoteUncheckedUpdateManyWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -594,6 +619,7 @@ export type CalendarNoteCreateManyProjectInput = {
   id?: string
   date: Date | string
   content: string
+  isPublic?: boolean
   authorId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -603,6 +629,7 @@ export type CalendarNoteUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneRequiredWithoutCalendarNotesNestedInput
@@ -612,6 +639,7 @@ export type CalendarNoteUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -621,6 +649,7 @@ export type CalendarNoteUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -632,6 +661,7 @@ export type CalendarNoteSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   date?: boolean
   content?: boolean
+  isPublic?: boolean
   projectId?: boolean
   authorId?: boolean
   createdAt?: boolean
@@ -644,6 +674,7 @@ export type CalendarNoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   date?: boolean
   content?: boolean
+  isPublic?: boolean
   projectId?: boolean
   authorId?: boolean
   createdAt?: boolean
@@ -656,6 +687,7 @@ export type CalendarNoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   date?: boolean
   content?: boolean
+  isPublic?: boolean
   projectId?: boolean
   authorId?: boolean
   createdAt?: boolean
@@ -668,13 +700,14 @@ export type CalendarNoteSelectScalar = {
   id?: boolean
   date?: boolean
   content?: boolean
+  isPublic?: boolean
   projectId?: boolean
   authorId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CalendarNoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "date" | "content" | "projectId" | "authorId" | "createdAt" | "updatedAt", ExtArgs["result"]["calendarNote"]>
+export type CalendarNoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "date" | "content" | "isPublic" | "projectId" | "authorId" | "createdAt" | "updatedAt", ExtArgs["result"]["calendarNote"]>
 export type CalendarNoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -698,6 +731,7 @@ export type $CalendarNotePayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: string
     date: Date
     content: string
+    isPublic: boolean
     projectId: string
     authorId: string
     createdAt: Date
@@ -1130,6 +1164,7 @@ export interface CalendarNoteFieldRefs {
   readonly id: Prisma.FieldRef<"CalendarNote", 'String'>
   readonly date: Prisma.FieldRef<"CalendarNote", 'DateTime'>
   readonly content: Prisma.FieldRef<"CalendarNote", 'String'>
+  readonly isPublic: Prisma.FieldRef<"CalendarNote", 'Boolean'>
   readonly projectId: Prisma.FieldRef<"CalendarNote", 'String'>
   readonly authorId: Prisma.FieldRef<"CalendarNote", 'String'>
   readonly createdAt: Prisma.FieldRef<"CalendarNote", 'DateTime'>
