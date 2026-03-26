@@ -35,13 +35,13 @@ export function InviteMemberCard({ onInvite }: Props) {
           <p className="text-sm text-slate-500 dark:text-slate-400">Send an invite to join this workspace.</p>
         </div>
       </div>
-      <div className="flex flex-col gap-3 md:flex-row">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="colleague@company.com"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100"
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100"
         />
         <Select
           value={role}
@@ -51,12 +51,12 @@ export function InviteMemberCard({ onInvite }: Props) {
             { value: "MANAGER", label: "Manager" },
             { value: "ADMIN", label: "Admin" },
           ]}
-          className="md:w-48"
+          className="md:w-36 shrink-0"
           portal={false}
         />
         <button
           onClick={send}
-          className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+          className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
         >
           Send invite
         </button>

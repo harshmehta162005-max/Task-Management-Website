@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { SettingsLayout } from "@/components/settings/SettingsLayout";
 import { InviteMemberCard, Role } from "@/components/settings/members/InviteMemberCard";
@@ -15,16 +15,30 @@ import {
 import { RemoveMemberDialog } from "@/components/settings/members/RemoveMemberDialog";
 import { RevokeInviteDialog } from "@/components/settings/members/RevokeInviteDialog";
 import { MembersEmptyState } from "@/components/settings/members/MembersEmptyState";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, ChevronDown, X } from "lucide-react";
 
 export default function SettingsMembersPage() {
   const { workspaceSlug } = useParams<{ workspaceSlug: string }>();
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<Role | "ALL">("ALL");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [revokeId, setRevokeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Close filter dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Fetch members + invites from API
   useEffect(() => {
@@ -45,10 +59,16 @@ export default function SettingsMembersPage() {
   }, [workspaceSlug]);
 
   const filteredMembers = useMemo(() => {
+    let result = members;
+    if (roleFilter !== "ALL") {
+      result = result.filter((m) => m.role === roleFilter);
+    }
     const q = query.toLowerCase().trim();
-    if (!q) return members;
-    return members.filter((m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
-  }, [members, query]);
+    if (q) {
+      result = result.filter((m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+    }
+    return result;
+  }, [members, query, roleFilter]);
 
   const handleInvite = async (email: string, role: Role) => {
     // Optimistic update
@@ -115,7 +135,7 @@ export default function SettingsMembersPage() {
   return (
     <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
       <SettingsLayout>
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Members</h1>
@@ -128,12 +148,46 @@ export default function SettingsMembersPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search members..."
-                  className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-100 sm:w-64"
+                  className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-100 sm:w-56"
                 />
               </div>
-              <button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-white/5">
-                <Filter className="h-4 w-4" /> Filter
-              </button>
+              <div className="relative" ref={filterRef}>
+                <button
+                  onClick={() => setFilterOpen((v) => !v)}
+                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                    roleFilter !== "ALL"
+                      ? "border-primary/40 bg-primary/5 text-primary dark:border-primary/30 dark:bg-primary/10"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-white/5"
+                  }`}
+                >
+                  <Filter className="h-4 w-4" />
+                  {roleFilter === "ALL" ? "Filter" : roleFilter.charAt(0) + roleFilter.slice(1).toLowerCase()}
+                  {roleFilter !== "ALL" && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setRoleFilter("ALL"); setFilterOpen(false); }}
+                      className="ml-0.5 rounded p-0.5 hover:bg-primary/20"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </button>
+                {filterOpen && (
+                  <div className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-[#0f172a]">
+                    {(["ALL", "ADMIN", "MANAGER", "MEMBER"] as const).map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => { setRoleFilter(r); setFilterOpen(false); }}
+                        className={`flex w-full items-center px-3 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-white/5 ${
+                          roleFilter === r ? "font-semibold text-primary" : "text-slate-700 dark:text-slate-200"
+                        }`}
+                      >
+                        {r === "ALL" ? "All roles" : r.charAt(0) + r.slice(1).toLowerCase()}
+                        {roleFilter === r && <span className="ml-auto text-xs text-primary">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 

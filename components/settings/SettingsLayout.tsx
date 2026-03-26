@@ -16,7 +16,7 @@ export function SettingsLayout({ children }: { children: React.ReactNode }) {
           <SettingsNav />
         </div>
       </aside>
-      <section className="space-y-8">{children}</section>
+      <section className="min-w-0 space-y-8">{children}</section>
     </div>
   );
 }
