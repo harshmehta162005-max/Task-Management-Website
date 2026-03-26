@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Bell,
   Bot,
@@ -12,7 +13,6 @@ import {
   LayoutDashboard,
   Settings,
   Sparkles,
-  Grid2x2,
   MoreVertical,
 } from "lucide-react";
 import { useShell } from "./useShell";
@@ -31,6 +31,27 @@ export function Sidebar({ variant = "desktop" }: SidebarProps) {
   const pathname = usePathname();
   const isDesktop = variant === "desktop";
   const widthClass = isDesktop ? (collapsed ? "w-[76px]" : "w-[280px]") : "w-[280px] max-w-[90vw]";
+
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    async function fetchCount() {
+      try {
+        const res = await fetch("/api/notifications/unread-count");
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.count ?? 0);
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchCount();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, href: `/${params.workspaceSlug}/dashboard` },
@@ -76,8 +97,14 @@ export function Sidebar({ variant = "desktop" }: SidebarProps) {
             >
               <item.icon className="h-5 w-5 shrink-0" />
               {!collapsed && <span className="nav-label truncate">{item.label}</span>}
-              {item.label === "Notifications" && !collapsed && (
-                <span className="ml-auto inline-flex size-2 rounded-full bg-red-500" />
+              {item.label === "Notifications" && unreadCount > 0 && (
+                collapsed ? (
+                  <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-red-500" />
+                ) : (
+                  <span className="ml-auto inline-flex min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )
               )}
             </Link>
           );

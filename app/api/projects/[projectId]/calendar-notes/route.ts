@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { notifyProjectMembers } from "@/lib/notifications/createNotification";
 
 /**
  * GET /api/projects/[projectId]/calendar-notes?workspaceSlug=xxx&month=2026-03
- * Returns notes visible to the current user:
- *   - All public notes for this project/month
- *   - All private notes owned by the current user
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   try {
@@ -29,19 +27,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
       where: {
         projectId,
         ...(monthParam ? { date: dateFilter } : {}),
-        OR: [
-          { isPublic: true },
-          { authorId: user.id },
-        ],
+        OR: [{ isPublic: true }, { authorId: user.id }],
       },
       select: {
-        id: true,
-        date: true,
-        content: true,
-        isPublic: true,
-        authorId: true,
-        createdAt: true,
-        updatedAt: true,
+        id: true, date: true, content: true, isPublic: true, authorId: true,
+        createdAt: true, updatedAt: true,
         author: { select: { id: true, name: true, avatarUrl: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -55,8 +45,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
 
 /**
  * POST /api/projects/[projectId]/calendar-notes
- * Any project member can create a note.
- * Members: always private. Managers/owners: respect isPublic from body.
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   try {
@@ -70,17 +58,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
     const { workspace, user } = await resolveWorkspace(workspaceSlug);
 
-    // Must be a project member
     const membership = await db.projectMember.findUnique({
       where: { userId_projectId: { userId: user.id, projectId } },
     });
     if (!membership) throw new ApiError(403, "You must be a project member");
 
-    // Members always private; managers/owners can toggle
     const isManagerOrOwner = ["MANAGER", "OWNER"].includes(membership.role) || workspace.ownerId === user.id;
     const noteIsPublic = isManagerOrOwner ? (isPublic === true) : false;
 
     const dateObj = new Date(date + "T00:00:00.000Z");
+    const project = await db.project.findUnique({ where: { id: projectId }, select: { name: true } });
 
     const note = await db.calendarNote.create({
       data: {
@@ -91,14 +78,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
         authorId: user.id,
       },
       select: {
-        id: true,
-        date: true,
-        content: true,
-        isPublic: true,
-        authorId: true,
+        id: true, date: true, content: true, isPublic: true, authorId: true,
         author: { select: { id: true, name: true, avatarUrl: true } },
       },
     });
+
+    // NOTE_ADDED: notify project members for public notes
+    if (noteIsPublic) {
+      await notifyProjectMembers(projectId, user.id, {
+        type: "NOTE_ADDED",
+        category: "project",
+        title: `New note in ${project?.name ?? "project"}`,
+        body: `${user.name ?? "Someone"} added a note: ${(typeof content === "string" ? content : "").slice(0, 100)}`,
+        actorId: user.id,
+        workspaceId: workspace.id,
+        linkUrl: `/${workspaceSlug}/projects/${projectId}`,
+      });
+    }
 
     return NextResponse.json(note);
   } catch (err) {

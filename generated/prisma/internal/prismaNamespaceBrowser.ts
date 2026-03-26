@@ -265,10 +265,12 @@ export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeo
 export const NotificationScalarFieldEnum = {
   id: 'id',
   type: 'type',
+  category: 'category',
   title: 'title',
   body: 'body',
   read: 'read',
   userId: 'userId',
+  actorId: 'actorId',
   workspaceId: 'workspaceId',
   linkUrl: 'linkUrl',
   createdAt: 'createdAt'

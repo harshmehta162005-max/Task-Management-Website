@@ -1,15 +1,16 @@
 import { cn } from "@/lib/utils/cn";
+import { User, FolderOpen, Building2, Bot } from "lucide-react";
+import type { NotificationCategory } from "./types";
 
-const chips: { key: FilterType; label: string }[] = [
-  { key: "ALL", label: "All" },
-  { key: "MENTION", label: "Mentions" },
-  { key: "ASSIGNED", label: "Assigned" },
-  { key: "DUE_SOON", label: "Due Soon" },
-  { key: "COMMENT", label: "Comments" },
-  { key: "SYSTEM", label: "System" },
+const CATEGORY_TABS: { key: "ALL" | NotificationCategory; label: string; icon: typeof User }[] = [
+  { key: "ALL", label: "All", icon: User },
+  { key: "personal", label: "Personal", icon: User },
+  { key: "project", label: "Project", icon: FolderOpen },
+  { key: "workspace", label: "Workspace", icon: Building2 },
+  { key: "ai", label: "AI", icon: Bot },
 ];
 
-export type FilterType = "ALL" | "MENTION" | "ASSIGNED" | "DUE_SOON" | "COMMENT" | "SYSTEM";
+export type FilterType = "ALL" | NotificationCategory;
 
 type Props = {
   active: FilterType;
@@ -22,20 +23,24 @@ export function NotificationFilters({ active, unreadOnly, onChange, onToggleUnre
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {chips.map((chip) => (
-          <button
-            key={chip.key}
-            onClick={() => onChange(chip.key)}
-            className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors",
-              active === chip.key
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-slate-600 border-slate-200 hover:border-primary hover:text-primary dark:bg-[#111827] dark:text-slate-300 dark:border-slate-700"
-            )}
-          >
-            {chip.label}
-          </button>
-        ))}
+        {CATEGORY_TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => onChange(tab.key)}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors",
+                active === tab.key
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-primary hover:text-primary dark:bg-[#111827] dark:text-slate-300 dark:border-slate-700"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-[#111827]">

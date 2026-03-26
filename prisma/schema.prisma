@@ -27,7 +27,8 @@ model User {
   taskAssignments   TaskAssignee[]
   createdTasks      Task[]             @relation("TaskCreator")
   comments          Comment[]
-  notifications     Notification[]
+  notifications     Notification[]     @relation("notificationUser")
+  actorNotifications Notification[]     @relation("notificationActor")
   activities        Activity[]
   invitesSent       WorkspaceInvite[]
   taskUserDependencies TaskUserDependency[]
@@ -327,19 +328,23 @@ model Comment {
 model Notification {
   id          String           @id @default(cuid())
   type        NotificationType
+  category    String           @default("personal") // personal | project | workspace | ai
   title       String
   body        String?
   read        Boolean          @default(false)
   userId      String
+  actorId     String?
   workspaceId String?
   linkUrl     String?
   createdAt   DateTime         @default(now())
 
   // Relations
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation("notificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?      @relation("notificationActor", fields: [actorId], references: [id], onDelete: SetNull)
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
+  @@index([userId, category])
   @@map("notifications")
 }
 
@@ -350,6 +355,16 @@ enum NotificationType {
   STATUS_CHANGE
   DUE_SOON
   SYSTEM
+  TASK_CREATED
+  TASK_COMPLETED
+  NOTE_ADDED
+  PROJECT_MEMBER_ADDED
+  PROJECT_MEMBER_REMOVED
+  PROJECT_AT_RISK
+  TASKS_OVERDUE_BULK
+  AI_BLOCKERS_DETECTED
+  AI_WEEKLY_SUMMARY
+  AI_TASKS_EXTRACTED
 }
 
 // ─── ACTIVITY LOG ────────────────────────────────────────────────────────────

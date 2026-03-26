@@ -2,6 +2,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { createNotification, notifyTaskAssignees, notifyProjectMembers } from "@/lib/notifications/createNotification";
 import fs from "fs";
 
 type Params = { params: Promise<{ taskId: string }> };
@@ -117,6 +118,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         creatorId: true,
         title: true,
         status: true,
+        dueDate: true,
         project: { select: { workspaceId: true, name: true } },
       },
     });
@@ -228,7 +230,69 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
+    // ── Notifications ──
+    const taskLink = `/${workspaceSlug}/projects?taskId=${taskId}`;
+
+    // ASSIGNED: notify newly-added assignees
+    if (assigneeIds !== undefined && Array.isArray(assigneeIds)) {
+      for (const uid of assigneeIds as string[]) {
+        if (uid === user.id) continue;
+        await createNotification({
+          type: "ASSIGNED",
+          category: "personal",
+          title: `You were assigned to "${existingTask.title}"`,
+          body: `${user.name ?? "Someone"} assigned you to a task in ${existingTask.project.name}`,
+          userId: uid,
+          actorId: user.id,
+          workspaceId: workspace.id,
+          linkUrl: taskLink,
+        });
+      }
+    }
+
+    // DUE_SOON: notify assignees when deadline changes
+    if (dueDate !== undefined) {
+      const newDueTime = dueDate ? new Date(dueDate).getTime() : null;
+      const oldDueTime = existingTask.dueDate ? existingTask.dueDate.getTime() : null;
+      if (newDueTime !== oldDueTime) {
+        const dateStr = dueDate ? new Date(dueDate).toLocaleDateString() : "No due date";
+        await notifyTaskAssignees(taskId, user.id, {
+          type: "DUE_SOON",
+          category: "personal",
+          title: `Deadline changed for "${existingTask.title}"`,
+          body: `${user.name ?? "Someone"} changed the deadline to ${dateStr}`,
+          actorId: user.id,
+          workspaceId: workspace.id,
+          linkUrl: taskLink,
+        });
+      }
+    }
+
+    // STATUS_CHANGE: notify assignees when status changes
+    if (status !== undefined && status !== existingTask.status) {
+      await notifyTaskAssignees(taskId, user.id, {
+        type: "STATUS_CHANGE",
+        category: "personal",
+        title: `"${existingTask.title}" moved to ${status}`,
+        body: `${user.name ?? "Someone"} changed the status from ${existingTask.status} to ${status}`,
+        actorId: user.id,
+        workspaceId: workspace.id,
+        linkUrl: taskLink,
+      });
+    }
+
+    // TASK_COMPLETED: notify project members when task is completed
     if (body.status === "DONE" && existingTask.status !== "DONE") {
+      await notifyProjectMembers(existingTask.projectId, user.id, {
+        type: "TASK_COMPLETED",
+        category: "project",
+        title: `"${existingTask.title}" was completed`,
+        body: `${user.name ?? "Someone"} completed a task in ${existingTask.project.name}`,
+        actorId: user.id,
+        workspaceId: workspace.id,
+        linkUrl: taskLink,
+      });
+
       await db.activity.create({
         data: {
           action: `completed task "${existingTask.title}"`,

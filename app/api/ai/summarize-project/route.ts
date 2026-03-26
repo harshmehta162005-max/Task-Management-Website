@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db/prisma";
 import { generateWeeklySummary } from "@/lib/ai/tools/projectTools";
+import { createNotification } from "@/lib/notifications/createNotification";
 
 export async function POST(req: Request) {
   try {
@@ -30,6 +31,21 @@ export async function POST(req: Request) {
     }
 
     const summary = await generateWeeklySummary(projectId);
+
+    // AI_WEEKLY_SUMMARY: notify the user
+    const dbUser = await db.user.findFirst({ where: { clerkId }, select: { id: true } });
+    if (dbUser) {
+      const projectInfo = await db.project.findUnique({ where: { id: projectId }, select: { name: true } });
+      await createNotification({
+        type: "AI_WEEKLY_SUMMARY",
+        category: "ai",
+        title: `Weekly summary ready for ${projectInfo?.name ?? "project"}`,
+        body: `AI has generated a weekly summary. Check the AI tools panel to view it.`,
+        userId: dbUser.id,
+        workspaceId,
+      });
+    }
+
     return Response.json({ summary });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

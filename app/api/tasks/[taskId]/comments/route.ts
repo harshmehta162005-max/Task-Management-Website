@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { notifyTaskAssignees } from "@/lib/notifications/createNotification";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -46,6 +47,17 @@ export async function POST(req: NextRequest, { params }: Params) {
         actorId: user.id,
         workspaceId: task.project.workspaceId,
       },
+    });
+
+    // COMMENT: notify task assignees
+    await notifyTaskAssignees(taskId, user.id, {
+      type: "COMMENT",
+      category: "personal",
+      title: `New comment on "${task.title}"`,
+      body: `${user.name ?? "Someone"}: ${commentBody.trim().slice(0, 100)}`,
+      actorId: user.id,
+      workspaceId: task.project.workspaceId,
+      linkUrl: `/${workspaceSlug}/projects?taskId=${taskId}`,
     });
 
     return Response.json(

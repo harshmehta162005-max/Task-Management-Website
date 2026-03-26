@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { MarkAllReadButton } from "@/components/notifications/MarkAllReadButton";
 import { NotificationFilters, FilterType } from "@/components/notifications/NotificationFilters";
@@ -15,7 +15,7 @@ export default function NotificationsPage() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Fetch notifications from API
+  // Fetch notifications
   useEffect(() => {
     async function load() {
       try {
@@ -32,24 +32,48 @@ export default function NotificationsPage() {
     load();
   }, []);
 
+  // Trigger workspace computed notifications for admins
+  useEffect(() => {
+    async function checkWorkspace() {
+      try {
+        const res = await fetch("/api/dashboard?workspaceSlug=" + workspaceSlug);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.workspaceId) {
+          await fetch("/api/notifications/check-workspace", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ workspaceId: data.workspaceId }),
+          });
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    if (workspaceSlug) checkWorkspace();
+  }, [workspaceSlug]);
+
+  // Filter by category instead of type
   const filtered = useMemo(() => {
     return notifications.filter((n) => {
-      const typeMatch = filter === "ALL" || n.type === filter;
+      const categoryMatch = filter === "ALL" || n.category === filter;
       const unreadMatch = !unreadOnly || !n.isRead;
-      return typeMatch && unreadMatch;
+      return categoryMatch && unreadMatch;
     });
   }, [notifications, filter, unreadOnly]);
 
-  const markAllRead = async () => {
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
+
+  const markAllRead = useCallback(async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     try {
       await fetch("/api/notifications/read-all", { method: "POST" });
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
-  };
+  }, []);
 
-  const openNotification = async (id: string) => {
+  const openNotification = useCallback(async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
     try {
       await fetch("/api/notifications", {
@@ -60,16 +84,18 @@ export default function NotificationsPage() {
     } catch (err) {
       console.error("Failed to mark notification as read:", err);
     }
-  };
+  }, []);
 
   return (
     <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
       <header className="mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Notifications</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Workspace {workspaceSlug}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"} · {workspaceSlug}
+          </p>
         </div>
-        <MarkAllReadButton onClick={markAllRead} disabled={notifications.every((n) => n.isRead)} />
+        <MarkAllReadButton onClick={markAllRead} disabled={unreadCount === 0} />
       </header>
 
       <NotificationFilters

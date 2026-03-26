@@ -2,6 +2,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { createNotification, notifyProjectMembers } from "@/lib/notifications/createNotification";
 
 /**
  * GET /api/tasks?workspaceSlug=xxx[&projectId=xxx][&assignee=me]
@@ -163,6 +164,35 @@ export async function POST(req: NextRequest) {
         actorId: user.id,
         workspaceId: workspace.id,
       },
+    });
+
+    // ── Notifications ──
+    const taskLink = `/${workspaceSlug}/projects?taskId=${task.id}`;
+
+    // ASSIGNED: notify assignees (except creator)
+    for (const a of task.assignees) {
+      if (a.user.id === user.id) continue;
+      await createNotification({
+        type: "ASSIGNED",
+        category: "personal",
+        title: `You were assigned to "${task.title}"`,
+        body: `${user.name ?? "Someone"} assigned you to a task in ${task.project.name}`,
+        userId: a.user.id,
+        actorId: user.id,
+        workspaceId: workspace.id,
+        linkUrl: taskLink,
+      });
+    }
+
+    // TASK_CREATED: notify project members
+    await notifyProjectMembers(projectId, user.id, {
+      type: "TASK_CREATED",
+      category: "project",
+      title: `New task: "${task.title}"`,
+      body: `${user.name ?? "Someone"} created a task in ${task.project.name}`,
+      actorId: user.id,
+      workspaceId: workspace.id,
+      linkUrl: taskLink,
     });
 
     return Response.json(

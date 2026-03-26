@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db/prisma";
 import { parseTasksFromNotes } from "@/lib/ai/tools/taskTools";
+import { createNotification } from "@/lib/notifications/createNotification";
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +39,19 @@ export async function POST(req: Request) {
       due: t.due,
       duplicate: existingSet.has(t.title.toLowerCase()),
     }));
+
+    // AI_TASKS_EXTRACTED: notify the user
+    const dbUser = await db.user.findFirst({ where: { clerkId }, select: { id: true } });
+    if (dbUser) {
+      await createNotification({
+        type: "AI_TASKS_EXTRACTED",
+        category: "ai",
+        title: `AI extracted ${proposedTasks.length} tasks from meeting notes`,
+        body: `${proposedTasks.length} tasks were identified from your meeting notes`,
+        userId: dbUser.id,
+        workspaceId,
+      });
+    }
 
     return Response.json({ tasks: tasksWithDupeFlag });
   } catch (err) {

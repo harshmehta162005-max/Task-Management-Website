@@ -13,18 +13,24 @@ export async function GET() {
     const notifications = await db.notification.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 100,
+      include: {
+        actor: { select: { name: true, avatarUrl: true } },
+      },
     });
 
     return Response.json(
       notifications.map((n) => ({
         id: n.id,
         type: n.type,
+        category: n.category,
         title: n.title,
         message: n.body ?? "",
         createdAt: formatTimeAgo(n.createdAt),
         isRead: n.read,
         link: n.linkUrl ?? "",
+        actorName: n.actor?.name ?? undefined,
+        actorAvatar: n.actor?.avatarUrl ?? undefined,
       }))
     );
   } catch (error) {

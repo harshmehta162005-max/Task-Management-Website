@@ -27,10 +27,12 @@ export type AggregateNotification = {
 export type NotificationMinAggregateOutputType = {
   id: string | null
   type: $Enums.NotificationType | null
+  category: string | null
   title: string | null
   body: string | null
   read: boolean | null
   userId: string | null
+  actorId: string | null
   workspaceId: string | null
   linkUrl: string | null
   createdAt: Date | null
@@ -39,10 +41,12 @@ export type NotificationMinAggregateOutputType = {
 export type NotificationMaxAggregateOutputType = {
   id: string | null
   type: $Enums.NotificationType | null
+  category: string | null
   title: string | null
   body: string | null
   read: boolean | null
   userId: string | null
+  actorId: string | null
   workspaceId: string | null
   linkUrl: string | null
   createdAt: Date | null
@@ -51,10 +55,12 @@ export type NotificationMaxAggregateOutputType = {
 export type NotificationCountAggregateOutputType = {
   id: number
   type: number
+  category: number
   title: number
   body: number
   read: number
   userId: number
+  actorId: number
   workspaceId: number
   linkUrl: number
   createdAt: number
@@ -65,10 +71,12 @@ export type NotificationCountAggregateOutputType = {
 export type NotificationMinAggregateInputType = {
   id?: true
   type?: true
+  category?: true
   title?: true
   body?: true
   read?: true
   userId?: true
+  actorId?: true
   workspaceId?: true
   linkUrl?: true
   createdAt?: true
@@ -77,10 +85,12 @@ export type NotificationMinAggregateInputType = {
 export type NotificationMaxAggregateInputType = {
   id?: true
   type?: true
+  category?: true
   title?: true
   body?: true
   read?: true
   userId?: true
+  actorId?: true
   workspaceId?: true
   linkUrl?: true
   createdAt?: true
@@ -89,10 +99,12 @@ export type NotificationMaxAggregateInputType = {
 export type NotificationCountAggregateInputType = {
   id?: true
   type?: true
+  category?: true
   title?: true
   body?: true
   read?: true
   userId?: true
+  actorId?: true
   workspaceId?: true
   linkUrl?: true
   createdAt?: true
@@ -174,10 +186,12 @@ export type NotificationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type NotificationGroupByOutputType = {
   id: string
   type: $Enums.NotificationType
+  category: string
   title: string
   body: string | null
   read: boolean
   userId: string
+  actorId: string | null
   workspaceId: string | null
   linkUrl: string | null
   createdAt: Date
@@ -207,28 +221,34 @@ export type NotificationWhereInput = {
   NOT?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
   id?: Prisma.StringFilter<"Notification"> | string
   type?: Prisma.EnumNotificationTypeFilter<"Notification"> | $Enums.NotificationType
+  category?: Prisma.StringFilter<"Notification"> | string
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringNullableFilter<"Notification"> | string | null
   read?: Prisma.BoolFilter<"Notification"> | boolean
   userId?: Prisma.StringFilter<"Notification"> | string
+  actorId?: Prisma.StringNullableFilter<"Notification"> | string | null
   workspaceId?: Prisma.StringNullableFilter<"Notification"> | string | null
   linkUrl?: Prisma.StringNullableFilter<"Notification"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   workspace?: Prisma.XOR<Prisma.WorkspaceNullableScalarRelationFilter, Prisma.WorkspaceWhereInput> | null
 }
 
 export type NotificationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrderInput | Prisma.SortOrder
   read?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   workspaceId?: Prisma.SortOrderInput | Prisma.SortOrder
   linkUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  actor?: Prisma.UserOrderByWithRelationInput
   workspace?: Prisma.WorkspaceOrderByWithRelationInput
 }
 
@@ -238,24 +258,29 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.NotificationWhereInput[]
   NOT?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
   type?: Prisma.EnumNotificationTypeFilter<"Notification"> | $Enums.NotificationType
+  category?: Prisma.StringFilter<"Notification"> | string
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringNullableFilter<"Notification"> | string | null
   read?: Prisma.BoolFilter<"Notification"> | boolean
   userId?: Prisma.StringFilter<"Notification"> | string
+  actorId?: Prisma.StringNullableFilter<"Notification"> | string | null
   workspaceId?: Prisma.StringNullableFilter<"Notification"> | string | null
   linkUrl?: Prisma.StringNullableFilter<"Notification"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   workspace?: Prisma.XOR<Prisma.WorkspaceNullableScalarRelationFilter, Prisma.WorkspaceWhereInput> | null
 }, "id">
 
 export type NotificationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrderInput | Prisma.SortOrder
   read?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   workspaceId?: Prisma.SortOrderInput | Prisma.SortOrder
   linkUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -270,10 +295,12 @@ export type NotificationScalarWhereWithAggregatesInput = {
   NOT?: Prisma.NotificationScalarWhereWithAggregatesInput | Prisma.NotificationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   type?: Prisma.EnumNotificationTypeWithAggregatesFilter<"Notification"> | $Enums.NotificationType
+  category?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   title?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   body?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   read?: Prisma.BoolWithAggregatesFilter<"Notification"> | boolean
   userId?: Prisma.StringWithAggregatesFilter<"Notification"> | string
+  actorId?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   workspaceId?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   linkUrl?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Notification"> | Date | string
@@ -282,22 +309,26 @@ export type NotificationScalarWhereWithAggregatesInput = {
 export type NotificationCreateInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   linkUrl?: string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutNotificationsInput
+  actor?: Prisma.UserCreateNestedOneWithoutActorNotificationsInput
   workspace?: Prisma.WorkspaceCreateNestedOneWithoutNotificationsInput
 }
 
 export type NotificationUncheckedCreateInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   userId: string
+  actorId?: string | null
   workspaceId?: string | null
   linkUrl?: string | null
   createdAt?: Date | string
@@ -306,22 +337,26 @@ export type NotificationUncheckedCreateInput = {
 export type NotificationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutNotificationsNestedInput
+  actor?: Prisma.UserUpdateOneWithoutActorNotificationsNestedInput
   workspace?: Prisma.WorkspaceUpdateOneWithoutNotificationsNestedInput
 }
 
 export type NotificationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -330,10 +365,12 @@ export type NotificationUncheckedUpdateInput = {
 export type NotificationCreateManyInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   userId: string
+  actorId?: string | null
   workspaceId?: string | null
   linkUrl?: string | null
   createdAt?: Date | string
@@ -342,6 +379,7 @@ export type NotificationCreateManyInput = {
 export type NotificationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -352,10 +390,12 @@ export type NotificationUpdateManyMutationInput = {
 export type NotificationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -374,10 +414,12 @@ export type NotificationOrderByRelationAggregateInput = {
 export type NotificationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   read?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  actorId?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   linkUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -386,10 +428,12 @@ export type NotificationCountOrderByAggregateInput = {
 export type NotificationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   read?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  actorId?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   linkUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -398,10 +442,12 @@ export type NotificationMaxOrderByAggregateInput = {
 export type NotificationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   read?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  actorId?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   linkUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -414,10 +460,24 @@ export type NotificationCreateNestedManyWithoutUserInput = {
   connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
 }
 
+export type NotificationCreateNestedManyWithoutActorInput = {
+  create?: Prisma.XOR<Prisma.NotificationCreateWithoutActorInput, Prisma.NotificationUncheckedCreateWithoutActorInput> | Prisma.NotificationCreateWithoutActorInput[] | Prisma.NotificationUncheckedCreateWithoutActorInput[]
+  connectOrCreate?: Prisma.NotificationCreateOrConnectWithoutActorInput | Prisma.NotificationCreateOrConnectWithoutActorInput[]
+  createMany?: Prisma.NotificationCreateManyActorInputEnvelope
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+}
+
 export type NotificationUncheckedCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.NotificationCreateWithoutUserInput, Prisma.NotificationUncheckedCreateWithoutUserInput> | Prisma.NotificationCreateWithoutUserInput[] | Prisma.NotificationUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.NotificationCreateOrConnectWithoutUserInput | Prisma.NotificationCreateOrConnectWithoutUserInput[]
   createMany?: Prisma.NotificationCreateManyUserInputEnvelope
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+}
+
+export type NotificationUncheckedCreateNestedManyWithoutActorInput = {
+  create?: Prisma.XOR<Prisma.NotificationCreateWithoutActorInput, Prisma.NotificationUncheckedCreateWithoutActorInput> | Prisma.NotificationCreateWithoutActorInput[] | Prisma.NotificationUncheckedCreateWithoutActorInput[]
+  connectOrCreate?: Prisma.NotificationCreateOrConnectWithoutActorInput | Prisma.NotificationCreateOrConnectWithoutActorInput[]
+  createMany?: Prisma.NotificationCreateManyActorInputEnvelope
   connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
 }
 
@@ -435,6 +495,20 @@ export type NotificationUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
 }
 
+export type NotificationUpdateManyWithoutActorNestedInput = {
+  create?: Prisma.XOR<Prisma.NotificationCreateWithoutActorInput, Prisma.NotificationUncheckedCreateWithoutActorInput> | Prisma.NotificationCreateWithoutActorInput[] | Prisma.NotificationUncheckedCreateWithoutActorInput[]
+  connectOrCreate?: Prisma.NotificationCreateOrConnectWithoutActorInput | Prisma.NotificationCreateOrConnectWithoutActorInput[]
+  upsert?: Prisma.NotificationUpsertWithWhereUniqueWithoutActorInput | Prisma.NotificationUpsertWithWhereUniqueWithoutActorInput[]
+  createMany?: Prisma.NotificationCreateManyActorInputEnvelope
+  set?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  disconnect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  delete?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  update?: Prisma.NotificationUpdateWithWhereUniqueWithoutActorInput | Prisma.NotificationUpdateWithWhereUniqueWithoutActorInput[]
+  updateMany?: Prisma.NotificationUpdateManyWithWhereWithoutActorInput | Prisma.NotificationUpdateManyWithWhereWithoutActorInput[]
+  deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
+}
+
 export type NotificationUncheckedUpdateManyWithoutUserNestedInput = {
   create?: Prisma.XOR<Prisma.NotificationCreateWithoutUserInput, Prisma.NotificationUncheckedCreateWithoutUserInput> | Prisma.NotificationCreateWithoutUserInput[] | Prisma.NotificationUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.NotificationCreateOrConnectWithoutUserInput | Prisma.NotificationCreateOrConnectWithoutUserInput[]
@@ -446,6 +520,20 @@ export type NotificationUncheckedUpdateManyWithoutUserNestedInput = {
   connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
   update?: Prisma.NotificationUpdateWithWhereUniqueWithoutUserInput | Prisma.NotificationUpdateWithWhereUniqueWithoutUserInput[]
   updateMany?: Prisma.NotificationUpdateManyWithWhereWithoutUserInput | Prisma.NotificationUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
+}
+
+export type NotificationUncheckedUpdateManyWithoutActorNestedInput = {
+  create?: Prisma.XOR<Prisma.NotificationCreateWithoutActorInput, Prisma.NotificationUncheckedCreateWithoutActorInput> | Prisma.NotificationCreateWithoutActorInput[] | Prisma.NotificationUncheckedCreateWithoutActorInput[]
+  connectOrCreate?: Prisma.NotificationCreateOrConnectWithoutActorInput | Prisma.NotificationCreateOrConnectWithoutActorInput[]
+  upsert?: Prisma.NotificationUpsertWithWhereUniqueWithoutActorInput | Prisma.NotificationUpsertWithWhereUniqueWithoutActorInput[]
+  createMany?: Prisma.NotificationCreateManyActorInputEnvelope
+  set?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  disconnect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  delete?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[]
+  update?: Prisma.NotificationUpdateWithWhereUniqueWithoutActorInput | Prisma.NotificationUpdateWithWhereUniqueWithoutActorInput[]
+  updateMany?: Prisma.NotificationUpdateManyWithWhereWithoutActorInput | Prisma.NotificationUpdateManyWithWhereWithoutActorInput[]
   deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
 }
 
@@ -498,20 +586,24 @@ export type EnumNotificationTypeFieldUpdateOperationsInput = {
 export type NotificationCreateWithoutUserInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   linkUrl?: string | null
   createdAt?: Date | string
+  actor?: Prisma.UserCreateNestedOneWithoutActorNotificationsInput
   workspace?: Prisma.WorkspaceCreateNestedOneWithoutNotificationsInput
 }
 
 export type NotificationUncheckedCreateWithoutUserInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
+  actorId?: string | null
   workspaceId?: string | null
   linkUrl?: string | null
   createdAt?: Date | string
@@ -524,6 +616,42 @@ export type NotificationCreateOrConnectWithoutUserInput = {
 
 export type NotificationCreateManyUserInputEnvelope = {
   data: Prisma.NotificationCreateManyUserInput | Prisma.NotificationCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type NotificationCreateWithoutActorInput = {
+  id?: string
+  type: $Enums.NotificationType
+  category?: string
+  title: string
+  body?: string | null
+  read?: boolean
+  linkUrl?: string | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutNotificationsInput
+  workspace?: Prisma.WorkspaceCreateNestedOneWithoutNotificationsInput
+}
+
+export type NotificationUncheckedCreateWithoutActorInput = {
+  id?: string
+  type: $Enums.NotificationType
+  category?: string
+  title: string
+  body?: string | null
+  read?: boolean
+  userId: string
+  workspaceId?: string | null
+  linkUrl?: string | null
+  createdAt?: Date | string
+}
+
+export type NotificationCreateOrConnectWithoutActorInput = {
+  where: Prisma.NotificationWhereUniqueInput
+  create: Prisma.XOR<Prisma.NotificationCreateWithoutActorInput, Prisma.NotificationUncheckedCreateWithoutActorInput>
+}
+
+export type NotificationCreateManyActorInputEnvelope = {
+  data: Prisma.NotificationCreateManyActorInput | Prisma.NotificationCreateManyActorInput[]
   skipDuplicates?: boolean
 }
 
@@ -549,33 +677,55 @@ export type NotificationScalarWhereInput = {
   NOT?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
   id?: Prisma.StringFilter<"Notification"> | string
   type?: Prisma.EnumNotificationTypeFilter<"Notification"> | $Enums.NotificationType
+  category?: Prisma.StringFilter<"Notification"> | string
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringNullableFilter<"Notification"> | string | null
   read?: Prisma.BoolFilter<"Notification"> | boolean
   userId?: Prisma.StringFilter<"Notification"> | string
+  actorId?: Prisma.StringNullableFilter<"Notification"> | string | null
   workspaceId?: Prisma.StringNullableFilter<"Notification"> | string | null
   linkUrl?: Prisma.StringNullableFilter<"Notification"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
 }
 
+export type NotificationUpsertWithWhereUniqueWithoutActorInput = {
+  where: Prisma.NotificationWhereUniqueInput
+  update: Prisma.XOR<Prisma.NotificationUpdateWithoutActorInput, Prisma.NotificationUncheckedUpdateWithoutActorInput>
+  create: Prisma.XOR<Prisma.NotificationCreateWithoutActorInput, Prisma.NotificationUncheckedCreateWithoutActorInput>
+}
+
+export type NotificationUpdateWithWhereUniqueWithoutActorInput = {
+  where: Prisma.NotificationWhereUniqueInput
+  data: Prisma.XOR<Prisma.NotificationUpdateWithoutActorInput, Prisma.NotificationUncheckedUpdateWithoutActorInput>
+}
+
+export type NotificationUpdateManyWithWhereWithoutActorInput = {
+  where: Prisma.NotificationScalarWhereInput
+  data: Prisma.XOR<Prisma.NotificationUpdateManyMutationInput, Prisma.NotificationUncheckedUpdateManyWithoutActorInput>
+}
+
 export type NotificationCreateWithoutWorkspaceInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   linkUrl?: string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutNotificationsInput
+  actor?: Prisma.UserCreateNestedOneWithoutActorNotificationsInput
 }
 
 export type NotificationUncheckedCreateWithoutWorkspaceInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   userId: string
+  actorId?: string | null
   linkUrl?: string | null
   createdAt?: Date | string
 }
@@ -609,9 +759,24 @@ export type NotificationUpdateManyWithWhereWithoutWorkspaceInput = {
 export type NotificationCreateManyUserInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
+  actorId?: string | null
+  workspaceId?: string | null
+  linkUrl?: string | null
+  createdAt?: Date | string
+}
+
+export type NotificationCreateManyActorInput = {
+  id?: string
+  type: $Enums.NotificationType
+  category?: string
+  title: string
+  body?: string | null
+  read?: boolean
+  userId: string
   workspaceId?: string | null
   linkUrl?: string | null
   createdAt?: Date | string
@@ -620,20 +785,24 @@ export type NotificationCreateManyUserInput = {
 export type NotificationUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actor?: Prisma.UserUpdateOneWithoutActorNotificationsNestedInput
   workspace?: Prisma.WorkspaceUpdateOneWithoutNotificationsNestedInput
 }
 
 export type NotificationUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -642,9 +811,50 @@ export type NotificationUncheckedUpdateWithoutUserInput = {
 export type NotificationUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type NotificationUpdateWithoutActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  read?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutNotificationsNestedInput
+  workspace?: Prisma.WorkspaceUpdateOneWithoutNotificationsNestedInput
+}
+
+export type NotificationUncheckedUpdateWithoutActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  read?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type NotificationUncheckedUpdateManyWithoutActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  read?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   workspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -653,10 +863,12 @@ export type NotificationUncheckedUpdateManyWithoutUserInput = {
 export type NotificationCreateManyWorkspaceInput = {
   id?: string
   type: $Enums.NotificationType
+  category?: string
   title: string
   body?: string | null
   read?: boolean
   userId: string
+  actorId?: string | null
   linkUrl?: string | null
   createdAt?: Date | string
 }
@@ -664,21 +876,25 @@ export type NotificationCreateManyWorkspaceInput = {
 export type NotificationUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutNotificationsNestedInput
+  actor?: Prisma.UserUpdateOneWithoutActorNotificationsNestedInput
 }
 
 export type NotificationUncheckedUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -686,10 +902,12 @@ export type NotificationUncheckedUpdateWithoutWorkspaceInput = {
 export type NotificationUncheckedUpdateManyWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   read?: Prisma.BoolFieldUpdateOperationsInput | boolean
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -699,68 +917,82 @@ export type NotificationUncheckedUpdateManyWithoutWorkspaceInput = {
 export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   type?: boolean
+  category?: boolean
   title?: boolean
   body?: boolean
   read?: boolean
   userId?: boolean
+  actorId?: boolean
   workspaceId?: boolean
   linkUrl?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
   workspace?: boolean | Prisma.Notification$workspaceArgs<ExtArgs>
 }, ExtArgs["result"]["notification"]>
 
 export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   type?: boolean
+  category?: boolean
   title?: boolean
   body?: boolean
   read?: boolean
   userId?: boolean
+  actorId?: boolean
   workspaceId?: boolean
   linkUrl?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
   workspace?: boolean | Prisma.Notification$workspaceArgs<ExtArgs>
 }, ExtArgs["result"]["notification"]>
 
 export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   type?: boolean
+  category?: boolean
   title?: boolean
   body?: boolean
   read?: boolean
   userId?: boolean
+  actorId?: boolean
   workspaceId?: boolean
   linkUrl?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
   workspace?: boolean | Prisma.Notification$workspaceArgs<ExtArgs>
 }, ExtArgs["result"]["notification"]>
 
 export type NotificationSelectScalar = {
   id?: boolean
   type?: boolean
+  category?: boolean
   title?: boolean
   body?: boolean
   read?: boolean
   userId?: boolean
+  actorId?: boolean
   workspaceId?: boolean
   linkUrl?: boolean
   createdAt?: boolean
 }
 
-export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "title" | "body" | "read" | "userId" | "workspaceId" | "linkUrl" | "createdAt", ExtArgs["result"]["notification"]>
+export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "category" | "title" | "body" | "read" | "userId" | "actorId" | "workspaceId" | "linkUrl" | "createdAt", ExtArgs["result"]["notification"]>
 export type NotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
   workspace?: boolean | Prisma.Notification$workspaceArgs<ExtArgs>
 }
 export type NotificationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
   workspace?: boolean | Prisma.Notification$workspaceArgs<ExtArgs>
 }
 export type NotificationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
   workspace?: boolean | Prisma.Notification$workspaceArgs<ExtArgs>
 }
 
@@ -768,15 +1000,18 @@ export type $NotificationPayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "Notification"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    actor: Prisma.$UserPayload<ExtArgs> | null
     workspace: Prisma.$WorkspacePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     type: $Enums.NotificationType
+    category: string
     title: string
     body: string | null
     read: boolean
     userId: string
+    actorId: string | null
     workspaceId: string | null
     linkUrl: string | null
     createdAt: Date
@@ -1175,6 +1410,7 @@ readonly fields: NotificationFieldRefs;
 export interface Prisma__NotificationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  actor<T extends Prisma.Notification$actorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notification$actorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   workspace<T extends Prisma.Notification$workspaceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notification$workspaceArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1207,10 +1443,12 @@ export interface Prisma__NotificationClient<T, Null = never, ExtArgs extends run
 export interface NotificationFieldRefs {
   readonly id: Prisma.FieldRef<"Notification", 'String'>
   readonly type: Prisma.FieldRef<"Notification", 'NotificationType'>
+  readonly category: Prisma.FieldRef<"Notification", 'String'>
   readonly title: Prisma.FieldRef<"Notification", 'String'>
   readonly body: Prisma.FieldRef<"Notification", 'String'>
   readonly read: Prisma.FieldRef<"Notification", 'Boolean'>
   readonly userId: Prisma.FieldRef<"Notification", 'String'>
+  readonly actorId: Prisma.FieldRef<"Notification", 'String'>
   readonly workspaceId: Prisma.FieldRef<"Notification", 'String'>
   readonly linkUrl: Prisma.FieldRef<"Notification", 'String'>
   readonly createdAt: Prisma.FieldRef<"Notification", 'DateTime'>
@@ -1612,6 +1850,25 @@ export type NotificationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many Notifications to delete.
    */
   limit?: number
+}
+
+/**
+ * Notification.actor
+ */
+export type Notification$actorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**
