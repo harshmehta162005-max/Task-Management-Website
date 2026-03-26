@@ -401,7 +401,8 @@ export const ModelName = {
   Notification: 'Notification',
   Activity: 'Activity',
   Automation: 'Automation',
-  CalendarNote: 'CalendarNote'
+  CalendarNote: 'CalendarNote',
+  AiChatHistory: 'AiChatHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation" | "calendarNote"
+    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation" | "calendarNote" | "aiChatHistory"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1753,6 +1754,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AiChatHistory: {
+      payload: Prisma.$AiChatHistoryPayload<ExtArgs>
+      fields: Prisma.AiChatHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AiChatHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AiChatHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.AiChatHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AiChatHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.AiChatHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.AiChatHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.AiChatHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AiChatHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.AiChatHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>
+        }
+        update: {
+          args: Prisma.AiChatHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.AiChatHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AiChatHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AiChatHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.AiChatHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.AiChatHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAiChatHistory>
+        }
+        groupBy: {
+          args: Prisma.AiChatHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AiChatHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AiChatHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AiChatHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2021,6 +2096,20 @@ export const CalendarNoteScalarFieldEnum = {
 } as const
 
 export type CalendarNoteScalarFieldEnum = (typeof CalendarNoteScalarFieldEnum)[keyof typeof CalendarNoteScalarFieldEnum]
+
+
+export const AiChatHistoryScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  role: 'role',
+  content: 'content',
+  mode: 'mode',
+  projectId: 'projectId',
+  createdAt: 'createdAt'
+} as const
+
+export type AiChatHistoryScalarFieldEnum = (typeof AiChatHistoryScalarFieldEnum)[keyof typeof AiChatHistoryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2350,6 +2439,7 @@ export type GlobalOmitConfig = {
   activity?: Prisma.ActivityOmit
   automation?: Prisma.AutomationOmit
   calendarNote?: Prisma.CalendarNoteOmit
+  aiChatHistory?: Prisma.AiChatHistoryOmit
 }
 
 /* Types for Logging */

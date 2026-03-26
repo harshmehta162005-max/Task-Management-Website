@@ -68,7 +68,8 @@ export const ModelName = {
   Notification: 'Notification',
   Activity: 'Activity',
   Automation: 'Automation',
-  CalendarNote: 'CalendarNote'
+  CalendarNote: 'CalendarNote',
+  AiChatHistory: 'AiChatHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -316,6 +317,20 @@ export const CalendarNoteScalarFieldEnum = {
 } as const
 
 export type CalendarNoteScalarFieldEnum = (typeof CalendarNoteScalarFieldEnum)[keyof typeof CalendarNoteScalarFieldEnum]
+
+
+export const AiChatHistoryScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  role: 'role',
+  content: 'content',
+  mode: 'mode',
+  projectId: 'projectId',
+  createdAt: 'createdAt'
+} as const
+
+export type AiChatHistoryScalarFieldEnum = (typeof AiChatHistoryScalarFieldEnum)[keyof typeof AiChatHistoryScalarFieldEnum]
 
 
 export const SortOrder = {

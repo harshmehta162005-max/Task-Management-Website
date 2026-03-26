@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { ClipboardEdit } from "lucide-react";
+import { ClipboardEdit, Loader2 } from "lucide-react";
 import { ProposedTasksPreview } from "./ProposedTasksPreview";
 import { Select } from "@/components/ui/Select";
 
@@ -11,23 +13,72 @@ type Proposed = {
   duplicate?: boolean;
 };
 
-export function MeetingToTasksFlow() {
-  const [notes, setNotes] = useState("");
-  const [project, setProject] = useState("mobile");
-  const [proposed, setProposed] = useState<Proposed[]>([]);
+type Props = {
+  workspaceId: string;
+  projects: { id: string; name: string }[];
+};
 
-  const extract = () => {
-    if (!notes.trim()) return;
-    setProposed([
-      { id: "p1", title: "Finalize login flow UI", assignee: "Alex Rivera", due: "Fri", duplicate: false },
-      { id: "p2", title: "Send meeting follow-up", assignee: "Sarah Chen", due: "Tomorrow", duplicate: true },
-      { id: "p3", title: "Create QA checklist", assignee: "Marcus Wright", due: "Mon", duplicate: false },
-    ]);
+export function MeetingToTasksFlow({ workspaceId, projects }: Props) {
+  const [notes, setNotes] = useState("");
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
+  const [proposed, setProposed] = useState<Proposed[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Keep projectId in sync if projects list changes
+  if (projects.length > 0 && !projectId && projects[0]?.id) {
+    setProjectId(projects[0].id);
+  }
+
+  const extract = async () => {
+    if (!notes.trim() || !projectId || !workspaceId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/meeting-to-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId, notes, projectId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to extract tasks");
+      setProposed(data.tasks ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const approve = (id: string) => setProposed((p) => p.filter((t) => t.id !== id));
+  const approve = async (id: string) => {
+    const task = proposed.find((t) => t.id === id);
+    if (!task || !projectId) return;
+    // Create the task via API
+    try {
+      await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          title: task.title,
+          status: "TODO",
+          priority: "MEDIUM",
+        }),
+      });
+    } catch {
+      // silently ignore — task still removed from proposed list
+    }
+    setProposed((p) => p.filter((t) => t.id !== id));
+  };
+
   const reject = (id: string) => setProposed((p) => p.filter((t) => t.id !== id));
-  const approveAll = () => setProposed([]);
+
+  const approveAll = async () => {
+    for (const task of proposed.filter((t) => !t.duplicate)) {
+      await approve(task.id);
+    }
+    setProposed([]);
+  };
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-[#111827]">
@@ -50,24 +101,30 @@ export function MeetingToTasksFlow() {
             Target project
           </label>
           <Select
-            value={project}
-            onChange={setProject}
-            options={[
-              { value: "mobile", label: "Mobile Redesign" },
-              { value: "api", label: "API Documentation" },
-              { value: "marketing", label: "Q4 Marketing" },
-            ]}
+            value={projectId}
+            onChange={setProjectId}
+            options={projects.map((p) => ({ value: p.id, label: p.name }))}
             portal={false}
           />
         </div>
+        {error && (
+          <p className="text-xs text-red-500">{error}</p>
+        )}
         <button
           onClick={extract}
-          className="w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+          disabled={loading || !notes.trim() || !workspaceId}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50 dark:bg-white dark:text-slate-900"
         >
-          Extract tasks
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {loading ? "Extracting…" : "Extract tasks"}
         </button>
 
-        <ProposedTasksPreview tasks={proposed} onApprove={approve} onReject={reject} onApproveAll={approveAll} />
+        <ProposedTasksPreview
+          tasks={proposed}
+          onApprove={approve}
+          onReject={reject}
+          onApproveAll={approveAll}
+        />
       </div>
     </div>
   );

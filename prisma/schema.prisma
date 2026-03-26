@@ -32,6 +32,7 @@ model User {
   invitesSent       WorkspaceInvite[]
   taskUserDependencies TaskUserDependency[]
   calendarNotes     CalendarNote[]
+  aiChatHistory     AiChatHistory[]
 
   @@map("users")
 }
@@ -57,6 +58,7 @@ model Workspace {
   activities Activity[]
   automations Automation[]
   notifications Notification[]
+  aiChatHistory AiChatHistory[]
 
   @@map("workspaces")
 }
@@ -405,4 +407,24 @@ model CalendarNote {
 
   @@index([projectId, date])
   @@map("calendar_notes")
+}
+
+// ─── AI CHAT HISTORY ─────────────────────────────────────────────────────────
+
+model AiChatHistory {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   // "user" | "assistant"
+  content     String
+  mode        String   @default("personal") // "personal" | "project" | "workspace"
+  projectId   String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId, createdAt])
+  @@map("ai_chat_history")
 }

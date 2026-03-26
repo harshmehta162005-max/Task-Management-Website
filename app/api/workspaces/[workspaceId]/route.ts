@@ -12,32 +12,20 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { workspaceId } = await params;
 
-    // Try slug first (most common for frontend), then id
-    const workspace = await db.workspace.findFirst({
-      where: {
-        OR: [{ slug: workspaceId }, { id: workspaceId }],
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        logoUrl: true,
-        ownerId: true,
-        createdAt: true,
-        _count: {
-          select: { members: true, projects: true },
-        },
-      },
-    });
+    // Use resolveWorkspace which returns isAdmin/isOwner
+    const { workspace, isAdmin, isOwner } = await resolveWorkspace(workspaceId);
 
-    if (!workspace) {
-      throw new ApiError(404, "Workspace not found");
-    }
+    const counts = await db.workspace.findUnique({
+      where: { id: workspace.id },
+      select: { _count: { select: { members: true, projects: true } } },
+    });
 
     return Response.json({
       ...workspace,
-      memberCount: workspace._count.members,
-      projectCount: workspace._count.projects,
+      isAdmin,
+      isOwner,
+      memberCount: counts?._count.members ?? 0,
+      projectCount: counts?._count.projects ?? 0,
     });
   } catch (error) {
     return handleApiError(error);

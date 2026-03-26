@@ -207,6 +207,7 @@ export type WorkspaceWhereInput = {
   activities?: Prisma.ActivityListRelationFilter
   automations?: Prisma.AutomationListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  aiChatHistory?: Prisma.AiChatHistoryListRelationFilter
 }
 
 export type WorkspaceOrderByWithRelationInput = {
@@ -226,6 +227,7 @@ export type WorkspaceOrderByWithRelationInput = {
   activities?: Prisma.ActivityOrderByRelationAggregateInput
   automations?: Prisma.AutomationOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  aiChatHistory?: Prisma.AiChatHistoryOrderByRelationAggregateInput
 }
 
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
@@ -248,6 +250,7 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   activities?: Prisma.ActivityListRelationFilter
   automations?: Prisma.AutomationListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  aiChatHistory?: Prisma.AiChatHistoryListRelationFilter
 }, "id" | "slug">
 
 export type WorkspaceOrderByWithAggregationInput = {
@@ -292,6 +295,7 @@ export type WorkspaceCreateInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateInput = {
@@ -310,6 +314,7 @@ export type WorkspaceUncheckedCreateInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUpdateInput = {
@@ -328,6 +333,7 @@ export type WorkspaceUpdateInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateInput = {
@@ -346,6 +352,7 @@ export type WorkspaceUncheckedUpdateInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateManyInput = {
@@ -583,6 +590,20 @@ export type WorkspaceUpdateOneRequiredWithoutAutomationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutAutomationsInput, Prisma.WorkspaceUpdateWithoutAutomationsInput>, Prisma.WorkspaceUncheckedUpdateWithoutAutomationsInput>
 }
 
+export type WorkspaceCreateNestedOneWithoutAiChatHistoryInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiChatHistoryInput, Prisma.WorkspaceUncheckedCreateWithoutAiChatHistoryInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutAiChatHistoryInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+}
+
+export type WorkspaceUpdateOneRequiredWithoutAiChatHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiChatHistoryInput, Prisma.WorkspaceUncheckedCreateWithoutAiChatHistoryInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutAiChatHistoryInput
+  upsert?: Prisma.WorkspaceUpsertWithoutAiChatHistoryInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutAiChatHistoryInput, Prisma.WorkspaceUpdateWithoutAiChatHistoryInput>, Prisma.WorkspaceUncheckedUpdateWithoutAiChatHistoryInput>
+}
+
 export type WorkspaceCreateWithoutOwnerInput = {
   id?: string
   name: string
@@ -598,6 +619,7 @@ export type WorkspaceCreateWithoutOwnerInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutOwnerInput = {
@@ -615,6 +637,7 @@ export type WorkspaceUncheckedCreateWithoutOwnerInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutOwnerInput = {
@@ -671,6 +694,7 @@ export type WorkspaceCreateWithoutMembersInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutMembersInput = {
@@ -688,6 +712,7 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutMembersInput = {
@@ -721,6 +746,7 @@ export type WorkspaceUpdateWithoutMembersInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutMembersInput = {
@@ -738,6 +764,7 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutInvitesInput = {
@@ -755,6 +782,7 @@ export type WorkspaceCreateWithoutInvitesInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutInvitesInput = {
@@ -772,6 +800,7 @@ export type WorkspaceUncheckedCreateWithoutInvitesInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutInvitesInput = {
@@ -805,6 +834,7 @@ export type WorkspaceUpdateWithoutInvitesInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
@@ -822,6 +852,7 @@ export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutRolesInput = {
@@ -839,6 +870,7 @@ export type WorkspaceCreateWithoutRolesInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutRolesInput = {
@@ -856,6 +888,7 @@ export type WorkspaceUncheckedCreateWithoutRolesInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutRolesInput = {
@@ -889,6 +922,7 @@ export type WorkspaceUpdateWithoutRolesInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutRolesInput = {
@@ -906,6 +940,7 @@ export type WorkspaceUncheckedUpdateWithoutRolesInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutProjectsInput = {
@@ -923,6 +958,7 @@ export type WorkspaceCreateWithoutProjectsInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutProjectsInput = {
@@ -940,6 +976,7 @@ export type WorkspaceUncheckedCreateWithoutProjectsInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutProjectsInput = {
@@ -973,6 +1010,7 @@ export type WorkspaceUpdateWithoutProjectsInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
@@ -990,6 +1028,7 @@ export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutTagsInput = {
@@ -1007,6 +1046,7 @@ export type WorkspaceCreateWithoutTagsInput = {
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutTagsInput = {
@@ -1024,6 +1064,7 @@ export type WorkspaceUncheckedCreateWithoutTagsInput = {
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutTagsInput = {
@@ -1057,6 +1098,7 @@ export type WorkspaceUpdateWithoutTagsInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutTagsInput = {
@@ -1074,6 +1116,7 @@ export type WorkspaceUncheckedUpdateWithoutTagsInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutNotificationsInput = {
@@ -1091,6 +1134,7 @@ export type WorkspaceCreateWithoutNotificationsInput = {
   invites?: Prisma.WorkspaceInviteCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
@@ -1108,6 +1152,7 @@ export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
   invites?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutNotificationsInput = {
@@ -1141,6 +1186,7 @@ export type WorkspaceUpdateWithoutNotificationsInput = {
   invites?: Prisma.WorkspaceInviteUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
@@ -1158,6 +1204,7 @@ export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
   invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutActivitiesInput = {
@@ -1175,6 +1222,7 @@ export type WorkspaceCreateWithoutActivitiesInput = {
   invites?: Prisma.WorkspaceInviteCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutActivitiesInput = {
@@ -1192,6 +1240,7 @@ export type WorkspaceUncheckedCreateWithoutActivitiesInput = {
   invites?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutWorkspaceInput
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutActivitiesInput = {
@@ -1225,6 +1274,7 @@ export type WorkspaceUpdateWithoutActivitiesInput = {
   invites?: Prisma.WorkspaceInviteUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutActivitiesInput = {
@@ -1242,6 +1292,7 @@ export type WorkspaceUncheckedUpdateWithoutActivitiesInput = {
   invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutAutomationsInput = {
@@ -1259,6 +1310,7 @@ export type WorkspaceCreateWithoutAutomationsInput = {
   invites?: Prisma.WorkspaceInviteCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutAutomationsInput = {
@@ -1276,6 +1328,7 @@ export type WorkspaceUncheckedCreateWithoutAutomationsInput = {
   invites?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutAutomationsInput = {
@@ -1309,6 +1362,7 @@ export type WorkspaceUpdateWithoutAutomationsInput = {
   invites?: Prisma.WorkspaceInviteUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutAutomationsInput = {
@@ -1325,6 +1379,95 @@ export type WorkspaceUncheckedUpdateWithoutAutomationsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutWorkspaceNestedInput
   invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceCreateWithoutAiChatHistoryInput = {
+  id?: string
+  name: string
+  slug: string
+  logoUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutOwnedWorkspacesInput
+  members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput
+  tags?: Prisma.TagCreateNestedManyWithoutWorkspaceInput
+  roles?: Prisma.RoleCreateNestedManyWithoutWorkspaceInput
+  invites?: Prisma.WorkspaceInviteCreateNestedManyWithoutWorkspaceInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
+  automations?: Prisma.AutomationCreateNestedManyWithoutWorkspaceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceUncheckedCreateWithoutAiChatHistoryInput = {
+  id?: string
+  name: string
+  slug: string
+  logoUrl?: string | null
+  ownerId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutWorkspaceInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutWorkspaceInput
+  invites?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutWorkspaceInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
+  automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutWorkspaceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceCreateOrConnectWithoutAiChatHistoryInput = {
+  where: Prisma.WorkspaceWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiChatHistoryInput, Prisma.WorkspaceUncheckedCreateWithoutAiChatHistoryInput>
+}
+
+export type WorkspaceUpsertWithoutAiChatHistoryInput = {
+  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutAiChatHistoryInput, Prisma.WorkspaceUncheckedUpdateWithoutAiChatHistoryInput>
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutAiChatHistoryInput, Prisma.WorkspaceUncheckedCreateWithoutAiChatHistoryInput>
+  where?: Prisma.WorkspaceWhereInput
+}
+
+export type WorkspaceUpdateToOneWithWhereWithoutAiChatHistoryInput = {
+  where?: Prisma.WorkspaceWhereInput
+  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutAiChatHistoryInput, Prisma.WorkspaceUncheckedUpdateWithoutAiChatHistoryInput>
+}
+
+export type WorkspaceUpdateWithoutAiChatHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutOwnedWorkspacesNestedInput
+  members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput
+  tags?: Prisma.TagUpdateManyWithoutWorkspaceNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutWorkspaceNestedInput
+  invites?: Prisma.WorkspaceInviteUpdateManyWithoutWorkspaceNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
+  automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceUncheckedUpdateWithoutAiChatHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput
+  tags?: Prisma.TagUncheckedUpdateManyWithoutWorkspaceNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutWorkspaceNestedInput
+  invites?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
+  automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
@@ -1352,6 +1495,7 @@ export type WorkspaceUpdateWithoutOwnerInput = {
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutOwnerInput = {
@@ -1369,6 +1513,7 @@ export type WorkspaceUncheckedUpdateWithoutOwnerInput = {
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutWorkspaceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateManyWithoutOwnerInput = {
@@ -1394,6 +1539,7 @@ export type WorkspaceCountOutputType = {
   activities: number
   automations: number
   notifications: number
+  aiChatHistory: number
 }
 
 export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1405,6 +1551,7 @@ export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
   activities?: boolean | WorkspaceCountOutputTypeCountActivitiesArgs
   automations?: boolean | WorkspaceCountOutputTypeCountAutomationsArgs
   notifications?: boolean | WorkspaceCountOutputTypeCountNotificationsArgs
+  aiChatHistory?: boolean | WorkspaceCountOutputTypeCountAiChatHistoryArgs
 }
 
 /**
@@ -1473,6 +1620,13 @@ export type WorkspaceCountOutputTypeCountNotificationsArgs<ExtArgs extends runti
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * WorkspaceCountOutputType without action
+ */
+export type WorkspaceCountOutputTypeCountAiChatHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AiChatHistoryWhereInput
+}
+
 
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1491,6 +1645,7 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   activities?: boolean | Prisma.Workspace$activitiesArgs<ExtArgs>
   automations?: boolean | Prisma.Workspace$automationsArgs<ExtArgs>
   notifications?: boolean | Prisma.Workspace$notificationsArgs<ExtArgs>
+  aiChatHistory?: boolean | Prisma.Workspace$aiChatHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -1537,6 +1692,7 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   activities?: boolean | Prisma.Workspace$activitiesArgs<ExtArgs>
   automations?: boolean | Prisma.Workspace$automationsArgs<ExtArgs>
   notifications?: boolean | Prisma.Workspace$notificationsArgs<ExtArgs>
+  aiChatHistory?: boolean | Prisma.Workspace$aiChatHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1558,6 +1714,7 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     activities: Prisma.$ActivityPayload<ExtArgs>[]
     automations: Prisma.$AutomationPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    aiChatHistory: Prisma.$AiChatHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1970,6 +2127,7 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
   activities<T extends Prisma.Workspace$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   automations<T extends Prisma.Workspace$automationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$automationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Workspace$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  aiChatHistory<T extends Prisma.Workspace$aiChatHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$aiChatHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiChatHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2596,6 +2754,30 @@ export type Workspace$notificationsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Workspace.aiChatHistory
+ */
+export type Workspace$aiChatHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AiChatHistory
+   */
+  select?: Prisma.AiChatHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AiChatHistory
+   */
+  omit?: Prisma.AiChatHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AiChatHistoryInclude<ExtArgs> | null
+  where?: Prisma.AiChatHistoryWhereInput
+  orderBy?: Prisma.AiChatHistoryOrderByWithRelationInput | Prisma.AiChatHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.AiChatHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AiChatHistoryScalarFieldEnum | Prisma.AiChatHistoryScalarFieldEnum[]
 }
 
 /**
