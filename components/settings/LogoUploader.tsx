@@ -19,8 +19,15 @@ export function LogoUploader({ value, onChange }: Props) {
 
   const handleFile = (file?: File) => {
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    onChange(url);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const b64 = event.target?.result;
+      if (typeof b64 === "string") {
+        onChange(b64);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (

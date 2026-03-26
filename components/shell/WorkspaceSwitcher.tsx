@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ChevronsUpDown, Grid2x2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -9,7 +10,28 @@ type Props = {
 
 export function WorkspaceSwitcher({ collapsed = false }: Props) {
   const params = useParams<{ workspaceSlug?: string }>();
-  const name = params?.workspaceSlug?.replace(/[-_]/g, " ") || "Acme Global";
+  const slug = params?.workspaceSlug;
+  const [workspace, setWorkspace] = useState<{ name: string; logoUrl: string | null }>({
+    name: slug ? slug.replace(/[-_]/g, " ") : "Loading...",
+    logoUrl: null,
+  });
+
+  useEffect(() => {
+    if (!slug) return;
+    async function load() {
+      try {
+        const res = await fetch(`/api/workspaces/${slug}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setWorkspace({ name: data.name, logoUrl: data.logoUrl });
+      } catch {
+        // fail silently, keep fallback
+      }
+    }
+    load();
+  }, [slug]);
+
+  const fallbackInitial = workspace.name ? workspace.name.charAt(0).toUpperCase() : "?";
 
   return (
     <Link
@@ -19,12 +41,16 @@ export function WorkspaceSwitcher({ collapsed = false }: Props) {
         collapsed && "justify-center px-2"
       )}
     >
-      <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-white shadow-primary/30 shadow-sm">
-        <Grid2x2 className="h-5 w-5" />
+      <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary text-white shadow-primary/30 shadow-sm">
+        {workspace.logoUrl ? (
+          <img src={workspace.logoUrl} alt={workspace.name} className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-lg font-bold">{fallbackInitial}</span>
+        )}
       </span>
       {!collapsed && (
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">{name}</span>
+          <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white capitalize">{workspace.name}</span>
           <span className="block truncate text-xs text-slate-500 dark:text-slate-400">Pro Workspace</span>
         </span>
       )}

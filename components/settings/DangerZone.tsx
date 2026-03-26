@@ -7,12 +7,14 @@ import { cn } from "@/lib/utils/cn";
 
 type Props = {
   workspaceName: string;
+  workspaceSlug: string;
   isAdmin?: boolean;
 };
 
-export function DangerZone({ workspaceName, isAdmin = false }: Props) {
+export function DangerZone({ workspaceName, workspaceSlug, isAdmin = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [deleted, setDeleted] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <section className="space-y-4">
@@ -33,20 +35,24 @@ export function DangerZone({ workspaceName, isAdmin = false }: Props) {
               </p>
             </div>
           </div>
-          <button
-            disabled={!isAdmin || deleted}
-            onClick={() => setOpen(true)}
-            className={cn(
-              "whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition",
-              !isAdmin
-                ? "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500"
-                : deleted
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white hover:bg-red-600"
-            )}
-          >
-            {deleted ? "Deleted" : "Delete workspace"}
-          </button>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              disabled={!isAdmin || deleting}
+              onClick={() => {
+                setError(null);
+                setOpen(true);
+              }}
+              className={cn(
+                "whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition",
+                !isAdmin || deleting
+                  ? "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              )}
+            >
+              {deleting ? "Deleting..." : "Delete workspace"}
+            </button>
+            {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
+          </div>
         </div>
         {!isAdmin && (
           <p className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -58,7 +64,21 @@ export function DangerZone({ workspaceName, isAdmin = false }: Props) {
         open={open}
         workspaceName={workspaceName}
         onClose={() => setOpen(false)}
-        onConfirm={() => setDeleted(true)}
+        onConfirm={async () => {
+          setDeleting(true);
+          setError(null);
+          try {
+            const res = await fetch(`/api/workspaces/${workspaceSlug}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to delete workspace");
+            
+            // Redirect cleanly to selector
+            window.location.href = "/";
+          } catch (err: any) {
+            setError(err.message);
+            setDeleting(false);
+          }
+        }}
       />
     </section>
   );

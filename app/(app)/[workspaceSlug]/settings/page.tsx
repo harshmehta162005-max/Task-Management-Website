@@ -44,7 +44,7 @@ export default function SettingsPage() {
     <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
       <SettingsLayout>
         <WorkspaceProfileForm initialWorkspace={workspace} />
-        <DangerZone workspaceName={workspace.name} isAdmin={true} />
+        <DangerZone workspaceName={workspace.name} workspaceSlug={workspace.slug} isAdmin={true} />
       </SettingsLayout>
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LogoUploader } from "./LogoUploader";
 import { SlugInput } from "./SlugInput";
 import { cn } from "@/lib/utils/cn";
@@ -22,9 +23,11 @@ const DEFAULT_WORKSPACE: Workspace = {
 };
 
 export function WorkspaceProfileForm({ initialWorkspace = DEFAULT_WORKSPACE }: Props) {
+  const router = useRouter();
   const [workspace, setWorkspace] = useState<Workspace>(initialWorkspace);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const dirty = useMemo(
     () =>
@@ -34,14 +37,39 @@ export function WorkspaceProfileForm({ initialWorkspace = DEFAULT_WORKSPACE }: P
     [workspace, initialWorkspace]
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
     setSaved(false);
-    setTimeout(() => {
-      setSaving(false);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/workspaces/${initialWorkspace.slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: workspace.name,
+          slug: workspace.slug,
+          logoUrl: workspace.logoUrl,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update workspace");
+      }
+
       setSaved(true);
-      setTimeout(() => setSaved(false), 1800);
-    }, 600);
+      setTimeout(() => setSaved(false), 2000);
+
+      if (data.slug !== initialWorkspace.slug) {
+        // Redirect completely to new slug using window.location to properly reload the active route context
+        window.location.href = `/${data.slug}/settings`;
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
@@ -87,26 +115,29 @@ export function WorkspaceProfileForm({ initialWorkspace = DEFAULT_WORKSPACE }: P
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 pt-2">
-        <button
-          type="button"
-          onClick={handleReset}
-          className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
-        >
-          Reset
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!dirty || saving}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white shadow-sm transition",
-            !dirty || saving ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
-          )}
-        >
-          {saving ? "Saving..." : "Save changes"}
-        </button>
-        {saved && <span className="text-xs font-semibold text-emerald-500">Saved</span>}
+      <div className="flex flex-col gap-2">
+        {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!dirty || saving}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white shadow-sm transition",
+              !dirty || saving ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
+            )}
+          >
+            {saving ? "Saving..." : "Save changes"}
+          </button>
+          {saved && <span className="text-xs font-semibold text-emerald-500">Saved</span>}
+        </div>
       </div>
     </div>
   );

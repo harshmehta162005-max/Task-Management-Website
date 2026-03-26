@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, Menu, PlusCircle, ChevronDown, UserRound, LogOut, Settings, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useShell } from "./useShell";
@@ -32,11 +32,52 @@ export function TopBar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const notifications = [
-    { id: "1", title: "Design review at 4 PM", time: "10m ago" },
-    { id: "2", title: "Alice mentioned you in Brand Kit", time: "32m ago" },
-    { id: "3", title: "2 tasks are due today", time: "1h ago" },
-  ];
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    async function loadNotifications() {
+      try {
+        const res = await fetch("/api/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data.slice(0, 5)); // Keep only top 5 for the popup
+          setUnreadCount(data.filter((n: any) => !n.isRead).length);
+        }
+      } catch (err) {
+        // Non-critical
+      }
+    }
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+    try {
+      await fetch("/api/notifications/read-all", { method: "POST" });
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const handleNotificationClick = async (n: any) => {
+    setNotifyOpen(false);
+    if (!n.isRead) {
+      setNotifications((prev) => prev.map((item) => (item.id === n.id ? { ...item, isRead: true } : item)));
+      setUnreadCount((c) => Math.max(0, c - 1));
+      fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: n.id }),
+      }).catch(console.error);
+    }
+    if (n.link) {
+      router.push(n.link);
+    }
+  };
 
   const firstName = user?.name?.split(" ")[0] ?? "User";
   const initials = user?.name
@@ -69,21 +110,53 @@ export function TopBar() {
               onClick={() => setNotifyOpen((v) => !v)}
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute right-2.5 top-2.5 inline-flex size-2 rounded-full bg-primary ring-2 ring-white dark:ring-background-dark" />
+              {unreadCount > 0 && (
+                <span className="absolute right-2.5 top-2.5 inline-flex size-2 rounded-full bg-primary ring-2 ring-white dark:ring-background-dark" />
+              )}
             </button>
             {notifyOpen && (
-              <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-slate-700 dark:bg-[#0f172a] z-40">
-                <div className="px-2 pb-2 text-sm font-semibold text-slate-700 dark:text-slate-100">Notifications</div>
-                <div className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {notifications.map((n) => (
-                    <div key={n.id} className="py-2 px-2 text-sm text-slate-700 dark:text-slate-200">
-                      <div className="font-semibold">{n.title}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{n.time}</div>
-                    </div>
-                  ))}
+              <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-slate-700 dark:bg-[#0f172a] z-40">
+                <div className="flex items-center justify-between px-2 pt-1 pb-2">
+                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead} className="text-xs font-semibold text-primary hover:underline">
+                      Mark all read
+                    </button>
+                  )}
                 </div>
-                <button className="mt-2 w-full rounded-xl px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10">
-                  Mark all read
+                <div className="flex flex-col gap-1">
+                  {notifications.length === 0 ? (
+                    <div className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                      No notifications yet
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => handleNotificationClick(n)}
+                        className={`flex flex-col items-start gap-1 rounded-xl p-2.5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+                          !n.isRead ? "bg-primary/5 dark:bg-primary/10" : ""
+                        }`}
+                      >
+                        <div className="flex w-full items-start justify-between gap-2">
+                          <span className={`text-sm ${!n.isRead ? "font-semibold text-slate-900 dark:text-white" : "font-medium text-slate-700 dark:text-slate-200"}`}>
+                            {n.title}
+                          </span>
+                          {!n.isRead && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{n.createdAt}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    setNotifyOpen(false);
+                    router.push(`/${workspaceSlug}/notifications`);
+                  }}
+                  className="mt-2 block w-full rounded-xl px-3 py-2 text-center text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/50"
+                >
+                  View all notifications
                 </button>
               </div>
             )}
