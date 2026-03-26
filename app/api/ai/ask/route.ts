@@ -1,21 +1,22 @@
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace } from "@/lib/workspace/resolveWorkspace";
-import { buildProjectContext, buildWorkspaceContext } from "@/lib/ai/rag/retrieve";
+import { buildPersonalContext, buildProjectContext, buildWorkspaceContext } from "@/lib/ai/rag/retrieve";
 import { askGemini, HistoryMessage } from "@/lib/ai/rag/answer";
 import type { ChatMode } from "@/lib/ai/systemPrompts";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { workspaceSlug, message, mode = "personal", projectId } = body as {
+    const { workspaceSlug, message, mode = "personal", projectId, sessionId } = body as {
       workspaceSlug: string;
       message: string;
       mode?: ChatMode;
       projectId?: string;
+      sessionId: string;
     };
 
-    if (!workspaceSlug || !message?.trim()) {
-      return Response.json({ error: "workspaceSlug and message are required" }, { status: 400 });
+    if (!workspaceSlug || !message?.trim() || !sessionId) {
+      return Response.json({ error: "workspaceSlug, message and sessionId are required" }, { status: 400 });
     }
 
     // Resolve workspace + user + permissions
@@ -26,24 +27,32 @@ export async function POST(req: Request) {
       return Response.json({ error: "Workspace chat is only available for admins" }, { status: 403 });
     }
 
-    // Build context based on mode
-    let contextData: string | null = null;
+    // Verify session exists and belongs to user
+    const session = await db.aiChatSession.findFirst({
+      where: { id: sessionId, userId: user.id, workspaceId: workspace.id },
+    });
+    if (!session) {
+      return Response.json({ error: "Session not found" }, { status: 404 });
+    }
 
-    if (mode === "project" && projectId) {
+    // ── 1. Save user message FIRST (so it persists even if Gemini fails) ──
+    await db.aiChatHistory.create({
+      data: { sessionId, workspaceId: workspace.id, userId: user.id, role: "user", content: message, mode, projectId: projectId ?? null },
+    });
+
+    // Build context based on mode — every mode gets relevant context
+    let contextData: string | null = null;
+    if (mode === "personal") {
+      contextData = await buildPersonalContext(user.id, workspace.id);
+    } else if (mode === "project" && projectId) {
       contextData = await buildProjectContext(projectId);
     } else if (mode === "workspace") {
       contextData = await buildWorkspaceContext(workspace.id);
     }
-    // personal mode: no context injected
 
-    // Fetch last 20 messages for this mode
+    // Fetch last 20 messages for this session (includes the one we just saved)
     const pastMessages = await db.aiChatHistory.findMany({
-      where: {
-        workspaceId: workspace.id,
-        userId: user.id,
-        mode,
-        ...(mode === "project" && projectId ? { projectId } : {}),
-      },
+      where: { sessionId },
       orderBy: { createdAt: "desc" },
       take: 20,
       select: { role: true, content: true },
@@ -56,15 +65,41 @@ export async function POST(req: Request) {
         parts: [{ text: m.content }],
       }));
 
-    // Call Gemini with mode-appropriate prompt
-    const reply = await askGemini(mode, contextData, history, message);
+    // ── 2. Call Gemini ──
+    let reply: string;
+    try {
+      reply = await askGemini(mode, contextData, history, message);
+    } catch (geminiErr) {
+      const geminiMsg = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
+      console.error("[AI/ASK] Gemini error:", geminiMsg);
 
-    // Persist both messages
-    await db.aiChatHistory.createMany({
-      data: [
-        { workspaceId: workspace.id, userId: user.id, role: "user", content: message, mode, projectId: projectId ?? null },
-        { workspaceId: workspace.id, userId: user.id, role: "assistant", content: reply, mode, projectId: projectId ?? null },
-      ],
+      // Determine user-friendly error message
+      const isRateLimit = geminiMsg.includes("429") || geminiMsg.includes("Too Many Requests") || geminiMsg.includes("quota");
+      const errorReply = isRateLimit
+        ? "⚠️ Rate limit reached. Please wait a moment and try again."
+        : "⚠️ AI request failed. Please try again.";
+
+      // Save error as assistant message so it persists in history
+      await db.aiChatHistory.create({
+        data: { sessionId, workspaceId: workspace.id, userId: user.id, role: "assistant", content: errorReply, mode, projectId: projectId ?? null },
+      });
+
+      // Touch session updatedAt
+      await db.aiChatSession.update({ where: { id: sessionId }, data: { updatedAt: new Date() } });
+
+      // Return the error as a reply so the frontend displays it normally
+      return Response.json({ reply: errorReply });
+    }
+
+    // ── 3. Save AI reply ──
+    await db.aiChatHistory.create({
+      data: { sessionId, workspaceId: workspace.id, userId: user.id, role: "assistant", content: reply, mode, projectId: projectId ?? null },
+    });
+
+    // Touch session updatedAt
+    await db.aiChatSession.update({
+      where: { id: sessionId },
+      data: { updatedAt: new Date() },
     });
 
     return Response.json({ reply });
@@ -72,9 +107,6 @@ export async function POST(req: Request) {
     const msg = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack?.split("\n").slice(0, 3).join(" | ") : "";
     console.error("[AI/ASK]", msg, stack);
-    if (msg.includes("429") || msg.includes("Too Many Requests") || msg.includes("quota")) {
-      return Response.json({ error: "Rate limit reached. Please wait a moment and try again." }, { status: 429 });
-    }
     return Response.json({ error: "AI request failed", detail: msg }, { status: 500 });
   }
 }
@@ -83,22 +115,26 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const workspaceSlug = url.searchParams.get("workspaceSlug");
-    const mode = (url.searchParams.get("mode") ?? "personal") as ChatMode;
-    const projectId = url.searchParams.get("projectId");
+    const sessionId = url.searchParams.get("sessionId");
 
-    if (!workspaceSlug) return Response.json({ error: "workspaceSlug required" }, { status: 400 });
+    if (!workspaceSlug || !sessionId) {
+      return Response.json({ error: "workspaceSlug and sessionId required" }, { status: 400 });
+    }
 
     const { workspace, user } = await resolveWorkspace(workspaceSlug);
 
+    // Verify session ownership
+    const session = await db.aiChatSession.findFirst({
+      where: { id: sessionId, userId: user.id, workspaceId: workspace.id },
+    });
+    if (!session) {
+      return Response.json({ error: "Session not found" }, { status: 404 });
+    }
+
     const history = await db.aiChatHistory.findMany({
-      where: {
-        workspaceId: workspace.id,
-        userId: user.id,
-        mode,
-        ...(mode === "project" && projectId ? { projectId } : {}),
-      },
+      where: { sessionId },
       orderBy: { createdAt: "asc" },
-      take: 50,
+      take: 100,
       select: { id: true, role: true, content: true, mode: true, projectId: true, createdAt: true },
     });
 
@@ -113,19 +149,20 @@ export async function DELETE(req: Request) {
   try {
     const url = new URL(req.url);
     const workspaceSlug = url.searchParams.get("workspaceSlug");
-    const mode = (url.searchParams.get("mode") ?? "personal") as ChatMode;
-    const projectId = url.searchParams.get("projectId");
+    const sessionId = url.searchParams.get("sessionId");
 
-    if (!workspaceSlug) return Response.json({ error: "workspaceSlug required" }, { status: 400 });
+    if (!workspaceSlug || !sessionId) {
+      return Response.json({ error: "workspaceSlug and sessionId required" }, { status: 400 });
+    }
 
     const { workspace, user } = await resolveWorkspace(workspaceSlug);
 
+    // Delete all messages for this session
     await db.aiChatHistory.deleteMany({
       where: {
+        sessionId,
         workspaceId: workspace.id,
         userId: user.id,
-        mode,
-        ...(mode === "project" && projectId ? { projectId } : {}),
       },
     });
 

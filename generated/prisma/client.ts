@@ -132,6 +132,11 @@ export type Automation = Prisma.AutomationModel
  */
 export type CalendarNote = Prisma.CalendarNoteModel
 /**
+ * Model AiChatSession
+ * 
+ */
+export type AiChatSession = Prisma.AiChatSessionModel
+/**
  * Model AiChatHistory
  * 
  */

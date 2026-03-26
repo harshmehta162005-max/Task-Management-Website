@@ -5,7 +5,7 @@ import { Bot, Lock, FolderOpen, Building2 } from "lucide-react";
 
 type Props = {
   messages: ChatMessage[];
-  onSend: (text: string) => void;
+  onSend: (text: string, files?: File[]) => void;
   emptyTitle?: string;
   emptyDescription?: string;
   mode?: "personal" | "project" | "workspace";
@@ -30,7 +30,7 @@ export function AIChatInterface({ messages, onSend, emptyTitle, emptyDescription
   }, [messages]);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111827]">
+    <div className="flex h-full flex-col rounded-2xl bg-white dark:bg-[#111827]">
       <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto p-6">
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center text-center text-sm text-slate-500 dark:text-slate-400">

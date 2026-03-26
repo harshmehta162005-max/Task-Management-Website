@@ -402,6 +402,7 @@ export const ModelName = {
   Activity: 'Activity',
   Automation: 'Automation',
   CalendarNote: 'CalendarNote',
+  AiChatSession: 'AiChatSession',
   AiChatHistory: 'AiChatHistory'
 } as const
 
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation" | "calendarNote" | "aiChatHistory"
+    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation" | "calendarNote" | "aiChatSession" | "aiChatHistory"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1754,6 +1755,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AiChatSession: {
+      payload: Prisma.$AiChatSessionPayload<ExtArgs>
+      fields: Prisma.AiChatSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AiChatSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AiChatSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.AiChatSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AiChatSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>
+        }
+        findMany: {
+          args: Prisma.AiChatSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>[]
+        }
+        create: {
+          args: Prisma.AiChatSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>
+        }
+        createMany: {
+          args: Prisma.AiChatSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AiChatSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.AiChatSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>
+        }
+        update: {
+          args: Prisma.AiChatSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.AiChatSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AiChatSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AiChatSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.AiChatSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AiChatSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.AiChatSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAiChatSession>
+        }
+        groupBy: {
+          args: Prisma.AiChatSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AiChatSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AiChatSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AiChatSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     AiChatHistory: {
       payload: Prisma.$AiChatHistoryPayload<ExtArgs>
       fields: Prisma.AiChatHistoryFieldRefs
@@ -2098,8 +2173,23 @@ export const CalendarNoteScalarFieldEnum = {
 export type CalendarNoteScalarFieldEnum = (typeof CalendarNoteScalarFieldEnum)[keyof typeof CalendarNoteScalarFieldEnum]
 
 
+export const AiChatSessionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  mode: 'mode',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  projectId: 'projectId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AiChatSessionScalarFieldEnum = (typeof AiChatSessionScalarFieldEnum)[keyof typeof AiChatSessionScalarFieldEnum]
+
+
 export const AiChatHistoryScalarFieldEnum = {
   id: 'id',
+  sessionId: 'sessionId',
   workspaceId: 'workspaceId',
   userId: 'userId',
   role: 'role',
@@ -2439,6 +2529,7 @@ export type GlobalOmitConfig = {
   activity?: Prisma.ActivityOmit
   automation?: Prisma.AutomationOmit
   calendarNote?: Prisma.CalendarNoteOmit
+  aiChatSession?: Prisma.AiChatSessionOmit
   aiChatHistory?: Prisma.AiChatHistoryOmit
 }
 

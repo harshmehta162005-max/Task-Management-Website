@@ -7,6 +7,7 @@ import { AIChatInterface } from "@/components/ai/AIChatInterface";
 import { SuggestedPrompts } from "@/components/ai/SuggestedPrompts";
 import { MeetingToTasksFlow } from "@/components/ai/MeetingToTasksFlow";
 import { WeeklySummaryTrigger } from "@/components/ai/WeeklySummaryTrigger";
+import { ChatSessionsSidebar, ChatSession } from "@/components/ai/ChatSessionsSidebar";
 import type { ChatMessage } from "@/components/ai/AIMessageBubble";
 import { Select } from "@/components/ui/Select";
 
@@ -59,7 +60,11 @@ export default function AIPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [workspaceId, setWorkspaceId] = useState("");
-  const historyLoadedFor = useRef("");
+
+  // Sessions state
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const sessionsLoadedForMode = useRef("");
 
   // Fetch workspace info + admin status
   useEffect(() => {
@@ -88,12 +93,12 @@ export default function AIPage() {
       .catch(console.error);
   }, [workspaceSlug]);
 
-  // Load chat history for current mode
+  // Load sessions for current mode
   useEffect(() => {
     if (!workspaceSlug) return;
     const key = `${mode}-${projectId}`;
-    if (historyLoadedFor.current === key) return;
-    historyLoadedFor.current = key;
+    if (sessionsLoadedForMode.current === key) return;
+    sessionsLoadedForMode.current = key;
 
     const params = new URLSearchParams({
       workspaceSlug,
@@ -101,9 +106,48 @@ export default function AIPage() {
       ...(mode === "project" && projectId ? { projectId } : {}),
     });
 
-    fetch(`/api/ai/ask?${params}`)
+    fetch(`/api/ai/sessions?${params}`)
       .then((r) => r.json())
       .then((data) => {
+        const list: ChatSession[] = data?.sessions ?? [];
+        setSessions(list);
+        // Auto-select the most recent session, or none
+        if (list.length > 0) {
+          setActiveSessionId(list[0].id);
+        } else {
+          setActiveSessionId(null);
+          setMessages([]);
+        }
+      })
+      .catch(() => {
+        setSessions([]);
+        setActiveSessionId(null);
+        setMessages([]);
+      });
+  }, [workspaceSlug, mode, projectId]);
+
+  // Load messages when active session changes
+  useEffect(() => {
+    if (!workspaceSlug || !activeSessionId) {
+      setMessages([]);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const loadMessages = async () => {
+      try {
+        const params = new URLSearchParams({ workspaceSlug, sessionId: activeSessionId });
+        const res = await fetch(`/api/ai/ask?${params}`, { signal: controller.signal });
+        if (cancelled) return;
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          console.error("[loadMessages] API error:", res.status, data);
+          setMessages([]);
+          return;
+        }
         if (Array.isArray(data?.history)) {
           const loaded: ChatMessage[] = data.history.map(
             (m: { id: string; role: string; content: string }) => ({
@@ -116,23 +160,139 @@ export default function AIPage() {
         } else {
           setMessages([]);
         }
-      })
-      .catch(() => setMessages([]));
-  }, [workspaceSlug, mode, projectId]);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("[loadMessages] fetch error:", err);
+          setMessages([]);
+        }
+      }
+    };
 
-  // Switch mode — reset history tracking so it reloads
+    loadMessages();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [workspaceSlug, activeSessionId]);
+
+  // Switch mode — reset sessions tracking so it reloads
   const switchMode = useCallback((newMode: ChatMode) => {
     setMode(newMode);
     setMessages([]);
-    historyLoadedFor.current = "";
+    setActiveSessionId(null);
+    setSessions([]);
+    sessionsLoadedForMode.current = "";
   }, []);
 
-  const sendMessage = useCallback(
-    async (text: string) => {
+  // Create new session
+  const createSession = useCallback(
+    async (name: string) => {
       if (!workspaceSlug) return;
+      try {
+        const res = await fetch("/api/ai/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workspaceSlug,
+            name,
+            mode,
+            projectId: mode === "project" ? projectId : undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.error("[createSession] API error:", res.status, data);
+          return;
+        }
+        if (data.session) {
+          const newSession: ChatSession = {
+            id: data.session.id,
+            name: data.session.name,
+            mode: data.session.mode,
+            projectId: data.session.projectId,
+            updatedAt: data.session.updatedAt,
+            messageCount: 0,
+            lastMessage: null,
+            lastRole: null,
+          };
+          setSessions((prev) => [newSession, ...prev]);
+          setActiveSessionId(data.session.id);
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error("[createSession] Network error:", err);
+      }
+    },
+    [workspaceSlug, mode, projectId]
+  );
+
+  // Rename session
+  const renameSession = useCallback(
+    async (sessionId: string, name: string) => {
+      if (!workspaceSlug) return;
+      try {
+        await fetch(`/api/ai/sessions/${sessionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceSlug, name }),
+        });
+        setSessions((prev) =>
+          prev.map((s) => (s.id === sessionId ? { ...s, name } : s))
+        );
+      } catch (err) {
+        console.error("Failed to rename session", err);
+      }
+    },
+    [workspaceSlug]
+  );
+
+  // Delete session
+  const deleteSession = useCallback(
+    async (sessionId: string) => {
+      if (!workspaceSlug) return;
+      try {
+        await fetch(`/api/ai/sessions/${sessionId}?workspaceSlug=${workspaceSlug}`, {
+          method: "DELETE",
+        });
+        setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(null);
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error("Failed to delete session", err);
+      }
+    },
+    [workspaceSlug, activeSessionId]
+  );
+
+  // Send message
+  const sendMessage = useCallback(
+    async (text: string, files?: File[]) => {
+      if (!workspaceSlug || !activeSessionId) return;
       if (mode === "project" && !projectId) return;
 
-      const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text };
+      // Build full message — include file contents if any
+      let fullMessage = text;
+      if (files && files.length > 0) {
+        const fileContents: string[] = [];
+        for (const file of files) {
+          try {
+            const content = await file.text();
+            fileContents.push(`\n--- File: ${file.name} ---\n${content}\n--- End of ${file.name} ---`);
+          } catch {
+            fileContents.push(`\n--- File: ${file.name} (unable to read) ---`);
+          }
+        }
+        fullMessage = text + "\n\n[Attached files]" + fileContents.join("\n");
+      }
+
+      const displayText = files?.length
+        ? `${text}\n\n📎 ${files.map((f) => f.name).join(", ")}`
+        : text;
+
+      const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: displayText };
       setMessages((prev) => [...prev, userMsg]);
       setIsThinking(true);
 
@@ -142,21 +302,35 @@ export default function AIPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             workspaceSlug,
-            message: text,
+            message: fullMessage,
             mode,
             projectId: mode === "project" ? projectId : undefined,
+            sessionId: activeSessionId,
           }),
         });
 
         const data = await res.json();
+        const replyText = data.reply ?? data.error ?? "No response";
+
         setMessages((prev) => [
           ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "ai",
-            text: data.reply ?? data.error ?? "No response",
-          },
+          { id: crypto.randomUUID(), role: "ai", text: replyText },
         ]);
+
+        // Update session in sidebar with latest message
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === activeSessionId
+              ? {
+                  ...s,
+                  messageCount: s.messageCount + 2,
+                  lastMessage: replyText.slice(0, 80),
+                  lastRole: "assistant",
+                  updatedAt: new Date().toISOString(),
+                }
+              : s
+          )
+        );
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -166,21 +340,26 @@ export default function AIPage() {
         setIsThinking(false);
       }
     },
-    [workspaceSlug, mode, projectId]
+    [workspaceSlug, mode, projectId, activeSessionId]
   );
 
+  // Clear chat history for active session
   const clearHistory = useCallback(async () => {
-    if (!workspaceSlug) return;
-    const params = new URLSearchParams({
-      workspaceSlug,
-      mode,
-      ...(mode === "project" && projectId ? { projectId } : {}),
-    });
+    if (!workspaceSlug || !activeSessionId) return;
+    const params = new URLSearchParams({ workspaceSlug, sessionId: activeSessionId });
     await fetch(`/api/ai/ask?${params}`, { method: "DELETE" });
     setMessages([]);
-  }, [workspaceSlug, mode, projectId]);
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === activeSessionId
+          ? { ...s, messageCount: 0, lastMessage: null, lastRole: null }
+          : s
+      )
+    );
+  }, [workspaceSlug, activeSessionId]);
 
   const config = MODE_CONFIG[mode];
+  // Only show workspace for admins — no badge at all for non-admins
   const availableModes: ChatMode[] = isAdmin
     ? ["personal", "project", "workspace"]
     : ["personal", "project"];
@@ -205,7 +384,7 @@ export default function AIPage() {
             </div>
           </div>
 
-          {messages.length > 0 && (
+          {messages.length > 0 && activeSessionId && (
             <button
               onClick={clearHistory}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-red-300 hover:text-red-500 dark:border-slate-700 dark:text-slate-400"
@@ -216,7 +395,7 @@ export default function AIPage() {
           )}
         </div>
 
-        {/* Mode Tabs */}
+        {/* Mode Tabs — no workspace badge for non-admins */}
         <div className="flex items-center gap-2">
           {availableModes.map((m) => {
             const mc = MODE_CONFIG[m];
@@ -240,13 +419,6 @@ export default function AIPage() {
               </button>
             );
           })}
-
-          {!isAdmin && (
-            <div className="ml-2 flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-600 dark:text-amber-400">
-              <Lock className="h-3 w-3" />
-              Workspace mode: Admin only
-            </div>
-          )}
         </div>
 
         {/* Project selector (only in project mode) */}
@@ -261,7 +433,9 @@ export default function AIPage() {
                 onChange={(v) => {
                   setProjectId(v);
                   setMessages([]);
-                  historyLoadedFor.current = "";
+                  setActiveSessionId(null);
+                  setSessions([]);
+                  sessionsLoadedForMode.current = "";
                 }}
                 options={projects.map((p) => ({ value: p.id, label: p.name }))}
                 portal={false}
@@ -276,33 +450,93 @@ export default function AIPage() {
         )}
       </div>
 
-      {/* Main content */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-8 flex flex-col gap-4 min-h-[640px]">
-          <AIChatInterface
-            messages={[
-              ...messages,
-              ...(isThinking
-                ? [{ id: "thinking", role: "ai", text: "", loading: true } as ChatMessage]
-                : []),
-            ]}
-            onSend={sendMessage}
-            emptyTitle={config.emptyTitle}
-            emptyDescription={config.emptyDesc}
+      {/* Main content: Sessions sidebar | Chat | Tools sidebar */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        {/* Sessions sidebar */}
+        <aside className="lg:col-span-3 min-h-[640px]">
+          <ChatSessionsSidebar
+            sessions={sessions}
+            activeSessionId={activeSessionId}
+            onSelect={setActiveSessionId}
+            onCreate={createSession}
+            onRename={renameSession}
+            onDelete={deleteSession}
             mode={mode}
           />
-          <SuggestedPrompts mode={mode} onSelect={sendMessage} />
+        </aside>
+
+        {/* Chat area */}
+        <section className="lg:col-span-6 flex flex-col gap-4 min-h-[640px]">
+          {activeSessionId ? (
+            <>
+              <AIChatInterface
+                messages={[
+                  ...messages,
+                  ...(isThinking
+                    ? [{ id: "thinking", role: "ai", text: "", loading: true } as ChatMessage]
+                    : []),
+                ]}
+                onSend={sendMessage}
+                emptyTitle={config.emptyTitle}
+                emptyDescription={config.emptyDesc}
+                mode={mode}
+              />
+              <SuggestedPrompts mode={mode} onSelect={sendMessage} />
+            </>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center dark:border-slate-800 dark:bg-[#0b1220]">
+              <div className={`rounded-2xl p-4 ${config.accentBg} mb-4`}>
+                <config.icon className={`h-8 w-8 ${config.accentText}`} />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">
+                {sessions.length === 0 ? "Start a new chat" : "Select a chat"}
+              </h3>
+              <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+                {sessions.length === 0
+                  ? "Create your first chat session to start talking with the AI assistant."
+                  : "Pick a conversation from the sidebar, or create a new one."}
+              </p>
+            </div>
+          )}
         </section>
 
-        {/* Sidebar — only in project/workspace modes */}
-        {mode !== "personal" && (
-          <aside className="lg:col-span-4 space-y-4">
-            {(mode === "project" || mode === "workspace") && (
+        {/* Right sidebar — tools */}
+        <aside className="lg:col-span-3 space-y-4">
+          {mode !== "personal" && (
+            <>
               <MeetingToTasksFlow workspaceId={workspaceId} projects={projects} />
-            )}
-            {(mode === "project" || mode === "workspace") && (
               <WeeklySummaryTrigger workspaceId={workspaceId} projects={projects} />
-            )}
+            </>
+          )}
+          {mode === "personal" ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center dark:border-slate-800 dark:bg-[#0b1220]">
+              <div className={`rounded-xl p-3 ${config.accentBg} mb-4`}>
+                <Lock className={`h-6 w-6 ${config.accentText}`} />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Private Mode</h3>
+              <p className="mt-1 max-w-xs text-xs text-slate-500 dark:text-slate-400">
+                This conversation is completely private. Only you can see your messages and AI responses.
+              </p>
+              <div className="mt-4 space-y-2 text-left text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                  Brainstorm ideas
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                  Draft messages & notes
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                  Ask questions & learn
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                  Plan & organize thoughts
+                </div>
+              </div>
+            </div>
+          ) : (
             <div className={`rounded-xl border ${config.border} ${config.accentBg} px-4 py-3 text-xs ${config.accentText} shadow-sm`}>
               <div className="flex items-center gap-2">
                 <config.icon className="h-3.5 w-3.5" />
@@ -311,39 +545,8 @@ export default function AIPage() {
                 <span className="opacity-80">{workspaceSlug}</span>
               </div>
             </div>
-          </aside>
-        )}
-
-        {/* Personal mode — full width chat, no sidebar */}
-        {mode === "personal" && (
-          <aside className="lg:col-span-4 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center dark:border-slate-800 dark:bg-[#0b1220]">
-            <div className={`rounded-xl p-3 ${config.accentBg} mb-4`}>
-              <Lock className={`h-6 w-6 ${config.accentText}`} />
-            </div>
-            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Private Mode</h3>
-            <p className="mt-1 max-w-xs text-xs text-slate-500 dark:text-slate-400">
-              This conversation is completely private. Only you can see your messages and AI responses.
-            </p>
-            <div className="mt-4 space-y-2 text-left text-xs text-slate-500 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                Brainstorm ideas
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                Draft messages & notes
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                Ask questions & learn
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                Plan & organize thoughts
-              </div>
-            </div>
-          </aside>
-        )}
+          )}
+        </aside>
       </div>
     </main>
   );

@@ -22,7 +22,7 @@ export async function askGemini(
 
   // Build full system instruction
   let systemInstruction = systemPrompt;
-  if (contextData && mode !== "personal") {
+  if (contextData) {
     systemInstruction += `\n\n---\n\nREAL-TIME DATA:\n${contextData}`;
   }
 
