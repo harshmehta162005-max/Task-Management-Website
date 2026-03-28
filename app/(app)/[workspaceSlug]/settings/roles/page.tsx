@@ -110,12 +110,22 @@ export default function SettingsRolesPage() {
 
     // Step 1 — Optimistic update: stamp new snapshot immediately
     setOriginalSnapshot((prev) => ({ ...prev, [selectedId]: newPerms }));
-    // Clear toggle override (UI already shows correct state via snapshot)
+    // Clear toggle override
     setToggleState((prev) => {
       const next = { ...prev };
       delete next[selectedId];
       return next;
     });
+
+    // 🔴 CRITICAL FIX: Mutate roles array INSTANTLY so UI uses the new data immediately
+    // rather than waiting for the API to finish.
+    mutate(
+      (current) =>
+        current?.map((r) =>
+          r.id === selectedId ? { ...r, permissions: newPerms } : r
+        ),
+      false // local-only update, no network refetch yet
+    );
 
     // Step 2 — Show saving state
     setSavingId(selectedId);
@@ -132,23 +142,27 @@ export default function SettingsRolesPage() {
         throw new Error(`Status ${res.status}`);
       }
 
-      // Step 3 success — toast + keep optimistic state
+      // Step 4 — Success
       showToast("success", "Role permissions updated successfully");
 
-      // Silently mutate SWR cache to sync global state (no refetch visible)
-      mutate(
-        (current) =>
-          current?.map((r) =>
-            r.id === selectedId ? { ...r, permissions: newPerms } : r
-          ),
-        false // revalidate = false → no network refetch
-      );
+      // Now that the backend is updated, silently re-fetch to ensure sync
+      // The optimistic lock in useRoles prevents old data from overriding if caught in a race condition
+      mutate();
     } catch (e) {
-      // Step 4 — Failure: revert to old snapshot
+      // Step 4 — Failure: revert to old snapshot and UI state
       console.error("Save permissions failed:", e);
       setOriginalSnapshot((prev) => ({ ...prev, [selectedId]: oldPerms }));
       setToggleState((prev) => ({ ...prev, [selectedId]: oldToggle }));
       showToast("error", "Failed to update permissions. Please try again.");
+
+      // Revert the roles array mutation as well
+      mutate(
+        (current) =>
+          current?.map((r) =>
+            r.id === selectedId ? { ...r, permissions: oldPerms } : r
+          ),
+        false
+      );
     } finally {
       setSavingId(null);
     }
@@ -178,6 +192,14 @@ export default function SettingsRolesPage() {
 
   /* ─── Edit role name/description ─── */
   const editRole = async (update: { id: string; name: string; description: string }) => {
+    let oldRoles: any = null;
+    mutate((current) => {
+      oldRoles = current;
+      return current?.map((r) =>
+        r.id === update.id ? { ...r, name: update.name, description: update.description } : r
+      );
+    }, false);
+
     try {
       const res = await fetch(`/api/workspaces/${workspaceSlug}/roles/${update.id}`, {
         method: "PATCH",
@@ -185,14 +207,14 @@ export default function SettingsRolesPage() {
         body: JSON.stringify({ name: update.name, description: update.description }),
       });
       if (!res.ok) {
-        showToast("error", "Failed to update role.");
-        return;
+        throw new Error();
       }
       showToast("success", `Role "${update.name}" updated`);
       mutate();
     } catch (e) {
       console.error(e);
       showToast("error", "Failed to update role.");
+      if (oldRoles) mutate(() => oldRoles, false);
     }
   };
 
@@ -226,15 +248,18 @@ export default function SettingsRolesPage() {
 
   /* ─── Delete role ─── */
   const deleteRole = async (id: string) => {
+    let oldRoles: any = null;
+    mutate((current) => {
+      oldRoles = current;
+      return current?.filter((r) => r.id !== id);
+    }, false);
+
     try {
       const res = await fetch(`/api/workspaces/${workspaceSlug}/roles/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        console.error("Delete role failed:", res.status, err);
-        showToast("error", "Failed to delete role.");
-        return;
+        throw new Error();
       }
       showToast("success", "Role deleted");
       setSelectedId(null);
@@ -253,6 +278,7 @@ export default function SettingsRolesPage() {
     } catch (e) {
       console.error(e);
       showToast("error", "Failed to delete role.");
+      if (oldRoles) mutate(() => oldRoles, false);
     }
   };
 

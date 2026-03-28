@@ -14,8 +14,9 @@ export function useRoles(workspaceSlug: string | undefined | null) {
   const [error, setError] = useState<Error | null>(null);
   const slugRef = useRef(workspaceSlug);
   slugRef.current = workspaceSlug;
+  const isMutatingRef = useRef(false);
 
-  const fetchRoles = useCallback(async () => {
+  const fetchRoles = useCallback(async (force = false) => {
     const slug = slugRef.current;
     if (!slug) return;
     try {
@@ -23,7 +24,12 @@ export function useRoles(workspaceSlug: string | undefined | null) {
       const res = await fetch(`/api/workspaces/${slug}/roles`);
       if (!res.ok) throw new Error("Failed to fetch roles");
       const data = await res.json();
-      setRoles(data);
+      
+      // ✅ Step 2: Guard Every Refetch
+      // Only set role data if we are NOT optimistically saving, or if this is a forced revalidation
+      if (!isMutatingRef.current || force) {
+        setRoles(data);
+      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -40,23 +46,30 @@ export function useRoles(workspaceSlug: string | undefined | null) {
    * SWR-like mutate:
    * - `mutate()` — refetch from server
    * - `mutate(updaterFn, revalidate?)` — apply optimistic update locally
-   *     If revalidate is false, skip network refetch.
    */
   const mutate = useCallback(
     async (
       updater?: ((current: RoleItem[] | undefined) => RoleItem[] | undefined) | undefined,
       revalidate: boolean = true
     ) => {
-      if (updater) {
-        // Optimistic: apply the updater to current state
-        setRoles((prev) => updater(prev) ?? prev);
-      }
-      if (revalidate || !updater) {
-        await fetchRoles();
+      // ✅ Step 1: Engage optimistic lock
+      isMutatingRef.current = true;
+      try {
+        if (updater) {
+          // Optimistic: apply the updater to current state
+          setRoles((prev) => updater(prev) ?? prev);
+        }
+        if (revalidate || !updater) {
+          // Force refetch to bypass the lock we just set
+          await fetchRoles(true);
+        }
+      } finally {
+        // ✅ Step 3: Release lock
+        isMutatingRef.current = false;
       }
     },
     [fetchRoles]
   );
 
-  return { roles, isLoading, error, mutate };
+  return { roles, isLoading, error, mutate, isMutatingRef };
 }
