@@ -399,6 +399,7 @@ export const ModelName = {
   TaskTag: 'TaskTag',
   Comment: 'Comment',
   Notification: 'Notification',
+  NotificationSettings: 'NotificationSettings',
   Activity: 'Activity',
   Automation: 'Automation',
   CalendarNote: 'CalendarNote',
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "activity" | "automation" | "calendarNote" | "aiChatSession" | "aiChatHistory"
+    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "role" | "project" | "projectMember" | "task" | "taskAssignee" | "taskUserDependency" | "attachment" | "tag" | "taskTag" | "comment" | "notification" | "notificationSettings" | "activity" | "automation" | "calendarNote" | "aiChatSession" | "aiChatHistory"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1533,6 +1534,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NotificationSettings: {
+      payload: Prisma.$NotificationSettingsPayload<ExtArgs>
+      fields: Prisma.NotificationSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NotificationSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NotificationSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.NotificationSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NotificationSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.NotificationSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.NotificationSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.NotificationSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NotificationSettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.NotificationSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>
+        }
+        update: {
+          args: Prisma.NotificationSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.NotificationSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NotificationSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NotificationSettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.NotificationSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.NotificationSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotificationSettings>
+        }
+        groupBy: {
+          args: Prisma.NotificationSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NotificationSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationSettingsCountAggregateOutputType> | number
+        }
+      }
+    }
     Activity: {
       payload: Prisma.$ActivityPayload<ExtArgs>
       fields: Prisma.ActivityFieldRefs
@@ -2133,6 +2208,29 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const NotificationSettingsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  inAppEnabled: 'inAppEnabled',
+  emailEnabled: 'emailEnabled',
+  notifyCategoryPersonal: 'notifyCategoryPersonal',
+  notifyCategoryProject: 'notifyCategoryProject',
+  notifyCategoryWorkspace: 'notifyCategoryWorkspace',
+  notifyCategoryAi: 'notifyCategoryAi',
+  weeklySummaryEnabled: 'weeklySummaryEnabled',
+  weeklySummaryDay: 'weeklySummaryDay',
+  weeklySummaryTime: 'weeklySummaryTime',
+  quietHoursEnabled: 'quietHoursEnabled',
+  quietHoursStart: 'quietHoursStart',
+  quietHoursEnd: 'quietHoursEnd',
+  quietHoursTimezone: 'quietHoursTimezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationSettingsScalarFieldEnum = (typeof NotificationSettingsScalarFieldEnum)[keyof typeof NotificationSettingsScalarFieldEnum]
+
+
 export const ActivityScalarFieldEnum = {
   id: 'id',
   action: 'action',
@@ -2529,6 +2627,7 @@ export type GlobalOmitConfig = {
   taskTag?: Prisma.TaskTagOmit
   comment?: Prisma.CommentOmit
   notification?: Prisma.NotificationOmit
+  notificationSettings?: Prisma.NotificationSettingsOmit
   activity?: Prisma.ActivityOmit
   automation?: Prisma.AutomationOmit
   calendarNote?: Prisma.CalendarNoteOmit

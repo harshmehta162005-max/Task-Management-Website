@@ -93,6 +93,11 @@ export type Comment = Prisma.CommentModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model NotificationSettings
+ * 
+ */
+export type NotificationSettings = Prisma.NotificationSettingsModel
+/**
  * Model Activity
  * 
  */

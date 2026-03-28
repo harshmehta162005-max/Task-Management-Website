@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChannelsCard } from "./ChannelsCard";
 import { EventsCard, EventKey } from "./EventsCard";
 import { WeeklySummaryCard } from "./WeeklySummaryCard";
@@ -19,45 +19,134 @@ const INITIAL_PREFS: PreferencesState = {
   inAppEnabled: true,
   emailEnabled: true,
   events: {
-    assignment: true,
-    mention: true,
-    dueSoon: false,
-    comment: true,
-    statusChange: true,
+    personal: true,
+    project: true,
+    workspace: true,
+    ai: true,
   },
   weeklySummary: { enabled: true, day: "Friday", time: "09:00" },
   quietHours: { enabled: false, start: "22:00", end: "08:00", timezone: "UTC" },
 };
 
+/** Map API response fields → PreferencesState */
+function apiToState(api: Record<string, unknown>): PreferencesState {
+  return {
+    inAppEnabled: (api.inAppEnabled as boolean) ?? true,
+    emailEnabled: (api.emailEnabled as boolean) ?? true,
+    events: {
+      personal: (api.notifyCategoryPersonal as boolean) ?? true,
+      project: (api.notifyCategoryProject as boolean) ?? true,
+      workspace: (api.notifyCategoryWorkspace as boolean) ?? true,
+      ai: (api.notifyCategoryAi as boolean) ?? true,
+    },
+    weeklySummary: {
+      enabled: (api.weeklySummaryEnabled as boolean) ?? true,
+      day: (api.weeklySummaryDay as string) ?? "Friday",
+      time: (api.weeklySummaryTime as string) ?? "09:00",
+    },
+    quietHours: {
+      enabled: (api.quietHoursEnabled as boolean) ?? false,
+      start: (api.quietHoursStart as string) ?? "22:00",
+      end: (api.quietHoursEnd as string) ?? "08:00",
+      timezone: (api.quietHoursTimezone as string) ?? "UTC",
+    },
+  };
+}
+
+/** Map PreferencesState → API PATCH body */
+function stateToApi(state: PreferencesState): Record<string, unknown> {
+  return {
+    inAppEnabled: state.inAppEnabled,
+    emailEnabled: state.emailEnabled,
+    notifyCategoryPersonal: state.events.personal,
+    notifyCategoryProject: state.events.project,
+    notifyCategoryWorkspace: state.events.workspace,
+    notifyCategoryAi: state.events.ai,
+    weeklySummaryEnabled: state.weeklySummary.enabled,
+    weeklySummaryDay: state.weeklySummary.day,
+    weeklySummaryTime: state.weeklySummary.time,
+    quietHoursEnabled: state.quietHours.enabled,
+    quietHoursStart: state.quietHours.start,
+    quietHoursEnd: state.quietHours.end,
+    quietHoursTimezone: state.quietHours.timezone,
+  };
+}
+
 export function NotificationPreferencesForm() {
   const [prefs, setPrefs] = useState<PreferencesState>(INITIAL_PREFS);
+  const [serverPrefs, setServerPrefs] = useState<PreferencesState>(INITIAL_PREFS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const dirty = useMemo(() => JSON.stringify(prefs) !== JSON.stringify(INITIAL_PREFS), [prefs]);
+  // Fetch settings on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/user/notification-settings");
+        if (!res.ok) throw new Error("Failed to load settings");
+        const data = await res.json();
+        if (cancelled) return;
+        const state = apiToState(data);
+        setPrefs(state);
+        setServerPrefs(state);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load settings");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-  const toggleEvent = (key: EventKey, value: boolean) => {
+  const dirty = useMemo(() => JSON.stringify(prefs) !== JSON.stringify(serverPrefs), [prefs, serverPrefs]);
+
+  const toggleEvent = useCallback((key: EventKey, value: boolean) => {
     setPrefs((p) => ({ ...p, events: { ...p.events, [key]: value } }));
-  };
+  }, []);
 
-  const toggleChannel = (channel: "inAppEnabled" | "emailEnabled", value: boolean) => {
+  const toggleChannel = useCallback((channel: "inAppEnabled" | "emailEnabled", value: boolean) => {
     setPrefs((p) => ({ ...p, [channel]: value }));
-  };
+  }, []);
 
-  const save = () => {
+  const save = useCallback(async () => {
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    setError(null);
+    try {
+      const res = await fetch("/api/user/notification-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(stateToApi(prefs)),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save");
+      }
+      const data = await res.json();
+      const newState = apiToState(data);
+      setPrefs(newState);
+      setServerPrefs(newState);
       setSaved(true);
-      setTimeout(() => setSaved(false), 1600);
-    }, 600);
-  };
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  }, [prefs]);
 
   if (loading) return <PreferencesSkeleton />;
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+          {error}
+        </div>
+      )}
+
       <ChannelsCard
         inAppEnabled={prefs.inAppEnabled}
         emailEnabled={prefs.emailEnabled}

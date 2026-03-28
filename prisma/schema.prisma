@@ -35,6 +35,7 @@ model User {
   calendarNotes     CalendarNote[]
   aiChatHistory     AiChatHistory[]
   aiChatSessions    AiChatSession[]
+  notificationSettings NotificationSettings?
 
   @@map("users")
 }
@@ -366,6 +367,37 @@ enum NotificationType {
   AI_BLOCKERS_DETECTED
   AI_WEEKLY_SUMMARY
   AI_TASKS_EXTRACTED
+}
+
+// ─── NOTIFICATION SETTINGS ───────────────────────────────────────────────────
+
+model NotificationSettings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  inAppEnabled       Boolean  @default(true)
+  emailEnabled       Boolean  @default(true)
+  
+  // Category-based toggles matching the website's notification tabs
+  notifyCategoryPersonal  Boolean @default(true) // Assignments, mentions, comments, due soon, status changes
+  notifyCategoryProject   Boolean @default(true) // Task created/completed, member added/removed, project at risk
+  notifyCategoryWorkspace Boolean @default(true) // System notifications
+  notifyCategoryAi        Boolean @default(true) // AI blockers, weekly summary, tasks extracted
+
+  weeklySummaryEnabled Boolean @default(true)
+  weeklySummaryDay   String   @default("Friday")
+  weeklySummaryTime  String   @default("09:00")
+
+  quietHoursEnabled  Boolean  @default(false)
+  quietHoursStart    String   @default("22:00")
+  quietHoursEnd      String   @default("08:00")
+  quietHoursTimezone String   @default("UTC")
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_settings")
 }
 
 // ─── ACTIVITY LOG ────────────────────────────────────────────────────────────

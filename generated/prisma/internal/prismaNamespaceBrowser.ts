@@ -66,6 +66,7 @@ export const ModelName = {
   TaskTag: 'TaskTag',
   Comment: 'Comment',
   Notification: 'Notification',
+  NotificationSettings: 'NotificationSettings',
   Activity: 'Activity',
   Automation: 'Automation',
   CalendarNote: 'CalendarNote',
@@ -278,6 +279,29 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const NotificationSettingsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  inAppEnabled: 'inAppEnabled',
+  emailEnabled: 'emailEnabled',
+  notifyCategoryPersonal: 'notifyCategoryPersonal',
+  notifyCategoryProject: 'notifyCategoryProject',
+  notifyCategoryWorkspace: 'notifyCategoryWorkspace',
+  notifyCategoryAi: 'notifyCategoryAi',
+  weeklySummaryEnabled: 'weeklySummaryEnabled',
+  weeklySummaryDay: 'weeklySummaryDay',
+  weeklySummaryTime: 'weeklySummaryTime',
+  quietHoursEnabled: 'quietHoursEnabled',
+  quietHoursStart: 'quietHoursStart',
+  quietHoursEnd: 'quietHoursEnd',
+  quietHoursTimezone: 'quietHoursTimezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationSettingsScalarFieldEnum = (typeof NotificationSettingsScalarFieldEnum)[keyof typeof NotificationSettingsScalarFieldEnum]
 
 
 export const ActivityScalarFieldEnum = {

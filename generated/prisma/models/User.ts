@@ -228,6 +228,7 @@ export type UserWhereInput = {
   calendarNotes?: Prisma.CalendarNoteListRelationFilter
   aiChatHistory?: Prisma.AiChatHistoryListRelationFilter
   aiChatSessions?: Prisma.AiChatSessionListRelationFilter
+  notificationSettings?: Prisma.XOR<Prisma.NotificationSettingsNullableScalarRelationFilter, Prisma.NotificationSettingsWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -254,6 +255,7 @@ export type UserOrderByWithRelationInput = {
   calendarNotes?: Prisma.CalendarNoteOrderByRelationAggregateInput
   aiChatHistory?: Prisma.AiChatHistoryOrderByRelationAggregateInput
   aiChatSessions?: Prisma.AiChatSessionOrderByRelationAggregateInput
+  notificationSettings?: Prisma.NotificationSettingsOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -283,6 +285,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   calendarNotes?: Prisma.CalendarNoteListRelationFilter
   aiChatHistory?: Prisma.AiChatHistoryListRelationFilter
   aiChatSessions?: Prisma.AiChatSessionListRelationFilter
+  notificationSettings?: Prisma.XOR<Prisma.NotificationSettingsNullableScalarRelationFilter, Prisma.NotificationSettingsWhereInput> | null
 }, "id" | "clerkId" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -339,6 +342,7 @@ export type UserCreateInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -365,6 +369,7 @@ export type UserUncheckedCreateInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -391,6 +396,7 @@ export type UserUpdateInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -417,6 +423,7 @@ export type UserUncheckedUpdateInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -655,6 +662,20 @@ export type UserUpdateOneWithoutActorNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutActorNotificationsInput, Prisma.UserUpdateWithoutActorNotificationsInput>, Prisma.UserUncheckedUpdateWithoutActorNotificationsInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationSettingsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationSettingsInput, Prisma.UserUncheckedCreateWithoutNotificationSettingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationSettingsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationSettingsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationSettingsInput, Prisma.UserUncheckedCreateWithoutNotificationSettingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationSettingsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationSettingsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationSettingsInput, Prisma.UserUpdateWithoutNotificationSettingsInput>, Prisma.UserUncheckedUpdateWithoutNotificationSettingsInput>
+}
+
 export type UserCreateNestedOneWithoutActivitiesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutActivitiesInput, Prisma.UserUncheckedCreateWithoutActivitiesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutActivitiesInput
@@ -734,6 +755,7 @@ export type UserCreateWithoutOwnedWorkspacesInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOwnedWorkspacesInput = {
@@ -759,6 +781,7 @@ export type UserUncheckedCreateWithoutOwnedWorkspacesInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOwnedWorkspacesInput = {
@@ -800,6 +823,7 @@ export type UserUpdateWithoutOwnedWorkspacesInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOwnedWorkspacesInput = {
@@ -825,6 +849,7 @@ export type UserUncheckedUpdateWithoutOwnedWorkspacesInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutWorkspaceMembersInput = {
@@ -850,6 +875,7 @@ export type UserCreateWithoutWorkspaceMembersInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
@@ -875,6 +901,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutWorkspaceMembersInput = {
@@ -916,6 +943,7 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
@@ -941,6 +969,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutInvitesSentInput = {
@@ -966,6 +995,7 @@ export type UserCreateWithoutInvitesSentInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutInvitesSentInput = {
@@ -991,6 +1021,7 @@ export type UserUncheckedCreateWithoutInvitesSentInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutInvitesSentInput = {
@@ -1032,6 +1063,7 @@ export type UserUpdateWithoutInvitesSentInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitesSentInput = {
@@ -1057,6 +1089,7 @@ export type UserUncheckedUpdateWithoutInvitesSentInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProjectMembersInput = {
@@ -1082,6 +1115,7 @@ export type UserCreateWithoutProjectMembersInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProjectMembersInput = {
@@ -1107,6 +1141,7 @@ export type UserUncheckedCreateWithoutProjectMembersInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProjectMembersInput = {
@@ -1148,6 +1183,7 @@ export type UserUpdateWithoutProjectMembersInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectMembersInput = {
@@ -1173,6 +1209,7 @@ export type UserUncheckedUpdateWithoutProjectMembersInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCreatedTasksInput = {
@@ -1198,6 +1235,7 @@ export type UserCreateWithoutCreatedTasksInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCreatedTasksInput = {
@@ -1223,6 +1261,7 @@ export type UserUncheckedCreateWithoutCreatedTasksInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCreatedTasksInput = {
@@ -1264,6 +1303,7 @@ export type UserUpdateWithoutCreatedTasksInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedTasksInput = {
@@ -1289,6 +1329,7 @@ export type UserUncheckedUpdateWithoutCreatedTasksInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTaskAssignmentsInput = {
@@ -1314,6 +1355,7 @@ export type UserCreateWithoutTaskAssignmentsInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
@@ -1339,6 +1381,7 @@ export type UserUncheckedCreateWithoutTaskAssignmentsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTaskAssignmentsInput = {
@@ -1380,6 +1423,7 @@ export type UserUpdateWithoutTaskAssignmentsInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
@@ -1405,6 +1449,7 @@ export type UserUncheckedUpdateWithoutTaskAssignmentsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTaskUserDependenciesInput = {
@@ -1430,6 +1475,7 @@ export type UserCreateWithoutTaskUserDependenciesInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTaskUserDependenciesInput = {
@@ -1455,6 +1501,7 @@ export type UserUncheckedCreateWithoutTaskUserDependenciesInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTaskUserDependenciesInput = {
@@ -1496,6 +1543,7 @@ export type UserUpdateWithoutTaskUserDependenciesInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTaskUserDependenciesInput = {
@@ -1521,6 +1569,7 @@ export type UserUncheckedUpdateWithoutTaskUserDependenciesInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCommentsInput = {
@@ -1546,6 +1595,7 @@ export type UserCreateWithoutCommentsInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCommentsInput = {
@@ -1571,6 +1621,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCommentsInput = {
@@ -1612,6 +1663,7 @@ export type UserUpdateWithoutCommentsInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCommentsInput = {
@@ -1637,6 +1689,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -1662,6 +1715,7 @@ export type UserCreateWithoutNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -1687,6 +1741,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1717,6 +1772,7 @@ export type UserCreateWithoutActorNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActorNotificationsInput = {
@@ -1742,6 +1798,7 @@ export type UserUncheckedCreateWithoutActorNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActorNotificationsInput = {
@@ -1783,6 +1840,7 @@ export type UserUpdateWithoutNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1808,6 +1866,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutActorNotificationsInput = {
@@ -1844,6 +1903,7 @@ export type UserUpdateWithoutActorNotificationsInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActorNotificationsInput = {
@@ -1863,6 +1923,127 @@ export type UserUncheckedUpdateWithoutActorNotificationsInput = {
   createdTasks?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
+  invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
+  taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationSettingsInput = {
+  id?: string
+  clerkId: string
+  email: string
+  name?: string | null
+  avatarUrl?: string | null
+  timezone?: string
+  language?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  ownedWorkspaces?: Prisma.WorkspaceCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  taskAssignments?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  createdTasks?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutActorInput
+  invitesSent?: Prisma.WorkspaceInviteCreateNestedManyWithoutInviterInput
+  taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
+  aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNotificationSettingsInput = {
+  id?: string
+  clerkId: string
+  email: string
+  name?: string | null
+  avatarUrl?: string | null
+  timezone?: string
+  language?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  ownedWorkspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  taskAssignments?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  createdTasks?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutActorInput
+  invitesSent?: Prisma.WorkspaceInviteUncheckedCreateNestedManyWithoutInviterInput
+  taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
+  calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
+  aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNotificationSettingsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationSettingsInput, Prisma.UserUncheckedCreateWithoutNotificationSettingsInput>
+}
+
+export type UserUpsertWithoutNotificationSettingsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationSettingsInput, Prisma.UserUncheckedUpdateWithoutNotificationSettingsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationSettingsInput, Prisma.UserUncheckedCreateWithoutNotificationSettingsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationSettingsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationSettingsInput, Prisma.UserUncheckedUpdateWithoutNotificationSettingsInput>
+}
+
+export type UserUpdateWithoutNotificationSettingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  ownedWorkspaces?: Prisma.WorkspaceUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  taskAssignments?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  createdTasks?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutActorNestedInput
+  invitesSent?: Prisma.WorkspaceInviteUpdateManyWithoutInviterNestedInput
+  taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
+  calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
+  aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationSettingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  ownedWorkspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  taskAssignments?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  createdTasks?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutActorNestedInput
   invitesSent?: Prisma.WorkspaceInviteUncheckedUpdateManyWithoutInviterNestedInput
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
@@ -1894,6 +2075,7 @@ export type UserCreateWithoutActivitiesInput = {
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActivitiesInput = {
@@ -1919,6 +2101,7 @@ export type UserUncheckedCreateWithoutActivitiesInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActivitiesInput = {
@@ -1960,6 +2143,7 @@ export type UserUpdateWithoutActivitiesInput = {
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActivitiesInput = {
@@ -1985,6 +2169,7 @@ export type UserUncheckedUpdateWithoutActivitiesInput = {
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCalendarNotesInput = {
@@ -2010,6 +2195,7 @@ export type UserCreateWithoutCalendarNotesInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCalendarNotesInput = {
@@ -2035,6 +2221,7 @@ export type UserUncheckedCreateWithoutCalendarNotesInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCalendarNotesInput = {
@@ -2076,6 +2263,7 @@ export type UserUpdateWithoutCalendarNotesInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCalendarNotesInput = {
@@ -2101,6 +2289,7 @@ export type UserUncheckedUpdateWithoutCalendarNotesInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAiChatSessionsInput = {
@@ -2126,6 +2315,7 @@ export type UserCreateWithoutAiChatSessionsInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAiChatSessionsInput = {
@@ -2151,6 +2341,7 @@ export type UserUncheckedCreateWithoutAiChatSessionsInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAiChatSessionsInput = {
@@ -2192,6 +2383,7 @@ export type UserUpdateWithoutAiChatSessionsInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAiChatSessionsInput = {
@@ -2217,6 +2409,7 @@ export type UserUncheckedUpdateWithoutAiChatSessionsInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatHistory?: Prisma.AiChatHistoryUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAiChatHistoryInput = {
@@ -2242,6 +2435,7 @@ export type UserCreateWithoutAiChatHistoryInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyCreateNestedManyWithoutUserInput
   calendarNotes?: Prisma.CalendarNoteCreateNestedManyWithoutAuthorInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAiChatHistoryInput = {
@@ -2267,6 +2461,7 @@ export type UserUncheckedCreateWithoutAiChatHistoryInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedCreateNestedManyWithoutUserInput
   calendarNotes?: Prisma.CalendarNoteUncheckedCreateNestedManyWithoutAuthorInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAiChatHistoryInput = {
@@ -2308,6 +2503,7 @@ export type UserUpdateWithoutAiChatHistoryInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUpdateManyWithoutUserNestedInput
   calendarNotes?: Prisma.CalendarNoteUpdateManyWithoutAuthorNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAiChatHistoryInput = {
@@ -2333,6 +2529,7 @@ export type UserUncheckedUpdateWithoutAiChatHistoryInput = {
   taskUserDependencies?: Prisma.TaskUserDependencyUncheckedUpdateManyWithoutUserNestedInput
   calendarNotes?: Prisma.CalendarNoteUncheckedUpdateManyWithoutAuthorNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateOneWithoutUserNestedInput
 }
 
 
@@ -2507,6 +2704,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   calendarNotes?: boolean | Prisma.User$calendarNotesArgs<ExtArgs>
   aiChatHistory?: boolean | Prisma.User$aiChatHistoryArgs<ExtArgs>
   aiChatSessions?: boolean | Prisma.User$aiChatSessionsArgs<ExtArgs>
+  notificationSettings?: boolean | Prisma.User$notificationSettingsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2562,6 +2760,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   calendarNotes?: boolean | Prisma.User$calendarNotesArgs<ExtArgs>
   aiChatHistory?: boolean | Prisma.User$aiChatHistoryArgs<ExtArgs>
   aiChatSessions?: boolean | Prisma.User$aiChatSessionsArgs<ExtArgs>
+  notificationSettings?: boolean | Prisma.User$notificationSettingsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2584,6 +2783,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     calendarNotes: Prisma.$CalendarNotePayload<ExtArgs>[]
     aiChatHistory: Prisma.$AiChatHistoryPayload<ExtArgs>[]
     aiChatSessions: Prisma.$AiChatSessionPayload<ExtArgs>[]
+    notificationSettings: Prisma.$NotificationSettingsPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3003,6 +3203,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   calendarNotes<T extends Prisma.User$calendarNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$calendarNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CalendarNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   aiChatHistory<T extends Prisma.User$aiChatHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$aiChatHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiChatHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   aiChatSessions<T extends Prisma.User$aiChatSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$aiChatSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notificationSettings<T extends Prisma.User$notificationSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationSettingsArgs<ExtArgs>>): Prisma.Prisma__NotificationSettingsClient<runtime.Types.Result.GetResult<Prisma.$NotificationSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3767,6 +3968,25 @@ export type User$aiChatSessionsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.AiChatSessionScalarFieldEnum | Prisma.AiChatSessionScalarFieldEnum[]
+}
+
+/**
+ * User.notificationSettings
+ */
+export type User$notificationSettingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NotificationSettings
+   */
+  select?: Prisma.NotificationSettingsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the NotificationSettings
+   */
+  omit?: Prisma.NotificationSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationSettingsInclude<ExtArgs> | null
+  where?: Prisma.NotificationSettingsWhereInput
 }
 
 /**

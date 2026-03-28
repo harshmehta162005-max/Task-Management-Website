@@ -1,9 +1,9 @@
 "use client";
 
-import { BellRing } from "lucide-react";
+import { BellRing, User, FolderOpen, Building2, Bot } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
-export type EventKey = "assignment" | "mention" | "dueSoon" | "comment" | "statusChange";
+export type EventKey = "personal" | "project" | "workspace" | "ai";
 
 type Props = {
   values: Record<EventKey, boolean>;
@@ -11,12 +11,11 @@ type Props = {
   onChange: (key: EventKey, value: boolean) => void;
 };
 
-const EVENTS: { key: EventKey; label: string; desc: string }[] = [
-  { key: "assignment", label: "Assignments", desc: "When someone assigns a task to you." },
-  { key: "mention", label: "Mentions", desc: "When you’re @mentioned in a discussion." },
-  { key: "dueSoon", label: "Due soon", desc: "Upcoming deadlines for tasks you own or follow." },
-  { key: "comment", label: "Comments", desc: "New comments on tasks you follow." },
-  { key: "statusChange", label: "Status changes", desc: "Task status updates on items you own." },
+const EVENTS: { key: EventKey; label: string; desc: string; icon: typeof User }[] = [
+  { key: "personal", label: "Personal", desc: "Assignments, mentions, comments, status changes, and due dates.", icon: User },
+  { key: "project", label: "Project", desc: "Task activity, member updates, and project risk alerts.", icon: FolderOpen },
+  { key: "workspace", label: "Workspace", desc: "System notifications and workspace-level updates.", icon: Building2 },
+  { key: "ai", label: "AI", desc: "AI-detected blockers, extracted tasks, and weekly summaries.", icon: Bot },
 ];
 
 export function EventsCard({ values, disabled, onChange }: Props) {
@@ -30,22 +29,30 @@ export function EventsCard({ values, disabled, onChange }: Props) {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {EVENTS.map((evt) => (
-          <div
-            key={evt.key}
-            className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-white/5"
-          >
-            <div className="pr-3">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{evt.label}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{evt.desc}</p>
+        {EVENTS.map((evt) => {
+          const Icon = evt.icon;
+          return (
+            <div
+              key={evt.key}
+              className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-white/5"
+            >
+              <div className="flex items-start gap-3 pr-3">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{evt.label}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{evt.desc}</p>
+                </div>
+              </div>
+              <Toggle
+                enabled={values[evt.key]}
+                disabled={disabled}
+                onChange={(v) => onChange(evt.key, v)}
+              />
             </div>
-            <Toggle
-              enabled={values[evt.key]}
-              disabled={disabled}
-              onChange={(v) => onChange(evt.key, v)}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
       {disabled && (
         <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Enable email to edit these preferences.</p>
