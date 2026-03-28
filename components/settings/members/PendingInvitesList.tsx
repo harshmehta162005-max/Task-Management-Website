@@ -1,13 +1,12 @@
 "use client";
 
 import { Mail } from "lucide-react";
-import { Role } from "./InviteMemberCard";
 import { cn } from "@/lib/utils/cn";
 
 export type Invite = {
   id: string;
   email: string;
-  role: Role;
+  role: string;
   invitedAt: string;
 };
 
@@ -67,8 +66,8 @@ export function PendingInvitesList({ invites, onResend, onRevoke }: Props) {
   );
 }
 
-function roleLabel(role: Role) {
-  if (role === "ADMIN") return "Admin";
-  if (role === "MANAGER") return "Manager";
-  return "Member";
+function roleLabel(role: string) {
+  if (role.toUpperCase() === "ADMIN") return "Admin";
+  if (role.toUpperCase() === "MANAGER") return "Manager";
+  return role;
 }

@@ -27,6 +27,7 @@ export type AggregateRole = {
 export type RoleMinAggregateOutputType = {
   id: string | null
   name: string | null
+  description: string | null
   workspaceId: string | null
   isSystem: boolean | null
   createdAt: Date | null
@@ -36,6 +37,7 @@ export type RoleMinAggregateOutputType = {
 export type RoleMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  description: string | null
   workspaceId: string | null
   isSystem: boolean | null
   createdAt: Date | null
@@ -45,6 +47,7 @@ export type RoleMaxAggregateOutputType = {
 export type RoleCountAggregateOutputType = {
   id: number
   name: number
+  description: number
   workspaceId: number
   permissions: number
   isSystem: number
@@ -57,6 +60,7 @@ export type RoleCountAggregateOutputType = {
 export type RoleMinAggregateInputType = {
   id?: true
   name?: true
+  description?: true
   workspaceId?: true
   isSystem?: true
   createdAt?: true
@@ -66,6 +70,7 @@ export type RoleMinAggregateInputType = {
 export type RoleMaxAggregateInputType = {
   id?: true
   name?: true
+  description?: true
   workspaceId?: true
   isSystem?: true
   createdAt?: true
@@ -75,6 +80,7 @@ export type RoleMaxAggregateInputType = {
 export type RoleCountAggregateInputType = {
   id?: true
   name?: true
+  description?: true
   workspaceId?: true
   permissions?: true
   isSystem?: true
@@ -158,6 +164,7 @@ export type RoleGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type RoleGroupByOutputType = {
   id: string
   name: string
+  description: string | null
   workspaceId: string
   permissions: runtime.JsonValue
   isSystem: boolean
@@ -189,6 +196,7 @@ export type RoleWhereInput = {
   NOT?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[]
   id?: Prisma.StringFilter<"Role"> | string
   name?: Prisma.StringFilter<"Role"> | string
+  description?: Prisma.StringNullableFilter<"Role"> | string | null
   workspaceId?: Prisma.StringFilter<"Role"> | string
   permissions?: Prisma.JsonFilter<"Role">
   isSystem?: Prisma.BoolFilter<"Role"> | boolean
@@ -201,6 +209,7 @@ export type RoleWhereInput = {
 export type RoleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   permissions?: Prisma.SortOrder
   isSystem?: Prisma.SortOrder
@@ -217,6 +226,7 @@ export type RoleWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.RoleWhereInput[]
   NOT?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[]
   name?: Prisma.StringFilter<"Role"> | string
+  description?: Prisma.StringNullableFilter<"Role"> | string | null
   workspaceId?: Prisma.StringFilter<"Role"> | string
   permissions?: Prisma.JsonFilter<"Role">
   isSystem?: Prisma.BoolFilter<"Role"> | boolean
@@ -229,6 +239,7 @@ export type RoleWhereUniqueInput = Prisma.AtLeast<{
 export type RoleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   permissions?: Prisma.SortOrder
   isSystem?: Prisma.SortOrder
@@ -245,6 +256,7 @@ export type RoleScalarWhereWithAggregatesInput = {
   NOT?: Prisma.RoleScalarWhereWithAggregatesInput | Prisma.RoleScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Role"> | string
   name?: Prisma.StringWithAggregatesFilter<"Role"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"Role"> | string | null
   workspaceId?: Prisma.StringWithAggregatesFilter<"Role"> | string
   permissions?: Prisma.JsonWithAggregatesFilter<"Role">
   isSystem?: Prisma.BoolWithAggregatesFilter<"Role"> | boolean
@@ -255,6 +267,7 @@ export type RoleScalarWhereWithAggregatesInput = {
 export type RoleCreateInput = {
   id?: string
   name: string
+  description?: string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
   createdAt?: Date | string
@@ -266,6 +279,7 @@ export type RoleCreateInput = {
 export type RoleUncheckedCreateInput = {
   id?: string
   name: string
+  description?: string | null
   workspaceId: string
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
@@ -277,6 +291,7 @@ export type RoleUncheckedCreateInput = {
 export type RoleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -288,6 +303,7 @@ export type RoleUpdateInput = {
 export type RoleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -299,6 +315,7 @@ export type RoleUncheckedUpdateInput = {
 export type RoleCreateManyInput = {
   id?: string
   name: string
+  description?: string | null
   workspaceId: string
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
@@ -309,6 +326,7 @@ export type RoleCreateManyInput = {
 export type RoleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -318,6 +336,7 @@ export type RoleUpdateManyMutationInput = {
 export type RoleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -348,6 +367,7 @@ export type RoleNameWorkspaceIdCompoundUniqueInput = {
 export type RoleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   permissions?: Prisma.SortOrder
   isSystem?: Prisma.SortOrder
@@ -358,6 +378,7 @@ export type RoleCountOrderByAggregateInput = {
 export type RoleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -367,6 +388,7 @@ export type RoleMaxOrderByAggregateInput = {
 export type RoleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   isSystem?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -438,6 +460,7 @@ export type BoolFieldUpdateOperationsInput = {
 export type RoleCreateWithoutWorkspaceInput = {
   id?: string
   name: string
+  description?: string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
   createdAt?: Date | string
@@ -448,6 +471,7 @@ export type RoleCreateWithoutWorkspaceInput = {
 export type RoleUncheckedCreateWithoutWorkspaceInput = {
   id?: string
   name: string
+  description?: string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
   createdAt?: Date | string
@@ -487,6 +511,7 @@ export type RoleScalarWhereInput = {
   NOT?: Prisma.RoleScalarWhereInput | Prisma.RoleScalarWhereInput[]
   id?: Prisma.StringFilter<"Role"> | string
   name?: Prisma.StringFilter<"Role"> | string
+  description?: Prisma.StringNullableFilter<"Role"> | string | null
   workspaceId?: Prisma.StringFilter<"Role"> | string
   permissions?: Prisma.JsonFilter<"Role">
   isSystem?: Prisma.BoolFilter<"Role"> | boolean
@@ -497,6 +522,7 @@ export type RoleScalarWhereInput = {
 export type RoleCreateWithoutMembersInput = {
   id?: string
   name: string
+  description?: string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
   createdAt?: Date | string
@@ -507,6 +533,7 @@ export type RoleCreateWithoutMembersInput = {
 export type RoleUncheckedCreateWithoutMembersInput = {
   id?: string
   name: string
+  description?: string | null
   workspaceId: string
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
@@ -533,6 +560,7 @@ export type RoleUpdateToOneWithWhereWithoutMembersInput = {
 export type RoleUpdateWithoutMembersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -543,6 +571,7 @@ export type RoleUpdateWithoutMembersInput = {
 export type RoleUncheckedUpdateWithoutMembersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -553,6 +582,7 @@ export type RoleUncheckedUpdateWithoutMembersInput = {
 export type RoleCreateManyWorkspaceInput = {
   id?: string
   name: string
+  description?: string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: boolean
   createdAt?: Date | string
@@ -562,6 +592,7 @@ export type RoleCreateManyWorkspaceInput = {
 export type RoleUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -572,6 +603,7 @@ export type RoleUpdateWithoutWorkspaceInput = {
 export type RoleUncheckedUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -582,6 +614,7 @@ export type RoleUncheckedUpdateWithoutWorkspaceInput = {
 export type RoleUncheckedUpdateManyWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   permissions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -622,6 +655,7 @@ export type RoleCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Types.Ex
 export type RoleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  description?: boolean
   workspaceId?: boolean
   permissions?: boolean
   isSystem?: boolean
@@ -635,6 +669,7 @@ export type RoleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type RoleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  description?: boolean
   workspaceId?: boolean
   permissions?: boolean
   isSystem?: boolean
@@ -646,6 +681,7 @@ export type RoleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type RoleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  description?: boolean
   workspaceId?: boolean
   permissions?: boolean
   isSystem?: boolean
@@ -657,6 +693,7 @@ export type RoleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type RoleSelectScalar = {
   id?: boolean
   name?: boolean
+  description?: boolean
   workspaceId?: boolean
   permissions?: boolean
   isSystem?: boolean
@@ -664,7 +701,7 @@ export type RoleSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RoleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "workspaceId" | "permissions" | "isSystem" | "createdAt" | "updatedAt", ExtArgs["result"]["role"]>
+export type RoleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "workspaceId" | "permissions" | "isSystem" | "createdAt" | "updatedAt", ExtArgs["result"]["role"]>
 export type RoleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   members?: boolean | Prisma.Role$membersArgs<ExtArgs>
@@ -686,6 +723,7 @@ export type $RolePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    description: string | null
     workspaceId: string
     permissions: runtime.JsonValue
     isSystem: boolean
@@ -1118,6 +1156,7 @@ export interface Prisma__RoleClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface RoleFieldRefs {
   readonly id: Prisma.FieldRef<"Role", 'String'>
   readonly name: Prisma.FieldRef<"Role", 'String'>
+  readonly description: Prisma.FieldRef<"Role", 'String'>
   readonly workspaceId: Prisma.FieldRef<"Role", 'String'>
   readonly permissions: Prisma.FieldRef<"Role", 'Json'>
   readonly isSystem: Prisma.FieldRef<"Role", 'Boolean'>

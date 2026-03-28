@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_TASK_CREATE } from "@/lib/rbac/permissions";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -16,10 +19,10 @@ export async function POST(_req: NextRequest, { params }: Params) {
     const { workspaceSlug } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_TASK_CREATE);
 
     const original = await db.task.findFirst({
-      where: { id: taskId, project: { workspaceId: workspace.id } },
+      where: { id: taskId, project: { workspaceId: ctx.workspace.id } },
       include: {
         assignees: { select: { userId: true } },
         tags: { include: { tag: true } },
@@ -27,6 +30,11 @@ export async function POST(_req: NextRequest, { params }: Params) {
     });
 
     if (!original) throw new ApiError(404, "Task not found");
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, original.projectId);
+    }
+    const { user } = ctx;
 
     // Create the duplicate
     const duplicate = await db.task.create({

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_NOTES_CREATE, P_NOTES_DELETE } from "@/lib/rbac/permissions";
 
 /**
  * PATCH /api/projects/[projectId]/calendar-notes/[noteId]
@@ -18,7 +21,13 @@ export async function PATCH(
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!content || (typeof content === "string" && !content.trim())) throw new ApiError(400, "content is required");
 
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    // Using P_NOTES_CREATE as the benchmark to edit notes, since notes are generally meant
+    // to be lightweight. Alternatively, since you can only edit your own notes, we just need basic access.
+    const ctx = await checkPermission(workspaceSlug, P_NOTES_CREATE);
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const { workspace, user } = ctx;
 
     // Verify note exists and user is the author
     const existing = await db.calendarNote.findUnique({ where: { id: noteId } });
@@ -67,7 +76,11 @@ export async function DELETE(
     const slug = sp.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
-    const { user } = await resolveWorkspace(slug);
+    const ctx = await checkPermission(slug, P_NOTES_DELETE);
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const { user } = ctx;
 
     const existing = await db.calendarNote.findUnique({ where: { id: noteId } });
     if (!existing || existing.projectId !== projectId) throw new ApiError(404, "Note not found");

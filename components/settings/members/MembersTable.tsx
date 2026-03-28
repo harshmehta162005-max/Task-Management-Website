@@ -1,7 +1,4 @@
-"use client";
-
 import { useState } from "react";
-import { Role } from "./InviteMemberCard";
 import { MemberRowActions } from "./MemberRowActions";
 import { cn } from "@/lib/utils/cn";
 
@@ -9,7 +6,7 @@ export type Member = {
   id: string;
   name: string;
   email: string;
-  role: Role;
+  role: string;
   status: "ACTIVE" | "INVITED";
   joinedAt: string;
   avatarUrl?: string;
@@ -18,16 +15,11 @@ export type Member = {
 type Props = {
   members: Member[];
   isAdmin: boolean;
-  onChangeRole: (id: string, role: Role) => void;
+  workspaceSlug: string;
+  onChangeRole: (id: string, role: string) => void;
   onRemove: (id: string) => void;
   onResend: (id: string) => void;
   onRevoke: (id: string) => void;
-};
-
-const badgeClasses: Record<Role, string> = {
-  ADMIN: "bg-indigo-500/10 text-indigo-600 border border-indigo-500/30",
-  MANAGER: "bg-purple-500/10 text-purple-600 border border-purple-500/30",
-  MEMBER: "bg-slate-500/10 text-slate-600 border border-slate-500/30",
 };
 
 /* ── Hover Tooltip ───────────────────────────────────────────── */
@@ -62,8 +54,7 @@ function fmtDate(raw: string) {
   }
 }
 
-/* ── Table ───────────────────────────────────────────────────── */
-export function MembersTable({ members, isAdmin, onChangeRole, onRemove, onResend, onRevoke }: Props) {
+export function MembersTable({ members, isAdmin, workspaceSlug, onChangeRole, onRemove, onResend, onRevoke }: Props) {
   if (!members.length) {
     return (
       <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm dark:border-slate-800 dark:bg-[#0f172a]">
@@ -124,8 +115,13 @@ export function MembersTable({ members, isAdmin, onChangeRole, onRemove, onResen
 
               {/* ROLE */}
               <td className="px-4 py-3">
-                <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold", badgeClasses[m.role])}>
-                  {m.role === "ADMIN" ? "Admin" : m.role === "MANAGER" ? "Manager" : "Member"}
+                <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold", 
+                  m.role.toUpperCase() === "ADMIN" ? "bg-indigo-500/10 text-indigo-600 border border-indigo-500/30" : 
+                  m.role.toUpperCase() === "MANAGER" ? "bg-purple-500/10 text-purple-600 border border-purple-500/30" : 
+                  m.role.toUpperCase() === "MEMBER" ? "bg-slate-500/10 text-slate-600 border border-slate-500/30" :
+                  "bg-cyan-500/10 text-cyan-700 border border-cyan-500/30"
+                )}>
+                  {m.role}
                 </span>
               </td>
 
@@ -159,6 +155,7 @@ export function MembersTable({ members, isAdmin, onChangeRole, onRemove, onResen
                   role={m.role}
                   status={m.status}
                   isAdmin={isAdmin}
+                  workspaceSlug={workspaceSlug}
                   onChangeRole={(r) => onChangeRole(m.id, r)}
                   onRemove={() => onRemove(m.id)}
                   onResend={() => onResend(m.id)}

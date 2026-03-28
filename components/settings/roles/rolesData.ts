@@ -4,6 +4,7 @@ export type RoleItem = {
   description: string;
   isSystem: boolean;
   memberCount: number;
+  permissions?: string[];
 };
 
 export type PermissionGroup = {

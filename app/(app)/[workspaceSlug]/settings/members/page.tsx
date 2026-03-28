@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { SettingsLayout } from "@/components/settings/SettingsLayout";
-import { InviteMemberCard, Role } from "@/components/settings/members/InviteMemberCard";
+import { InviteMemberCard } from "@/components/settings/members/InviteMemberCard";
+import { useRoles } from "@/lib/hooks/useRoles";
 import {
   MembersTable,
   Member,
@@ -19,10 +20,11 @@ import { Search, Filter, ChevronDown, X } from "lucide-react";
 
 export default function SettingsMembersPage() {
   const { workspaceSlug } = useParams<{ workspaceSlug: string }>();
+  const { roles } = useRoles(workspaceSlug);
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [query, setQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<Role | "ALL">("ALL");
+  const [roleFilter, setRoleFilter] = useState<string | "ALL">("ALL");
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export default function SettingsMembersPage() {
     return result;
   }, [members, query, roleFilter]);
 
-  const handleInvite = async (email: string, role: Role) => {
+  const handleInvite = async (email: string, role: string) => {
     // Optimistic update
     const tempInvite = { id: crypto.randomUUID(), email, role, invitedAt: "just now" };
     setInvites((prev) => [tempInvite, ...prev]);
@@ -85,7 +87,7 @@ export default function SettingsMembersPage() {
     }
   };
 
-  const handleChangeRole = async (id: string, role: Role) => {
+  const handleChangeRole = async (id: string, role: string) => {
     setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
     try {
       await fetch(`/api/workspaces/${workspaceSlug}/members/${id}`, {
@@ -161,7 +163,7 @@ export default function SettingsMembersPage() {
                   }`}
                 >
                   <Filter className="h-4 w-4" />
-                  {roleFilter === "ALL" ? "Filter" : roleFilter.charAt(0) + roleFilter.slice(1).toLowerCase()}
+                  {roleFilter === "ALL" ? "Filter" : roleFilter}
                   {roleFilter !== "ALL" && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setRoleFilter("ALL"); setFilterOpen(false); }}
@@ -173,7 +175,7 @@ export default function SettingsMembersPage() {
                 </button>
                 {filterOpen && (
                   <div className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-[#0f172a]">
-                    {(["ALL", "ADMIN", "MANAGER", "MEMBER"] as const).map((r) => (
+                    {["ALL", ...roles.map((r) => r.name)].map((r) => (
                       <button
                         key={r}
                         onClick={() => { setRoleFilter(r); setFilterOpen(false); }}
@@ -181,7 +183,7 @@ export default function SettingsMembersPage() {
                           roleFilter === r ? "font-semibold text-primary" : "text-slate-700 dark:text-slate-200"
                         }`}
                       >
-                        {r === "ALL" ? "All roles" : r.charAt(0) + r.slice(1).toLowerCase()}
+                        {r === "ALL" ? "All roles" : r}
                         {roleFilter === r && <span className="ml-auto text-xs text-primary">✓</span>}
                       </button>
                     ))}
@@ -191,12 +193,13 @@ export default function SettingsMembersPage() {
             </div>
           </header>
 
-          <InviteMemberCard onInvite={handleInvite} />
+          <InviteMemberCard workspaceSlug={workspaceSlug} onInvite={handleInvite} />
 
           {filteredMembers.length ? (
             <MembersTable
               members={filteredMembers}
               isAdmin={true}
+              workspaceSlug={workspaceSlug}
               onChangeRole={handleChangeRole}
               onRemove={(id) => setRemoveId(id)}
               onResend={handleResend}

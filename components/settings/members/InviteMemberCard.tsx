@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { MailPlus } from "lucide-react";
 import { Select } from "@/components/ui/Select";
+import { useRoles } from "@/lib/hooks/useRoles";
 
 type Props = {
-  onInvite: (email: string, role: Role) => void;
+  workspaceSlug: string;
+  onInvite: (email: string, role: string) => void;
 };
 
-export type Role = "ADMIN" | "MANAGER" | "MEMBER";
-
-export function InviteMemberCard({ onInvite }: Props) {
+export function InviteMemberCard({ workspaceSlug, onInvite }: Props) {
+  const { roles } = useRoles(workspaceSlug);
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role>("MEMBER");
+  const [role, setRole] = useState("Member");
   const [sent, setSent] = useState(false);
 
   const send = () => {
@@ -45,12 +46,8 @@ export function InviteMemberCard({ onInvite }: Props) {
         />
         <Select
           value={role}
-          onChange={(v) => setRole(v as Role)}
-          options={[
-            { value: "MEMBER", label: "Member" },
-            { value: "MANAGER", label: "Manager" },
-            { value: "ADMIN", label: "Admin" },
-          ]}
+          onChange={(v) => setRole(v)}
+          options={roles.filter(r => r.name !== "Owner").map(r => ({ value: r.name, label: r.name }))}
           className="md:w-36 shrink-0"
           portal={false}
         />

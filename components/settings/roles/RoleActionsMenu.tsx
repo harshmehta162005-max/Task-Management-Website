@@ -1,7 +1,7 @@
 "use client";
 
 import { MoreVertical, Copy, Pencil, Trash } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
@@ -13,11 +13,26 @@ type Props = {
 
 export function RoleActionsMenu({ isSystem, onEdit, onDuplicate, onDelete }: Props) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // ── Fix #1: Close popup on outside click ──
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
         className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/5"
       >
         <MoreVertical className="h-4 w-4" />
@@ -25,7 +40,8 @@ export function RoleActionsMenu({ isSystem, onEdit, onDuplicate, onDelete }: Pro
       {open && (
         <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-[#0f172a]">
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               onEdit();
               setOpen(false);
             }}
@@ -34,7 +50,8 @@ export function RoleActionsMenu({ isSystem, onEdit, onDuplicate, onDelete }: Pro
             <Pencil className="h-4 w-4" /> Edit
           </button>
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               onDuplicate();
               setOpen(false);
             }}
@@ -44,7 +61,8 @@ export function RoleActionsMenu({ isSystem, onEdit, onDuplicate, onDelete }: Pro
           </button>
           <button
             disabled={isSystem}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (isSystem) return;
               onDelete();
               setOpen(false);

@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_PROJECT_EDIT, P_PROJECT_DELETE } from "@/lib/rbac/permissions";
 
 type Params = { params: Promise<{ projectId: string }> };
 
@@ -91,7 +94,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { name, description, status, workspaceSlug } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
-    const { workspace } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_PROJECT_EDIT);
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const workspace = ctx.workspace;
 
     const existing = await db.project.findFirst({
       where: { id: projectId, workspaceId: workspace.id },
@@ -122,7 +130,10 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const { projectId } = await params;
     const slug = req.nextUrl.searchParams.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
-    const { workspace } = await resolveWorkspace(slug);
+    
+    // Project deletion is workspace-level, doesn't strictly need project membership
+    // but requires the high-level P_PROJECT_DELETE permission
+    const { workspace } = await checkPermission(slug, P_PROJECT_DELETE);
 
     const existing = await db.project.findFirst({
       where: { id: projectId, workspaceId: workspace.id },

@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_PROJECT_EDIT } from "@/lib/rbac/permissions";
 import { createNotification, notifyProjectMembers } from "@/lib/notifications/createNotification";
 
 type Params = { params: Promise<{ projectId: string }> };
@@ -58,7 +61,12 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!userId) throw new ApiError(400, "userId is required");
 
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_PROJECT_EDIT);
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const { workspace, user } = ctx;
 
     const project = await db.project.findFirst({
       where: { id: projectId, workspaceId: workspace.id },
@@ -122,7 +130,15 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
     if (!targetUserId) throw new ApiError(400, "userId is required");
 
-    const { workspace, user } = await resolveWorkspace(slug);
+    const ctx = await checkPermission(slug, P_PROJECT_EDIT);
+
+    if (!ctx.isOwner) {
+      // Users can always remove themselves, otherwise they need project access
+      if (ctx.user.id !== targetUserId) {
+        await checkProjectMember(ctx.user.id, projectId);
+      }
+    }
+    const { workspace, user } = ctx;
 
     const project = await db.project.findFirst({
       where: { id: projectId, workspaceId: workspace.id },

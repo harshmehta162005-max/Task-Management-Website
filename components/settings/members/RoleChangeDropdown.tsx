@@ -1,26 +1,23 @@
 "use client";
 
-import { Role } from "./InviteMemberCard";
 import { Select } from "@/components/ui/Select";
+import { useRoles } from "@/lib/hooks/useRoles";
 
 type Props = {
-  role: Role;
+  role: string;
+  workspaceSlug: string;
   disabled?: boolean;
-  onChange: (role: Role) => void;
+  onChange: (role: string) => void;
 };
 
-const ROLE_LABEL: Record<Role, string> = {
-  ADMIN: "Admin",
-  MANAGER: "Manager",
-  MEMBER: "Member",
-};
-
-export function RoleChangeDropdown({ role, disabled, onChange }: Props) {
+export function RoleChangeDropdown({ role, workspaceSlug, disabled, onChange }: Props) {
+  const { roles } = useRoles(workspaceSlug);
+  
   return (
     <Select
       value={role}
-      onChange={(v) => onChange(v as Role)}
-      options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))}
+      onChange={(v) => onChange(v)}
+      options={roles.filter(r => r.name !== "Owner").map(r => ({ value: r.name, label: r.name }))}
       className={disabled ? "opacity-60 pointer-events-none" : ""}
       size="sm"
       portal={false}

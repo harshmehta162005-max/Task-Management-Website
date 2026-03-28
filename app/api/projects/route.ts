@@ -90,6 +90,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { P_PROJECT_CREATE } from "@/lib/rbac/permissions";
+
 /**
  * POST /api/projects
  * Create a new project in a workspace.
@@ -102,7 +105,7 @@ export async function POST(req: NextRequest) {
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!name) throw new ApiError(400, "Project name is required");
 
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    const { workspace, user } = await checkPermission(workspaceSlug, P_PROJECT_CREATE);
 
     const project = await db.project.create({
       data: {

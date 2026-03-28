@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { P_TASK_EDIT, P_TASK_DELETE, P_TASK_ASSIGN, PermissionKey } from "@/lib/rbac/permissions";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,22 +14,29 @@ export async function POST(req: NextRequest) {
       throw new ApiError(400, "taskIds must be a non-empty array");
     }
 
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    let requiredPerm: PermissionKey = P_TASK_EDIT;
+    if (action === "DELETE") requiredPerm = P_TASK_DELETE;
+    else if (action === "ASSIGN") requiredPerm = P_TASK_ASSIGN;
+
+    const ctx = await checkPermission(workspaceSlug, requiredPerm);
 
     // Verify ownership of ALL tasks
     const tasks = await db.task.findMany({
-      where: { id: { in: taskIds }, project: { workspaceId: workspace.id } },
+      where: { id: { in: taskIds }, project: { workspaceId: ctx.workspace.id } },
       select: { id: true, creatorId: true },
     });
 
     if (tasks.length !== taskIds.length) {
-      throw new ApiError(404, "One or more tasks not found");
+      throw new ApiError(404, "One or more tasks not found in this workspace");
     }
 
-    const isOwner = tasks.every((t) => t.creatorId === user.id);
-    if (!isOwner) {
-      throw new ApiError(403, "Bulk actions are restricted to the task owner only");
+    if (!ctx.isOwner) {
+      const isCreator = tasks.every((t) => t.creatorId === ctx.user.id);
+      if (!isCreator) {
+        throw new ApiError(403, "Bulk actions are restricted to the task creator only");
+      }
     }
+    const workspace = ctx.workspace;
 
     switch (action) {
       case "COMPLETE":

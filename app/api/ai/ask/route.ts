@@ -1,5 +1,8 @@
 import { db } from "@/lib/db/prisma";
-import { resolveWorkspace } from "@/lib/workspace/resolveWorkspace";
+import { resolveWorkspace, handleApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_AI_WORKSPACE, P_AI_PROJECT } from "@/lib/rbac/permissions";
 import { buildPersonalContext, buildProjectContext, buildWorkspaceContext } from "@/lib/ai/rag/retrieve";
 import { askGemini, HistoryMessage } from "@/lib/ai/rag/answer";
 import type { ChatMode } from "@/lib/ai/systemPrompts";
@@ -19,12 +22,30 @@ export async function POST(req: Request) {
       return Response.json({ error: "workspaceSlug, message and sessionId are required" }, { status: 400 });
     }
 
-    // Resolve workspace + user + permissions
-    const { workspace, user, isAdmin, isOwner } = await resolveWorkspace(workspaceSlug);
-
-    // Permission check: workspace mode requires admin/owner
-    if (mode === "workspace" && !isAdmin && !isOwner) {
-      return Response.json({ error: "Workspace chat is only available for admins" }, { status: 403 });
+    // Resolve workspace + user + permissions based on mode
+    let user, workspace;
+    try {
+      if (mode === "workspace") {
+        const ctx = await checkPermission(workspaceSlug, P_AI_WORKSPACE);
+        user = ctx.user;
+        workspace = ctx.workspace;
+      } else if (mode === "project") {
+        const ctx = await checkPermission(workspaceSlug, P_AI_PROJECT);
+        if (!ctx.isOwner && projectId) {
+          await checkProjectMember(ctx.user.id, projectId);
+        }
+        user = ctx.user;
+        workspace = ctx.workspace;
+      } else {
+        const res = await resolveWorkspace(workspaceSlug);
+        user = res.user;
+        workspace = res.workspace;
+      }
+    } catch (error: any) {
+      if (error.statusCode) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+      throw error;
     }
 
     // Verify session exists and belongs to user

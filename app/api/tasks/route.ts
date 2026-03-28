@@ -2,6 +2,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_TASK_CREATE } from "@/lib/rbac/permissions";
 import { createNotification, notifyProjectMembers } from "@/lib/notifications/createNotification";
 
 /**
@@ -86,7 +89,11 @@ export async function POST(req: NextRequest) {
     if (!projectId) throw new ApiError(400, "projectId is required");
     if (!title) throw new ApiError(400, "Title is required");
 
-    const { user, workspace } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_TASK_CREATE);
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const { user, workspace } = ctx;
 
     const project = await db.project.findFirst({
       where: { id: projectId, workspaceId: workspace.id },

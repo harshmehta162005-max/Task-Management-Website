@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { P_SETTINGS_PROFILE, P_SETTINGS_DELETE } from "@/lib/rbac/permissions";
 
 type Params = { params: Promise<{ workspaceId: string }> };
 
@@ -39,11 +41,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { workspaceId } = await params;
-    const { workspace, isAdmin } = await resolveWorkspace(workspaceId);
-
-    if (!isAdmin) {
-      throw new ApiError(403, "Only admins can update workspace settings");
-    }
+    const ctx = await checkPermission(workspaceId, P_SETTINGS_PROFILE);
+    const workspace = ctx.workspace;
 
     const body = await req.json();
     const { name, slug, logoUrl } = body;
@@ -86,11 +85,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const { workspaceId } = await params;
-    const { workspace, isOwner } = await resolveWorkspace(workspaceId);
-
-    if (!isOwner) {
-      throw new ApiError(403, "Only the workspace owner can delete it");
-    }
+    const ctx = await checkPermission(workspaceId, P_SETTINGS_DELETE);
+    const workspace = ctx.workspace;
 
     await db.workspace.delete({ where: { id: workspace.id } });
 

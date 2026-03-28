@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_TASK_MOVE } from "@/lib/rbac/permissions";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -19,21 +22,27 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (!projectId) throw new ApiError(400, "projectId is required");
 
     // Verify user has access to workspace
-    const { workspace } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_TASK_MOVE);
 
     // Verify task exists and belongs to the workspace
     const task = await db.task.findFirst({
-      where: { id: taskId, project: { workspaceId: workspace.id } },
+      where: { id: taskId, project: { workspaceId: ctx.workspace.id } },
       select: { id: true, projectId: true },
     });
     if (!task) throw new ApiError(404, "Task not found in this workspace");
 
     // Verify target project exists and belongs to the workspace
     const project = await db.project.findFirst({
-      where: { id: projectId, workspaceId: workspace.id },
+      where: { id: projectId, workspaceId: ctx.workspace.id },
       select: { id: true, name: true },
     });
     if (!project) throw new ApiError(404, "Target project not found in this workspace");
+
+    if (!ctx.isOwner) {
+      // User must be a member of both source and target projects
+      await checkProjectMember(ctx.user.id, task.projectId);
+      await checkProjectMember(ctx.user.id, projectId);
+    }
 
     if (task.projectId === projectId) {
       throw new ApiError(400, "Task is already in this project");

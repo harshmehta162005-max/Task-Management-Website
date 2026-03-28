@@ -71,11 +71,47 @@ export async function resolveWorkspace(slug: string) {
       },
     });
 
+    // Seed default system roles with permissions
+    const {
+      OWNER_PERMISSIONS,
+      ADMIN_PERMISSIONS,
+      MANAGER_PERMISSIONS,
+      MEMBER_PERMISSIONS,
+    } = await import("@/lib/rbac/permissions");
+
+    const ownerRole = await db.role.create({
+      data: {
+        name: "Owner",
+        workspaceId: workspace.id,
+        isSystem: true,
+        permissions: OWNER_PERMISSIONS,
+      },
+    });
+
+    await db.role.createMany({
+      data: [
+        { name: "Admin", workspaceId: workspace.id, isSystem: true, permissions: ADMIN_PERMISSIONS },
+        { name: "Manager", workspaceId: workspace.id, isSystem: true, permissions: MANAGER_PERMISSIONS },
+        { name: "Member", workspaceId: workspace.id, isSystem: true, permissions: MEMBER_PERMISSIONS },
+      ],
+    });
+
+    // Assign Owner role to creating user
+    await db.workspaceMember.updateMany({
+      where: { userId: user.id, workspaceId: workspace.id },
+      data: { roleId: ownerRole.id },
+    });
+
+    const membership = await db.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: user.id, workspaceId: workspace.id } },
+      include: { role: true },
+    });
+
     // Return immediately — user is already owner + member
     return {
       workspace,
       user,
-      membership: { userId: user.id, workspaceId: workspace.id, role: null },
+      membership: membership ?? { userId: user.id, workspaceId: workspace.id, role: null },
       isOwner: true,
       isAdmin: true,
     };

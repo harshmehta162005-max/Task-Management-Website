@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_NOTES_VIEW, P_NOTES_CREATE } from "@/lib/rbac/permissions";
 import { notifyProjectMembers } from "@/lib/notifications/createNotification";
 
 /**
@@ -13,7 +16,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
     const slug = sp.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
-    const { user } = await resolveWorkspace(slug);
+    const ctx = await checkPermission(slug, P_NOTES_VIEW);
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const { user } = ctx;
 
     const monthParam = sp.get("month");
     const dateFilter: any = {};
@@ -56,7 +63,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
     if (!date) throw new ApiError(400, "date is required");
     if (!content || (typeof content === "string" && !content.trim())) throw new ApiError(400, "content is required");
 
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_NOTES_CREATE);
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, projectId);
+    }
+    const { workspace, user } = ctx;
 
     const membership = await db.projectMember.findUnique({
       where: { userId_projectId: { userId: user.id, projectId } },

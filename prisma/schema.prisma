@@ -117,6 +117,7 @@ enum WorkspaceInviteStatus {
 model Role {
   id          String   @id @default(cuid())
   name        String
+  description String?
   workspaceId String
   permissions Json     @default("[]")
   isSystem    Boolean  @default(false)

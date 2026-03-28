@@ -2,26 +2,22 @@
 
 import { MoreHorizontal, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Role } from "./InviteMemberCard";
 import { cn } from "@/lib/utils/cn";
+import { useRoles } from "@/lib/hooks/useRoles";
 
 type Props = {
-  role: Role;
+  role: string;
   status: "ACTIVE" | "INVITED";
+  workspaceSlug: string;
   isAdmin: boolean;
-  onChangeRole: (role: Role) => void;
+  onChangeRole: (role: string) => void;
   onRemove: () => void;
   onResend?: () => void;
   onRevoke?: () => void;
 };
 
-const ROLES: { value: Role; label: string }[] = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "MANAGER", label: "Manager" },
-  { value: "MEMBER", label: "Member" },
-];
-
-export function MemberRowActions({ role, status, isAdmin, onChangeRole, onRemove, onResend, onRevoke }: Props) {
+export function MemberRowActions({ role, status, workspaceSlug, isAdmin, onChangeRole, onRemove, onResend, onRevoke }: Props) {
+  const { roles } = useRoles(workspaceSlug);
   const [menuOpen, setMenuOpen] = useState(false);
   const [roleSub, setRoleSub] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -80,23 +76,23 @@ export function MemberRowActions({ role, status, isAdmin, onChangeRole, onRemove
                     closeTimer.current = setTimeout(() => setRoleSub(false), 150);
                   }}
                 >
-                  {ROLES.map((r) => (
+                  {roles.filter(r => r.name !== "Owner").map((r) => (
                     <button
-                      key={r.value}
+                      key={r.name}
                       onClick={() => {
-                        onChangeRole(r.value);
+                        onChangeRole(r.name);
                         setMenuOpen(false);
                         setRoleSub(false);
                       }}
                       className={cn(
                         "flex w-full items-center px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5",
-                        r.value === role
+                        r.name === role
                           ? "font-semibold text-primary"
                           : "text-slate-700 dark:text-slate-200"
                       )}
                     >
-                      {r.label}
-                      {r.value === role && <span className="ml-auto text-xs text-primary">✓</span>}
+                      {r.name}
+                      {r.name === role && <span className="ml-auto text-xs text-primary">✓</span>}
                     </button>
                   ))}
                 </div>

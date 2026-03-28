@@ -2,6 +2,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_TASK_EDIT, P_TASK_DELETE } from "@/lib/rbac/permissions";
 import { createNotification, notifyTaskAssignees, notifyProjectMembers } from "@/lib/notifications/createNotification";
 import fs from "fs";
 
@@ -109,10 +112,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies, attachments, workspaceSlug } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_TASK_EDIT);
 
     const existingTask = await db.task.findFirst({
-      where: { id: taskId, project: { workspaceId: workspace.id } },
+      where: { id: taskId, project: { workspaceId: ctx.workspace.id } },
       select: {
         projectId: true,
         creatorId: true,
@@ -123,6 +126,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       },
     });
     if (!existingTask) throw new ApiError(404, "Task not found in this workspace");
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, existingTask.projectId);
+    }
+    const { workspace, user } = ctx;
 
     const updated = await db.task.update({
       where: { id: taskId },
@@ -320,12 +328,16 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const { taskId } = await params;
     const slug = _req.nextUrl.searchParams.get("workspaceSlug");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
-    const { workspace } = await resolveWorkspace(slug);
+    const ctx = await checkPermission(slug, P_TASK_DELETE);
 
     const existing = await db.task.findFirst({
-      where: { id: taskId, project: { workspaceId: workspace.id } },
+      where: { id: taskId, project: { workspaceId: ctx.workspace.id } },
     });
     if (!existing) throw new ApiError(404, "Task not found in this workspace");
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, existing.projectId);
+    }
 
     await db.task.delete({ where: { id: taskId } });
     return Response.json({ deleted: true });

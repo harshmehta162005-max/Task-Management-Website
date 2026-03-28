@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/prisma";
 import { resolveWorkspace, getDbUser, handleApiError, ApiError } from "@/lib/workspace/resolveWorkspace";
+import { checkPermission } from "@/lib/rbac/checkPermission";
+import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
+import { P_TASK_COMMENT } from "@/lib/rbac/permissions";
 import { notifyTaskAssignees } from "@/lib/notifications/createNotification";
 
 type Params = { params: Promise<{ taskId: string }> };
@@ -18,13 +21,18 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (!commentBody?.trim()) throw new ApiError(400, "Comment body is required");
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
 
-    const { workspace, user } = await resolveWorkspace(workspaceSlug);
+    const ctx = await checkPermission(workspaceSlug, P_TASK_COMMENT);
 
     const task = await db.task.findFirst({
-      where: { id: taskId, project: { workspaceId: workspace.id } },
+      where: { id: taskId, project: { workspaceId: ctx.workspace.id } },
       select: { id: true, title: true, projectId: true, project: { select: { workspaceId: true } } },
     });
     if (!task) throw new ApiError(404, "Task not found in this workspace");
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, task.projectId);
+    }
+    const { workspace, user } = ctx;
 
     const comment = await db.comment.create({
       data: {
@@ -90,12 +98,23 @@ export async function DELETE(req: NextRequest) {
     if (!commentId) throw new ApiError(400, "commentId is required");
     if (!slug) throw new ApiError(400, "workspaceSlug is required");
 
-    const { workspace } = await resolveWorkspace(slug);
+    const ctx = await checkPermission(slug, P_TASK_COMMENT);
 
     const existing = await db.comment.findFirst({
-      where: { id: commentId, task: { project: { workspaceId: workspace.id } } },
+      where: { id: commentId, task: { project: { workspaceId: ctx.workspace.id } } },
+      include: { task: { select: { projectId: true } } },
     });
     if (!existing) throw new ApiError(404, "Comment not found in this workspace");
+
+    if (!ctx.isOwner) {
+      // Must be a member of the project
+      await checkProjectMember(ctx.user.id, existing.task.projectId);
+      
+      // Additional safety: user can only delete their own comments unless admin
+      if (existing.authorId !== ctx.user.id && !ctx.permissions.includes("project.delete")) {
+         throw new ApiError(403, "You can only delete your own comments");
+      }
+    }
 
     await db.comment.delete({ where: { id: commentId } });
     return Response.json({ deleted: true });

@@ -146,6 +146,7 @@ export type WorkspaceInviteScalarFieldEnum = (typeof WorkspaceInviteScalarFieldE
 export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  description: 'description',
   workspaceId: 'workspaceId',
   permissions: 'permissions',
   isSystem: 'isSystem',
