@@ -6,6 +6,7 @@ import { checkPermission } from "@/lib/rbac/checkPermission";
 import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
 import { P_TASK_EDIT, P_TASK_DELETE } from "@/lib/rbac/permissions";
 import { createNotification, notifyTaskAssignees, notifyProjectMembers } from "@/lib/notifications/createNotification";
+import { runAutomations } from "@/lib/automations/engine";
 import fs from "fs";
 
 type Params = { params: Promise<{ taskId: string }> };
@@ -282,6 +283,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     // STATUS_CHANGE: notify assignees when status changes
     if (status !== undefined && status !== existingTask.status) {
+      // Trigger user-defined Automations
+      await runAutomations(
+        "status_change", 
+        { ...existingTask, status }, // pass new status 
+        { ...existingTask.project, id: existingTask.projectId }, 
+        workspace, 
+        user.id
+      ).catch(e => console.error("Automation error:", e));
+
       await notifyTaskAssignees(taskId, user.id, {
         type: "STATUS_CHANGE",
         category: "personal",

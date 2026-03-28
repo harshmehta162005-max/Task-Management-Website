@@ -6,25 +6,29 @@ import { Automation } from "./AutomationRow";
 import { AutomationTemplateKey } from "./TemplatesRow";
 import { Select } from "@/components/ui/Select";
 
+type Project = { id: string; name: string };
+type Role = { id: string; name: string };
+
 type Props = {
   open: boolean;
+  projects: Project[];
+  roles: Role[];
   templatesPrefill?: AutomationTemplateKey | null;
+  initial?: Automation | null;
   onClose: () => void;
-  onCreate: (automation: Omit<Automation, "id" | "enabled">) => void;
+  onSave: (data: {
+    name: string;
+    trigger: any;
+    action: any;
+  }) => void;
 };
 
-const projects = [
-  { id: "p1", name: "Mobile Redesign" },
-  { id: "p2", name: "API Documentation" },
-  { id: "p3", name: "Growth Experiments" },
-];
-
-export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreate }: Props) {
+export function CreateAutomationModal({ open, projects, roles, templatesPrefill, initial, onClose, onSave }: Props) {
   const [name, setName] = useState("");
   const [scope, setScope] = useState<"Workspace" | "Project">("Workspace");
-  const [projectId, setProjectId] = useState(projects[0].id);
+  const [projectId, setProjectId] = useState("");
   const [triggerType, setTriggerType] = useState("status");
-  const [statusTo, setStatusTo] = useState("Blocked");
+  const [statusTo, setStatusTo] = useState("BLOCKED");
   const [dueDays, setDueDays] = useState(2);
   const [staleDays, setStaleDays] = useState(5);
   const [actions, setActions] = useState({
@@ -32,64 +36,76 @@ export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreat
     email: true,
     activity: false,
   });
-  const [recipient, setRecipient] = useState("Project managers");
+  const [recipient, setRecipient] = useState<{id: string, name: string}>({ id: "Assignee", name: "Assignee" });
 
   useEffect(() => {
     if (!open) return;
-    // Prefill from template
-    if (templatesPrefill === "blocked") {
+
+    if (projects.length > 0 && !projectId) {
+      setProjectId(projects[0].id);
+    }
+
+    if (initial) {
+      // Edit mode
+      setName(initial.name);
+      setScope(initial.trigger.scope);
+      if (initial.trigger.projectId) setProjectId(initial.trigger.projectId);
+      setTriggerType(initial.trigger.type || "status");
+      if (initial.trigger.statusTo) setStatusTo(initial.trigger.statusTo);
+      if (initial.trigger.dueDays) setDueDays(initial.trigger.dueDays);
+      if (initial.trigger.staleDays) setStaleDays(initial.trigger.staleDays);
+      setActions({
+        inApp: initial.action.inApp,
+        email: initial.action.email,
+        activity: initial.action.activity,
+      });
+      // Fallback if old automation has a string recipient
+      if (typeof initial.action.recipient === "string") {
+        setRecipient({ id: initial.action.recipient, name: initial.action.recipient });
+      } else {
+        setRecipient(initial.action.recipient || { id: "Assignee", name: "Assignee" });
+      }
+    } else if (templatesPrefill === "blocked") {
       setName("Blocked task alert");
       setTriggerType("status");
-      setStatusTo("Blocked");
+      setStatusTo("BLOCKED");
       setActions({ inApp: true, email: true, activity: true });
-      setRecipient("Project managers");
+      const firstRole = roles.length > 0 ? roles[0] : { id: "Assignee", name: "Assignee" };
+      setRecipient(firstRole);
     } else if (templatesPrefill === "dueSoon") {
       setName("Due soon reminder");
       setTriggerType("due");
       setDueDays(2);
       setActions({ inApp: true, email: true, activity: false });
-      setRecipient("Assignee");
+      setRecipient({ id: "Assignee", name: "Assignee" });
     } else if (templatesPrefill === "stale") {
       setName("Stale task nudge");
       setTriggerType("stale");
       setStaleDays(5);
       setActions({ inApp: true, email: false, activity: true });
-      setRecipient("Assignee");
+      setRecipient({ id: "Assignee", name: "Assignee" });
     } else if (templatesPrefill === "weekly") {
       setName("Weekly project summary");
       setTriggerType("weekly");
       setActions({ inApp: false, email: true, activity: true });
-      setRecipient("Workspace admins");
+      const firstRole = roles.length > 0 ? roles[0] : { id: "Assignee", name: "Assignee" };
+      setRecipient(firstRole);
     } else {
       setName("");
       setTriggerType("status");
       setActions({ inApp: true, email: true, activity: false });
     }
-  }, [open, templatesPrefill]);
+  }, [open, templatesPrefill, initial, projects]);
 
   if (!open) return null;
-
-  const buildTriggerSummary = () => {
-    if (triggerType === "status") return `When status changes to ${statusTo}`;
-    if (triggerType === "due") return `When due date is within ${dueDays} days`;
-    if (triggerType === "stale") return `No updates for ${staleDays} days`;
-    if (triggerType === "weekly") return "Every Friday at 9:00 AM";
-    return "When event occurs";
-  };
-
-  const buildActionSummary = () => {
-    const parts = [];
-    if (actions.inApp) parts.push("Notify in-app");
-    if (actions.email) parts.push("Send email");
-    if (actions.activity) parts.push("Post to activity");
-    return parts.join(" + ") || "No action selected";
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-[#0f172a]">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Create automation</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            {initial ? "Edit automation" : "Create automation"}
+          </h3>
           <button
             onClick={onClose}
             className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/5"
@@ -98,7 +114,7 @@ export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreat
           </button>
         </div>
 
-        <div className="grid gap-5 px-5 py-5">
+        <div className="grid gap-5 px-5 py-5 max-h-[70vh] overflow-y-auto">
           <Field label="Name">
             <input
               value={name}
@@ -120,16 +136,22 @@ export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreat
                 portal={false}
               />
             </Field>
-            {scope === "Project" && (
-              <Field label="Project">
-                <Select
-                  value={projectId}
-                  onChange={setProjectId}
-                  options={projects.map((p) => ({ value: p.id, label: p.name }))}
-                  portal={false}
-                />
-              </Field>
-            )}
+            {scope === "Project" ? (
+              projects.length > 0 ? (
+                <Field label="Project">
+                  <Select
+                    value={projectId}
+                    onChange={setProjectId}
+                    options={projects.map((p) => ({ value: p.id, label: p.name }))}
+                    portal={false}
+                  />
+                </Field>
+              ) : (
+                <Field label="Project">
+                  <div className="px-3 py-2 text-sm text-amber-600 bg-amber-50 rounded-xl dark:bg-amber-500/10">No projects available.</div>
+                </Field>
+              )
+            ) : null}
           </div>
 
           <Field label="Trigger">
@@ -146,11 +168,18 @@ export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreat
                 portal={false}
               />
               {triggerType === "status" && (
-                <input
+                <Select
                   value={statusTo}
-                  onChange={(e) => setStatusTo(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#111827] dark:text-slate-100"
-                  placeholder="e.g. Blocked"
+                  onChange={setStatusTo}
+                  options={[
+                    { value: "TODO", label: "To Do" },
+                    { value: "IN_PROGRESS", label: "In Progress" },
+                    { value: "IN_REVIEW", label: "In Review" },
+                    { value: "DONE", label: "Done" },
+                    { value: "BLOCKED", label: "Blocked" },
+                    { value: "CANCELLED", label: "Cancelled" },
+                  ]}
+                  portal={false}
                 />
               )}
               {triggerType === "due" && (
@@ -198,12 +227,19 @@ export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreat
 
           <Field label="Recipients">
             <Select
-              value={recipient}
-              onChange={setRecipient}
+              value={recipient.id}
+              onChange={(id) => {
+                const isAssignee = id === "Assignee";
+                if (isAssignee) {
+                  setRecipient({ id: "Assignee", name: "Assignee" });
+                } else {
+                  const role = roles.find((r) => r.id === id);
+                  if (role) setRecipient({ id: role.id, name: role.name });
+                }
+              }}
               options={[
                 { value: "Assignee", label: "Assignee" },
-                { value: "Project managers", label: "Project managers" },
-                { value: "Workspace admins", label: "Workspace admins" },
+                ...roles.map((r) => ({ value: r.id, label: r.name })),
               ]}
               portal={false}
             />
@@ -219,17 +255,29 @@ export function CreateAutomationModal({ open, templatesPrefill, onClose, onCreat
           </button>
           <button
             onClick={() => {
-              onCreate({
+              onSave({
                 name: name.trim() || "New automation",
-                scope,
-                trigger: buildTriggerSummary(),
-                action: `${buildActionSummary()} • ${recipient}`,
+                trigger: {
+                  type: triggerType,
+                  statusTo: triggerType === "status" ? statusTo : undefined,
+                  dueDays: triggerType === "due" ? dueDays : undefined,
+                  staleDays: triggerType === "stale" ? staleDays : undefined,
+                  scope,
+                  projectId: scope === "Project" ? projectId : undefined,
+                },
+                action: {
+                  inApp: actions.inApp,
+                  email: actions.email,
+                  activity: actions.activity,
+                  recipient,
+                },
               });
               onClose();
             }}
             className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+            disabled={scope === "Project" && !projectId}
           >
-            Create automation
+            {initial ? "Save changes" : "Create automation"}
           </button>
         </div>
       </div>

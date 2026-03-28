@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { SettingsLayout } from "@/components/settings/SettingsLayout";
 import { AutomationsHeader } from "@/components/settings/automations/AutomationsHeader";
 import { TemplatesRow, AutomationTemplateKey } from "@/components/settings/automations/TemplatesRow";
@@ -8,44 +9,89 @@ import { AutomationsList } from "@/components/settings/automations/AutomationsLi
 import { AutomationsSkeleton } from "@/components/settings/automations/AutomationsSkeleton";
 import { CreateAutomationModal } from "@/components/settings/automations/CreateAutomationModal";
 import type { Automation } from "@/components/settings/automations/AutomationRow";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, ShieldAlert } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 
-const INITIAL_AUTOMATIONS: Automation[] = [
-  {
-    id: "a1",
-    name: "Blocked task alert",
-    trigger: "When status changes to Blocked",
-    action: "Notify managers + Post to activity",
-    scope: "Workspace",
-    enabled: true,
-  },
-  {
-    id: "a2",
-    name: "Due soon reminder",
-    trigger: "When due date is within 2 days",
-    action: "Notify in-app + Send email to assignee",
-    scope: "Project",
-    enabled: false,
-  },
-];
+type Project = { id: string; name: string };
+type Role = { id: string; name: string };
 
 export default function SettingsAutomationsPage() {
-  const [automations, setAutomations] = useState<Automation[]>(INITIAL_AUTOMATIONS);
+  const { workspaceSlug } = useParams<{ workspaceSlug: string }>();
+  
+  const [automations, setAutomations] = useState<Automation[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "enabled" | "disabled">("all");
+  
+  const [loading, setLoading] = useState(true);
+  const [workspaceId, setWorkspaceId] = useState("");
+  const [hasPermission, setHasPermission] = useState(true);
+
   const [openModal, setOpenModal] = useState(false);
   const [templatePrefill, setTemplatePrefill] = useState<AutomationTemplateKey | null>(null);
-  const [loading] = useState(false);
+  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        // 1. Get workspace ID
+        const wsRes = await fetch(`/api/workspaces/${workspaceSlug}`);
+        if (!wsRes.ok) return;
+        const wsData = await wsRes.json();
+        const wsId = wsData.id;
+        setWorkspaceId(wsId);
+
+        // 2. Check permissions (Settings Profile / Admin required)
+        const permsRes = await fetch(`/api/workspaces/${workspaceSlug}/permissions`);
+        if (permsRes.ok) {
+          const perms = await permsRes.json();
+          // We map automations to settings.profile or settings.workspace basically
+          const canManage = perms.permissions?.includes("settings.profile") ?? false;
+          setHasPermission(canManage);
+          if (!canManage) {
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 3. Fetch Automations
+        const autoRes = await fetch(`/api/workspaces/${wsId}/automations?workspaceSlug=${workspaceSlug}`);
+        if (autoRes.ok) {
+          const data = await autoRes.json();
+          setAutomations(data);
+        }
+
+        // 4. Fetch Projects for the dropdown
+        const projectsRes = await fetch(`/api/projects?workspaceSlug=${workspaceSlug}`);
+        if (projectsRes.ok) {
+          const data = await projectsRes.json();
+          setProjects(data.map((p: any) => ({ id: p.id, name: p.name })));
+        }
+
+        // 5. Fetch Workspace Roles for the recipient dropdown
+        const rolesRes = await fetch(`/api/workspaces/${workspaceSlug}/roles`);
+        if (rolesRes.ok) {
+          const data = await rolesRes.json();
+          setRoles(data.map((r: any) => ({ id: r.id, name: r.name })));
+        }
+      } catch {
+        // silently fail and show empty lists
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
+  }, [workspaceSlug]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
     return automations.filter((a) => {
-      const matchesQuery =
-        !q ||
-        a.name.toLowerCase().includes(q) ||
-        a.trigger.toLowerCase().includes(q) ||
-        a.action.toLowerCase().includes(q);
+      // Create a display string just for searching
+      const triggerStr = JSON.stringify(a.trigger).toLowerCase();
+      const actionStr = JSON.stringify(a.action).toLowerCase();
+      const matchesQuery = !q || a.name.toLowerCase().includes(q) || triggerStr.includes(q) || actionStr.includes(q);
+        
       const matchesFilter =
         statusFilter === "all" ||
         (statusFilter === "enabled" && a.enabled) ||
@@ -54,29 +100,105 @@ export default function SettingsAutomationsPage() {
     });
   }, [automations, query, statusFilter]);
 
-  const handleCreate = (automation: Omit<Automation, "id" | "enabled">) => {
-    setAutomations((prev) => [
-      { ...automation, id: crypto.randomUUID(), enabled: true },
-      ...prev,
-    ]);
+  const handleSave = async (data: { name: string; trigger: any; action: any }) => {
+    if (editingAutomation) {
+      // Update
+      const res = await fetch(`/api/workspaces/${workspaceId}/automations/${editingAutomation.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, workspaceSlug }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAutomations((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      }
+    } else {
+      // Create
+      const res = await fetch(`/api/workspaces/${workspaceId}/automations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, workspaceSlug, enabled: true }),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setAutomations((prev) => [created, ...prev]);
+      }
+    }
   };
 
-  const handleToggle = (id: string, value: boolean) => {
+  const handleToggle = async (id: string, value: boolean) => {
+    // Optimistic UI
     setAutomations((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: value } : a)));
+    
+    // Background async update
+    await fetch(`/api/workspaces/${workspaceId}/automations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: value, workspaceSlug }),
+    });
   };
 
-  const handleDuplicate = (id: string) => {
+  const handleDuplicate = async (id: string) => {
     const source = automations.find((a) => a.id === id);
     if (!source) return;
-    setAutomations((prev) => [
-      { ...source, id: crypto.randomUUID(), name: `${source.name} Copy`, enabled: source.enabled },
-      ...prev,
-    ]);
+    
+    const res = await fetch(`/api/workspaces/${workspaceId}/automations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: `${source.name} Copy`,
+        trigger: source.trigger,
+        action: source.action,
+        enabled: source.enabled,
+        workspaceSlug,
+      }),
+    });
+    
+    if (res.ok) {
+      const created = await res.json();
+      setAutomations((prev) => [created, ...prev]);
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this automation?")) return;
+    
     setAutomations((prev) => prev.filter((a) => a.id !== id));
+    await fetch(`/api/workspaces/${workspaceId}/automations/${id}?workspaceSlug=${workspaceSlug}`, {
+      method: "DELETE",
+    });
   };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
+        <SettingsLayout>
+          <div className="flex flex-col gap-6">
+             <AutomationsHeader onCreate={() => {}} />
+             <AutomationsSkeleton />
+          </div>
+        </SettingsLayout>
+      </main>
+    );
+  }
+
+  if (!hasPermission) {
+    return (
+      <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
+        <SettingsLayout>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10">
+              <ShieldAlert className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Access Denied</h2>
+            <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+              You don&apos;t have permission to manage automations. Contact your workspace administrator to request access.
+            </p>
+          </div>
+        </SettingsLayout>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
@@ -84,6 +206,7 @@ export default function SettingsAutomationsPage() {
         <div className="flex flex-col gap-6">
           <AutomationsHeader
             onCreate={() => {
+              setEditingAutomation(null);
               setTemplatePrefill(null);
               setOpenModal(true);
             }}
@@ -91,6 +214,7 @@ export default function SettingsAutomationsPage() {
 
           <TemplatesRow
             onUse={(key) => {
+              setEditingAutomation(null);
               setTemplatePrefill(key);
               setOpenModal(true);
             }}
@@ -118,34 +242,38 @@ export default function SettingsAutomationsPage() {
                     { value: "disabled", label: "Disabled" },
                   ]}
                   size="sm"
+                  portal={false}
+                  className="w-36"
                 />
               </div>
             </div>
 
-            {loading ? (
-              <AutomationsSkeleton />
-            ) : (
-              <AutomationsList
-                automations={filtered}
-                onToggle={handleToggle}
-                onEdit={(id) => {
-                  // For UI-only, reuse create modal prefilled not implemented; open blank
+            <AutomationsList
+              automations={filtered}
+              onToggle={handleToggle}
+              onEdit={(id) => {
+                const auto = automations.find((a) => a.id === id);
+                if (auto) {
+                  setEditingAutomation(auto);
                   setTemplatePrefill(null);
                   setOpenModal(true);
-                }}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-              />
-            )}
+                }
+              }}
+              onDuplicate={handleDuplicate}
+              onDelete={handleDelete}
+            />
           </div>
         </div>
       </SettingsLayout>
 
       <CreateAutomationModal
         open={openModal}
+        projects={projects}
+        roles={roles}
         templatesPrefill={templatePrefill}
+        initial={editingAutomation}
         onClose={() => setOpenModal(false)}
-        onCreate={(a) => handleCreate(a)}
+        onSave={handleSave}
       />
     </main>
   );
