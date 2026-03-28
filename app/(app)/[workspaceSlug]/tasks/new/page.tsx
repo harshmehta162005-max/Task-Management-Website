@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2, Plus, X, Upload, Trash2, Bold, Italic, List, Link2, Code } from "lucide-react";
+import { TagPicker } from "@/components/tasks/TagPicker";
+import type { WorkspaceTag } from "@/components/tasks/task-drawer/types";
 
 type Project = { id: string; name: string };
 type Member = { id: string; name: string; avatarUrl: string };
@@ -19,9 +21,7 @@ export default function AssignTaskPage() {
   const [status, setStatus] = useState<"TODO" | "IN_PROGRESS">("TODO");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT">("MEDIUM");
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>(["Design"]);
-  const [newTag, setNewTag] = useState("");
-  const [showTagInput, setShowTagInput] = useState(false);
+  const [tags, setTags] = useState<WorkspaceTag[]>([]);
   const [subtasks, setSubtasks] = useState<{ text: string; done: boolean }[]>([]);
   const [newSubtask, setNewSubtask] = useState("");
 
@@ -31,14 +31,19 @@ export default function AssignTaskPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [workspaceTags, setWorkspaceTags] = useState<WorkspaceTag[]>([]);
+  const [canManageTags, setCanManageTags] = useState(false);
+  const [workspaceIdStr, setWorkspaceIdStr] = useState("");
 
-  // Fetch projects and members
+  // Fetch projects and members, then workspace, tags, and permissions
   useEffect(() => {
     async function load() {
       try {
-        const [projRes, memberRes] = await Promise.all([
+        const [projRes, memberRes, wsRes] = await Promise.all([
           fetch(`/api/projects?workspaceSlug=${workspaceSlug}`),
           fetch(`/api/workspaces/${workspaceSlug}/members`),
+          fetch(`/api/workspaces/${workspaceSlug}`)
         ]);
         if (projRes.ok) {
           const data = await projRes.json();
@@ -52,6 +57,24 @@ export default function AssignTaskPage() {
             avatarUrl: m.avatarUrl || "",
           }));
           setMembers(mems);
+        }
+        if (wsRes.ok) {
+          const wsData = await wsRes.json();
+          const wsId = wsData.id;
+          setWorkspaceIdStr(wsId);
+          
+          const [tagsRes, permsRes] = await Promise.all([
+            fetch(`/api/workspaces/${wsId}/tags?workspaceSlug=${workspaceSlug}`),
+            fetch(`/api/workspaces/${workspaceSlug}/permissions`),
+          ]);
+          if (tagsRes.ok) {
+             const tags = await tagsRes.json();
+             setWorkspaceTags(tags.map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
+          }
+          if (permsRes.ok) {
+             const perms = await permsRes.json();
+             setCanManageTags(perms.permissions?.includes("settings.tags") ?? false);
+          }
         }
       } catch {
         // silent
@@ -68,15 +91,9 @@ export default function AssignTaskPage() {
     );
   };
 
-  const addTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag("");
-      setShowTagInput(false);
-    }
+  const handleTagCreated = (newTag: WorkspaceTag) => {
+    setWorkspaceTags(prev => [...prev, newTag]);
   };
-
-  const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
 
   const addSubtask = () => {
     if (newSubtask.trim()) {
@@ -112,6 +129,7 @@ export default function AssignTaskPage() {
           priority,
           dueDate: dueDate || null,
           assigneeIds: selectedAssignees.length > 0 ? selectedAssignees : undefined,
+          tagIds: tags.length > 0 ? tags.map(t => t.id) : undefined,
         }),
       });
 
@@ -136,14 +154,7 @@ export default function AssignTaskPage() {
     URGENT: { label: "Urgent", active: "bg-red-500/10 border-red-500/30 text-red-500", inactive: "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-border-dark text-slate-500" },
   };
 
-  const TAG_COLORS = [
-    "bg-primary/10 text-primary border-primary/20",
-    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    "bg-amber-500/10 text-amber-500 border-amber-500/20",
-    "bg-rose-500/10 text-rose-500 border-rose-500/20",
-    "bg-sky-500/10 text-sky-500 border-sky-500/20",
-    "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  ];
+
 
   if (loading) {
     return (
@@ -357,37 +368,15 @@ export default function AssignTaskPage() {
                 Tags
               </label>
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag, i) => (
-                  <span
-                    key={tag}
-                    className={`flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold ${TAG_COLORS[i % TAG_COLORS.length]}`}
-                  >
-                    {tag}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
-                  </span>
-                ))}
-                {showTagInput ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      className="w-24 rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs outline-none focus:border-primary"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addTag()}
-                      autoFocus
-                      placeholder="Tag name"
-                    />
-                    <button onClick={addTag} className="text-primary">
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowTagInput(true)}
-                    className="flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-bold text-slate-400 transition-colors hover:text-white"
-                  >
-                    <Plus className="h-3 w-3" /> Add Tag
-                  </button>
-                )}
+                <TagPicker
+                    selectedTags={tags}
+                    workspaceTags={workspaceTags}
+                    onChange={setTags}
+                    canManageTags={canManageTags}
+                    onTagCreated={handleTagCreated}
+                    workspaceId={workspaceIdStr}
+                    workspaceSlug={workspaceSlug}
+                  />
               </div>
             </section>
           </div>

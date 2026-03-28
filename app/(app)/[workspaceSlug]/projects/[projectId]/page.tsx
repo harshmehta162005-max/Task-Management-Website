@@ -22,7 +22,7 @@ import { RenameProjectModal } from "@/components/projects/project-page/RenamePro
 import { ProjectPageSkeleton } from "@/components/projects/project-page/ProjectPageSkeleton";
 import { ProjectNotFound } from "@/components/projects/project-page/ProjectNotFound";
 import { TaskDrawer } from "@/components/tasks/TaskDrawer";
-import type { DrawerTask, DrawerAssignee } from "@/components/tasks/task-drawer/types";
+import type { DrawerTask, DrawerAssignee, WorkspaceTag } from "@/components/tasks/task-drawer/types";
 import { KanbanTask } from "@/components/tasks/KanbanBoard";
 import { Loader2 } from "lucide-react";
 
@@ -52,6 +52,9 @@ export default function ProjectPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [workspaceTags, setWorkspaceTags] = useState<WorkspaceTag[]>([]);
+  const [canManageTags, setCanManageTags] = useState(false);
+  const [workspaceIdStr, setWorkspaceIdStr] = useState("");
 
   const workspaceMembers: DrawerAssignee[] = useMemo(() => {
     if (!project?.memberDetails) return [];
@@ -96,6 +99,36 @@ export default function ProjectPage() {
       setLoading(false);
     }
   }, [projectId, workspaceSlug]);
+
+  // Fetch workspace tags and permissions
+  useEffect(() => {
+    async function loadTagsAndPerms() {
+      try {
+        // First get workspace ID
+        const wsRes = await fetch(`/api/workspaces/${workspaceSlug}`);
+        if (!wsRes.ok) return;
+        const wsData = await wsRes.json();
+        const wsId = wsData.id;
+        setWorkspaceIdStr(wsId);
+
+        const [tagsRes, permsRes] = await Promise.all([
+          fetch(`/api/workspaces/${wsId}/tags?workspaceSlug=${workspaceSlug}`),
+          fetch(`/api/workspaces/${workspaceSlug}/permissions`),
+        ]);
+        if (tagsRes.ok) {
+          const tags = await tagsRes.json();
+          setWorkspaceTags(tags.map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
+        }
+        if (permsRes.ok) {
+          const perms = await permsRes.json();
+          setCanManageTags(perms.permissions?.includes("settings.tags") ?? false);
+        }
+      } catch {
+        // silent
+      }
+    }
+    loadTagsAndPerms();
+  }, [workspaceSlug]);
 
   useEffect(() => {
     loadProject();
@@ -146,7 +179,7 @@ export default function ProjectPage() {
           priority: activeTask!.priority,
           dueDate: activeTask!.dueDate ?? null,
           assignees: activeTask!.assignees.map((a) => ({ id: a.id, name: a.name, avatar: a.avatarUrl })),
-          tags: activeTask!.tags ?? [],
+          tags: (activeTask!.tags ?? []).map((t: any) => typeof t === 'string' ? { id: '', name: t, color: '#6366f1' } : t),
           description: "",
           attachments: [],
           comments: [],
@@ -288,6 +321,9 @@ export default function ProjectPage() {
           workspaceMembers={workspaceMembers}
           isManager={true}
           workspaceSlug={workspaceSlug}
+          workspaceTags={workspaceTags}
+          canManageTags={canManageTags}
+          workspaceId={workspaceIdStr}
           onTaskDeleted={() => { closeTask(); loadProject(); }}
           onTaskDuplicated={() => { loadProject(); }}
           onTaskMoved={() => { closeTask(); loadProject(); }}

@@ -45,13 +45,13 @@ export function ProjectListTab({ tasks, onOpenTask, onAddTask, onReload, current
       .filter((t) => (!filters.status || t.status === filters.status))
       .filter((t) => (!filters.priority || t.priority === filters.priority))
       .filter((t) => (!filters.assignee || t.assignees.some((a) => a.id === filters.assignee)))
-      .filter((t) => (!filters.tag || t.tags.some((tag) => tag === filters.tag)))
+      .filter((t) => (!filters.tag || t.tags.some((tag) => tag.name === filters.tag)))
       .filter((t) => {
         if (!filters.q) return true;
         const q = filters.q!.toLowerCase();
         return (
           t.title.toLowerCase().includes(q) ||
-          t.tags.some((tag) => tag.toLowerCase().includes(q))
+          t.tags.some((tag) => tag.name.toLowerCase().includes(q))
         );
       })
       .filter((t) => {
@@ -71,9 +71,9 @@ export function ProjectListTab({ tasks, onOpenTask, onAddTask, onReload, current
   }, [tasks, filters, sort]);
 
   const availableTags = useMemo(() => {
-    const s = new Set<string>();
-    tasks.forEach((t) => t.tags.forEach((tag) => s.add(tag)));
-    return Array.from(s).sort((a, b) => a.localeCompare(b));
+    const map = new Map<string, { id: string; name: string; color: string }>();
+    tasks.forEach((t) => t.tags.forEach((tag) => map.set(tag.id, tag)));
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [tasks]);
 
   return (

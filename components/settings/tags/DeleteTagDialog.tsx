@@ -5,11 +5,12 @@ import { X } from "lucide-react";
 type Props = {
   open: boolean;
   tagName: string;
+  usageCount: number;
   onClose: () => void;
   onConfirm: () => void;
 };
 
-export function DeleteTagDialog({ open, tagName, onClose, onConfirm }: Props) {
+export function DeleteTagDialog({ open, tagName, usageCount, onClose, onConfirm }: Props) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
@@ -25,8 +26,9 @@ export function DeleteTagDialog({ open, tagName, onClose, onConfirm }: Props) {
         </div>
         <div className="space-y-3 px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
           <p>
-            Delete <span className="font-semibold text-slate-900 dark:text-white">{tagName}</span>? Tasks will keep tag
-            history but the tag will become unavailable going forward.
+            Delete <span className="font-semibold text-slate-900 dark:text-white">{tagName}</span>? 
+            This will remove the tag from <span className="font-bold text-red-500">{usageCount} tasks</span>. 
+            This action cannot be undone.
           </p>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3 dark:border-slate-800">

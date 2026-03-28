@@ -1,28 +1,69 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { SettingsLayout } from "@/components/settings/SettingsLayout";
 import { TagsHeader } from "@/components/settings/tags/TagsHeader";
 import { TagsTable } from "@/components/settings/tags/TagsTable";
+import { TagsSkeleton } from "@/components/settings/tags/TagsSkeleton";
 import { CreateTagModal } from "@/components/settings/tags/CreateTagModal";
 import { DeleteTagDialog } from "@/components/settings/tags/DeleteTagDialog";
 import { TagItem } from "@/components/settings/tags/TagRow";
-import { Search } from "lucide-react";
-
-const INITIAL_TAGS: TagItem[] = [
-  { id: "t1", name: "Bug", color: "#ef4444", usageCount: 42 },
-  { id: "t2", name: "Feature", color: "#6366f1", usageCount: 128 },
-  { id: "t3", name: "Refactor", color: "#f59e0b", usageCount: 15 },
-  { id: "t4", name: "Design", color: "#ec4899", usageCount: 64 },
-  { id: "t5", name: "Research", color: "#06b6d4", usageCount: 21 },
-];
+import { Search, ShieldAlert } from "lucide-react";
 
 export default function SettingsTagsPage() {
-  const [tags, setTags] = useState<TagItem[]>(INITIAL_TAGS);
+  const { workspaceSlug } = useParams<{ workspaceSlug: string }>();
+  const [tags, setTags] = useState<TagItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<TagItem | null>(null);
   const [deleteTag, setDeleteTag] = useState<TagItem | null>(null);
+  const [workspaceId, setWorkspaceId] = useState("");
+  const [hasPermission, setHasPermission] = useState(true);
+
+  // Load workspace ID, tags, and permissions
+  useEffect(() => {
+    async function load() {
+      try {
+        // Get workspace ID
+        const wsRes = await fetch(`/api/workspaces/${workspaceSlug}`);
+        if (!wsRes.ok) return;
+        const wsData = await wsRes.json();
+        const wsId = wsData.id;
+        setWorkspaceId(wsId);
+
+        // Check permissions
+        const permsRes = await fetch(`/api/workspaces/${workspaceSlug}/permissions`);
+        if (permsRes.ok) {
+          const perms = await permsRes.json();
+          const canManage = perms.permissions?.includes("settings.tags") ?? false;
+          setHasPermission(canManage);
+          if (!canManage) {
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fetch tags
+        const tagsRes = await fetch(`/api/workspaces/${wsId}/tags?workspaceSlug=${workspaceSlug}`);
+        if (tagsRes.ok) {
+          const data = await tagsRes.json();
+          setTags(data.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            color: t.color,
+            usageCount: t.usageCount,
+          })));
+        }
+      } catch {
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [workspaceSlug]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -30,20 +71,95 @@ export default function SettingsTagsPage() {
     return tags.filter((t) => t.name.toLowerCase().includes(q));
   }, [tags, query]);
 
-  const saveTag = (input: { name: string; color: string }) => {
+  const saveTag = async (input: { name: string; color: string }) => {
     if (editingTag) {
-      setTags((prev) => prev.map((t) => (t.id === editingTag.id ? { ...t, ...input } : t)));
+      // Edit existing tag
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/tags/${editingTag.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: input.name, color: input.color, workspaceSlug }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setTags((prev) =>
+            prev.map((t) => (t.id === editingTag.id ? { ...t, name: updated.name, color: updated.color } : t))
+          );
+        } else {
+          const data = await res.json();
+          alert(data.error || "Failed to update tag");
+        }
+      } catch {
+        alert("Failed to update tag");
+      }
     } else {
-      setTags((prev) => [
-        { id: crypto.randomUUID(), name: input.name, color: input.color, usageCount: 0 },
-        ...prev,
-      ]);
+      // Create new tag
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/tags`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: input.name, color: input.color, workspaceSlug }),
+        });
+        if (res.ok) {
+          const newTag = await res.json();
+          setTags((prev) => [
+            { id: newTag.id, name: newTag.name, color: newTag.color, usageCount: 0 },
+            ...prev,
+          ]);
+        } else {
+          const data = await res.json();
+          alert(data.error || "Failed to create tag");
+        }
+      } catch {
+        alert("Failed to create tag");
+      }
     }
   };
 
-  const removeTag = (id: string) => {
-    setTags((prev) => prev.filter((t) => t.id !== id));
+  const removeTag = async (id: string) => {
+    try {
+      const res = await fetch(
+        `/api/workspaces/${workspaceId}/tags/${id}?workspaceSlug=${workspaceSlug}`,
+        { method: "DELETE" }
+      );
+      if (res.ok) {
+        setTags((prev) => prev.filter((t) => t.id !== id));
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete tag");
+      }
+    } catch {
+      alert("Failed to delete tag");
+    }
   };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
+        <SettingsLayout>
+          <TagsSkeleton />
+        </SettingsLayout>
+      </main>
+    );
+  }
+
+  if (!hasPermission) {
+    return (
+      <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
+        <SettingsLayout>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10">
+              <ShieldAlert className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Access Denied</h2>
+            <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+              You don&apos;t have permission to manage tags. Contact your workspace administrator to request access.
+            </p>
+          </div>
+        </SettingsLayout>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
@@ -95,6 +211,7 @@ export default function SettingsTagsPage() {
       <DeleteTagDialog
         open={Boolean(deleteTag)}
         tagName={deleteTag?.name || ""}
+        usageCount={deleteTag?.usageCount ?? 0}
         onClose={() => setDeleteTag(null)}
         onConfirm={() => {
           if (deleteTag) removeTag(deleteTag.id);

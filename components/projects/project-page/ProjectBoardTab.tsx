@@ -21,7 +21,7 @@ export function ProjectBoardTab({ tasks, onMove, onOpenTask, onAddTask }: Props)
       const matchesSearch =
         !search ||
         t.title.toLowerCase().includes(search.toLowerCase()) ||
-        t.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()));
+        t.tags.some((tag) => tag.name.toLowerCase().includes(search.toLowerCase()));
       const matchesAssignee = !assignee || t.assignees.some((a) => a.id === assignee);
       const matchesPriority = !priority || t.priority === priority;
       return matchesSearch && matchesAssignee && matchesPriority;

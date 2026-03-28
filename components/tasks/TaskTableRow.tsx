@@ -66,10 +66,19 @@ export function TaskTableRow({ task, selected, onToggle, onClick, disableSelecti
         <div className="flex flex-wrap gap-1">
           {task.tags.slice(0, 2).map((t) => (
             <span
-              key={t}
-              className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              key={t.id}
+              className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight"
+              style={{
+                color: t.color,
+                backgroundColor: `${t.color}1a`,
+                borderColor: `${t.color}33`,
+              }}
             >
-              {t}
+              <span
+                className="inline-block h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: t.color }}
+              />
+              {t.name}
             </span>
           ))}
           {task.tags.length > 2 ? (

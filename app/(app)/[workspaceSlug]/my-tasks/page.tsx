@@ -7,7 +7,7 @@ import { TaskGroupedList } from "@/components/tasks/TaskGroupedList";
 import { MyTasksSkeleton } from "@/components/tasks/MyTasksSkeleton";
 import { TaskDrawer } from "@/components/tasks/TaskDrawer";
 import type { TaskItem } from "@/components/tasks/TaskRow";
-import type { DrawerTask, DrawerAssignee } from "@/components/tasks/task-drawer/types";
+import type { DrawerTask, DrawerAssignee, WorkspaceTag } from "@/components/tasks/task-drawer/types";
 
 type Task = TaskItem & {
   dueDate: string | null;
@@ -24,6 +24,9 @@ export default function MyTasksPage() {
   const [sort, setSort] = useState("due");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<DrawerAssignee[]>([]);
+  const [workspaceTags, setWorkspaceTags] = useState<WorkspaceTag[]>([]);
+  const [canManageTags, setCanManageTags] = useState(false);
+  const [workspaceIdStr, setWorkspaceIdStr] = useState("");
 
   // Fetch tasks assigned to current user
   useEffect(() => {
@@ -49,6 +52,35 @@ export default function MyTasksPage() {
       }
     }
     load();
+  }, [workspaceSlug]);
+
+  // Fetch workspace tags and permissions
+  useEffect(() => {
+    async function loadTagsAndPerms() {
+      try {
+        const wsRes = await fetch(`/api/workspaces/${workspaceSlug}`);
+        if (!wsRes.ok) return;
+        const wsData = await wsRes.json();
+        const wsId = wsData.id;
+        setWorkspaceIdStr(wsId);
+
+        const [tagsRes, permsRes] = await Promise.all([
+          fetch(`/api/workspaces/${wsId}/tags?workspaceSlug=${workspaceSlug}`),
+          fetch(`/api/workspaces/${workspaceSlug}/permissions`),
+        ]);
+        if (tagsRes.ok) {
+          const tags = await tagsRes.json();
+          setWorkspaceTags(tags.map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
+        }
+        if (permsRes.ok) {
+          const perms = await permsRes.json();
+          setCanManageTags(perms.permissions?.includes("settings.tags") ?? false);
+        }
+      } catch {
+        // silent
+      }
+    }
+    loadTagsAndPerms();
   }, [workspaceSlug]);
 
   const filteredTasks = useMemo(() => {
@@ -180,7 +212,16 @@ export default function MyTasksPage() {
         onQuickAdd={handleQuickAdd}
       />
       {drawerTask && (
-        <TaskDrawer open task={drawerTask} onClose={closeDrawer} workspaceMembers={workspaceMembers} />
+        <TaskDrawer
+          open
+          task={drawerTask}
+          onClose={closeDrawer}
+          workspaceMembers={workspaceMembers}
+          workspaceTags={workspaceTags}
+          canManageTags={canManageTags}
+          workspaceId={workspaceIdStr}
+          workspaceSlug={workspaceSlug}
+        />
       )}
     </div>
   );

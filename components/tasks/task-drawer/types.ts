@@ -14,6 +14,9 @@ export type DrawerActivity = { id: string; text: string; createdAt: string };
 export type DrawerSubtask = { id: string; title: string; completed: boolean };
 export type DrawerDependency = { id: string; name: string; avatar?: string };
 
+/** A workspace-managed tag with id, name, and color */
+export type WorkspaceTag = { id: string; name: string; color: string };
+
 export type DrawerTask = {
   id: string;
   title: string;
@@ -21,7 +24,7 @@ export type DrawerTask = {
   priority: DrawerPriority;
   dueDate?: string | null;
   assignees: DrawerAssignee[];
-  tags: string[];
+  tags: WorkspaceTag[];
   description?: string;
   attachments?: DrawerAttachment[];
   comments?: DrawerComment[];

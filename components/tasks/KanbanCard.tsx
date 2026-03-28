@@ -31,10 +31,19 @@ export function KanbanCard({ task, onClick, isDragging }: Props) {
       <div className="mt-3 flex flex-wrap gap-2">
         {task.tags?.slice(0, 2).map((tag) => (
           <span
-            key={tag}
-            className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-300"
+            key={tag.id}
+            className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold"
+            style={{
+              color: tag.color,
+              backgroundColor: `${tag.color}1a`,
+              borderColor: `${tag.color}33`,
+            }}
           >
-            {tag}
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: tag.color }}
+            />
+            {tag.name}
           </span>
         ))}
         {(task.tags?.length || 0) > 2 ? (

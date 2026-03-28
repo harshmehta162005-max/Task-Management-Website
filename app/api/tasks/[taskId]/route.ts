@@ -38,7 +38,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         assignees: {
           include: { user: { select: { id: true, name: true, avatarUrl: true } } },
         },
-        tags: { include: { tag: true } },
+        tags: { include: { tag: { select: { id: true, name: true, color: true } } } },
         comments: {
           include: { author: { select: { id: true, name: true, avatarUrl: true } } },
           orderBy: { createdAt: "desc" },
@@ -74,7 +74,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         name: a.user.name ?? "",
         avatar: a.user.avatarUrl ?? "",
       })),
-      tags: task.tags.map((tt) => tt.tag.name),
+      tags: task.tags.map((tt) => ({ id: tt.tag.id, name: tt.tag.name, color: tt.tag.color })),
       comments: task.comments.map((c) => ({
         id: c.id,
         body: c.body,
@@ -109,7 +109,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
     const body = await req.json();
-    const { title, description, status, priority, dueDate, tags, assigneeIds, subtasks, dependencies, attachments, workspaceSlug } = body;
+    const { title, description, status, priority, dueDate, tagIds, assigneeIds, subtasks, dependencies, attachments, workspaceSlug } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     const ctx = await checkPermission(workspaceSlug, P_TASK_EDIT);
@@ -150,23 +150,27 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       select: { id: true, title: true, status: true, priority: true, dueDate: true, updatedAt: true },
     });
 
-    // Handle tags separately — Tag has @@unique([name, workspaceId]) compound key
-    if (tags !== undefined && Array.isArray(tags)) {
+    // Handle tags by ID — tags must already exist in workspace
+    if (tagIds !== undefined && Array.isArray(tagIds)) {
       const workspaceId = existingTask.project.workspaceId;
 
       // Remove existing tag associations
       await db.taskTag.deleteMany({ where: { taskId } });
 
-      // Create or find tags and associate them
-      for (const tagName of tags) {
-        const tag = await db.tag.upsert({
-          where: { name_workspaceId: { name: tagName, workspaceId } },
-          update: {},
-          create: { name: tagName, color: "#6366f1", workspaceId },
+      // Validate and associate tags by ID
+      if (tagIds.length > 0) {
+        const validTags = await db.tag.findMany({
+          where: { id: { in: tagIds }, workspaceId },
+          select: { id: true },
         });
-        await db.taskTag.create({
-          data: { taskId, tagId: tag.id },
-        });
+        const validIds = new Set(validTags.map((t: { id: string }) => t.id));
+        for (const tagId of tagIds) {
+          if (validIds.has(tagId)) {
+            await db.taskTag.create({
+              data: { taskId, tagId },
+            });
+          }
+        }
       }
     }
 

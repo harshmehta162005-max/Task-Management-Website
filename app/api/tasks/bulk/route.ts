@@ -74,9 +74,17 @@ export async function POST(req: NextRequest) {
         break;
 
       case "TAG":
-        // value is array of strings
-        if (!Array.isArray(value)) throw new ApiError(400, "value must be an array of tag map objects");
+        // value is array of tag IDs
+        if (!Array.isArray(value)) throw new ApiError(400, "value must be an array of tag IDs");
         
+        // Validate tag IDs belong to workspace
+        const validTags = await db.tag.findMany({
+          where: { id: { in: value }, workspaceId: workspace.id },
+          select: { id: true },
+        });
+        const validTagIds = new Set(validTags.map((t: { id: string }) => t.id));
+        const filteredTagIds = value.filter((id: string) => validTagIds.has(id));
+
         await db.$transaction(
           taskIds.map((taskId) =>
             db.task.update({
@@ -84,14 +92,7 @@ export async function POST(req: NextRequest) {
               data: {
                 tags: {
                   deleteMany: {},
-                  create: value.map((tagObj: any) => ({
-                    tag: {
-                      connectOrCreate: {
-                        where: { name_workspaceId: { name: tagObj.name, workspaceId: workspace.id } },
-                        create: { name: tagObj.name, color: tagObj.color || "bg-primary/10", workspaceId: workspace.id },
-                      },
-                    },
-                  })),
+                  create: filteredTagIds.map((tagId: string) => ({ tagId })),
                 },
               },
             })

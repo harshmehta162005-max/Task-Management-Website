@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { X, Trash2, CheckCircle2, CalendarDays, UserPlus, Tags } from "lucide-react";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { TagPicker } from "./TagPicker";
+import type { WorkspaceTag } from "./task-drawer/types";
 
 type Props = {
   count: number;
   onClear: () => void;
   onAction?: (action: string, payload?: any) => void;
   workspaceMembers?: { id: string; name: string; avatar?: string }[];
+  workspaceTags?: WorkspaceTag[];
+  canManageTags?: boolean;
+  workspaceId?: string;
+  workspaceSlug?: string;
 };
 
-export function BulkActionBar({ count, onClear, onAction, workspaceMembers = [] }: Props) {
+export function BulkActionBar({ count, onClear, onAction, workspaceMembers = [], workspaceTags = [], canManageTags = false, workspaceId, workspaceSlug }: Props) {
   const [openPopover, setOpenPopover] = useState<"DATE" | "ASSIGN" | "TAG" | null>(null);
   const [dateVal, setDateVal] = useState<Date | undefined>();
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
-  const [tagsInput, setTagsInput] = useState("");
+  const [selectedBulkTags, setSelectedBulkTags] = useState<WorkspaceTag[]>([]);
+  const [localTags, setLocalTags] = useState<WorkspaceTag[]>(workspaceTags);
 
   if (count === 0) return null;
 
@@ -60,31 +67,29 @@ export function BulkActionBar({ count, onClear, onAction, workspaceMembers = [] 
             )}
           </div>
 
-          {/* TAG POPOVER */}
+          {/* TAG POPOVER — Uses TagPicker */}
           <div className="relative">
             <Action label="Tag" icon={<Tags className="h-4 w-4" />} onClick={() => setOpenPopover(openPopover === "TAG" ? null : "TAG")} />
             {openPopover === "TAG" && (
-              <div className="absolute top-full left-0 mt-2 z-50 rounded-xl bg-white p-3 shadow-xl dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-64 text-slate-800 dark:text-slate-200">
-                <p className="text-xs font-bold mb-2 uppercase text-slate-500">Add Tags</p>
-                <input 
-                   placeholder="e.g. bug, urgent" 
-                   value={tagsInput} 
-                   onChange={e => setTagsInput(e.target.value)} 
-                   className="w-full text-sm rounded border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-2 py-1 mb-2 outline-none focus:ring-1 focus:ring-primary" 
-                   onKeyDown={e => {
-                     if (e.key === "Enter") {
-                        const parsed = tagsInput.split(",").map(t => t.trim()).filter(Boolean).map(name => ({ name }));
-                        handleAction("TAG", parsed);
-                     }
-                   }}
+              <div className="absolute top-full left-0 mt-2 z-50 rounded-xl bg-white p-3 shadow-xl dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-80 text-slate-800 dark:text-slate-200">
+                <p className="text-xs font-bold mb-2 uppercase text-slate-500">Select Tags</p>
+                <TagPicker
+                  selectedTags={selectedBulkTags}
+                  workspaceTags={localTags}
+                  onChange={setSelectedBulkTags}
+                  canManageTags={canManageTags}
+                  onTagCreated={(tag) => setLocalTags((prev) => [...prev, tag])}
+                  workspaceId={workspaceId}
+                  workspaceSlug={workspaceSlug}
                 />
-                <p className="text-[10px] text-slate-400 mb-2">Comma separated.</p>
-                <div className="flex justify-end gap-2 mt-2">
+                <div className="flex justify-end gap-2 mt-3">
                   <button onClick={() => setOpenPopover(null)} className="text-xs text-slate-500 hover:text-slate-700">Cancel</button>
-                  <button onClick={() => {
-                    const parsed = tagsInput.split(",").map(t => t.trim()).filter(Boolean).map(name => ({ name }));
-                    handleAction("TAG", parsed);
-                  }} className="px-3 py-1 bg-primary text-white text-xs rounded font-bold">Apply</button>
+                  <button
+                    onClick={() => handleAction("TAG", selectedBulkTags.map(t => t.id))}
+                    className="px-3 py-1 bg-primary text-white text-xs rounded font-bold"
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
             )}
@@ -113,4 +118,3 @@ function Action({ label, icon, onClick }: { label: string; icon: React.ReactNode
     </button>
   );
 }
-

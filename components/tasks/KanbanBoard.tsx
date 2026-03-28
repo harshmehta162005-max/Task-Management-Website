@@ -10,7 +10,7 @@ export type KanbanTask = {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   assignees: { id: string; name: string; avatarUrl: string }[];
   dueDate?: string;
-  tags: string[];
+  tags: { id: string; name: string; color: string }[];
   commentCount?: number;
   attachmentCount?: number;
 };

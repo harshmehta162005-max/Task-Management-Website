@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
           },
         },
         tags: {
-          include: { tag: { select: { name: true, color: true } } },
+          include: { tag: { select: { id: true, name: true, color: true } } },
         },
         _count: { select: { comments: true, subtasks: true } },
       },
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
         name: a.user.name ?? "",
         avatarUrl: a.user.avatarUrl ?? "",
       })),
-      tags: t.tags.map((tt) => tt.tag.name),
+      tags: t.tags.map((tt) => ({ id: tt.tag.id, name: tt.tag.name, color: tt.tag.color })),
       dueDate: t.dueDate?.toISOString() ?? null,
       dueLabel: t.dueDate ? formatDueLabel(t.dueDate) : "No due date",
       createdAt: t.createdAt.toISOString(),
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { workspaceSlug, projectId, title, description, priority, dueDate, assigneeIds, status, tags, subtasks, attachments } = body;
+    const { workspaceSlug, projectId, title, description, priority, dueDate, assigneeIds, status, tagIds, subtasks, attachments } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     if (!projectId) throw new ApiError(400, "projectId is required");
@@ -148,16 +148,19 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (tags && tags.length > 0) {
-      for (const tagName of tags) {
-        const tag = await db.tag.upsert({
-          where: { name_workspaceId: { name: tagName, workspaceId: workspace.id } },
-          update: {},
-          create: { name: tagName, color: "#6366f1", workspaceId: workspace.id },
-        });
-        await db.taskTag.create({
-          data: { taskId: task.id, tagId: tag.id },
-        });
+    if (tagIds && tagIds.length > 0) {
+      // Validate all tag IDs belong to this workspace
+      const validTags = await db.tag.findMany({
+        where: { id: { in: tagIds }, workspaceId: workspace.id },
+        select: { id: true },
+      });
+      const validIds = new Set(validTags.map((t: { id: string }) => t.id));
+      for (const tagId of tagIds) {
+        if (validIds.has(tagId)) {
+          await db.taskTag.create({
+            data: { taskId: task.id, tagId },
+          });
+        }
       }
     }
 
@@ -218,7 +221,7 @@ export async function POST(req: NextRequest) {
           name: a.user.name ?? "",
           avatarUrl: a.user.avatarUrl ?? "",
         })),
-        tags: [],
+        tags: [] as { id: string; name: string; color: string }[],
         commentCount: 0,
       },
       { status: 201 }

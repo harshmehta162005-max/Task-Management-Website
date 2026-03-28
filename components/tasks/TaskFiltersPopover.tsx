@@ -16,7 +16,7 @@ export type TaskListFilters = {
 type Props = {
   filters: TaskListFilters;
   onChange: (next: Partial<TaskListFilters>) => void;
-  availableTags?: string[];
+  availableTags?: { id: string; name: string; color: string }[];
   availableAssignees?: { id: string; name: string }[];
 };
 
@@ -26,6 +26,10 @@ export function TaskFiltersPopover({ filters, onChange, availableTags, available
   const apply = (patch: Partial<TaskListFilters>) => {
     onChange(patch);
   };
+
+  const tagOptions = availableTags
+    ? availableTags.map(t => t.name)
+    : [];
 
   return (
     <div className="relative">
@@ -70,7 +74,7 @@ export function TaskFiltersPopover({ filters, onChange, availableTags, available
             <SelectField
               label="Tag"
               value={filters.tag}
-              options={["", ...(availableTags || ["Design", "Backend", "Bug", "Marketing", "QA", "Dev", "Infra", "Mobile", "Legal"])]}
+              options={["", ...tagOptions]}
               onChange={(v) => apply({ tag: v })}
             />
             <DateRangePicker

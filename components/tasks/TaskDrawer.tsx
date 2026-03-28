@@ -10,13 +10,14 @@ import {
   DrawerDependency,
   DrawerSubtask,
   DrawerTask,
+  WorkspaceTag,
 } from "./task-drawer/types";
 import { TaskDrawerShell } from "./TaskDrawerShell";
 import { TaskTitleInput } from "./TaskTitleInput";
 import { TaskActionMenu } from "./TaskActionMenu";
 import { TaskMetaRow } from "./TaskMetaRow";
 import { AssigneeSelector } from "./AssigneeSelector";
-import { TagInput } from "./TagInput";
+import { TagPicker } from "./TagPicker";
 import { DescriptionEditor } from "./DescriptionEditor";
 import { AttachmentSection } from "./AttachmentSection";
 import { CommentInput } from "./CommentInput";
@@ -32,12 +33,15 @@ type Props = {
   projectTasks?: any[];
   onClose: () => void;
   workspaceMembers?: DrawerAssignee[];
-  tagSuggestions?: string[];
+  workspaceTags?: WorkspaceTag[];
+  canManageTags?: boolean;
+  workspaceId?: string;
   isManager?: boolean;
   workspaceSlug?: string;
   onTaskDeleted?: () => void;
   onTaskDuplicated?: () => void;
   onTaskMoved?: () => void;
+  onTagsChanged?: () => void;
 };
 
 export function TaskDrawer({
@@ -46,12 +50,15 @@ export function TaskDrawer({
   projectTasks = [],
   onClose,
   workspaceMembers = [],
-  tagSuggestions,
+  workspaceTags = [],
+  canManageTags = false,
+  workspaceId = "",
   isManager = true,
   workspaceSlug = "",
   onTaskDeleted,
   onTaskDuplicated,
   onTaskMoved,
+  onTagsChanged,
 }: Props) {
   // Use the server-computed isCreator flag. Default to true (editable) if not provided.
   const readOnly = task.isCreator === false;
@@ -62,7 +69,7 @@ export function TaskDrawer({
   const [priority, setPriority] = useState(task.priority);
   const [dueDate, setDueDate] = useState<string | null>(task.dueDate ?? null);
   const [assignees, setAssignees] = useState<DrawerAssignee[]>(task.assignees || []);
-  const [tags, setTags] = useState<string[]>(task.tags || []);
+  const [tags, setTags] = useState<WorkspaceTag[]>(task.tags || []);
   const [description, setDescription] = useState(task.description || "");
   const [attachments, setAttachments] = useState<DrawerAttachment[]>(task.attachments || []);
   const [comments, setComments] = useState<DrawerComment[]>(task.comments || []);
@@ -72,6 +79,13 @@ export function TaskDrawer({
     blockedBy: DrawerDependency[];
     blocking: DrawerDependency[];
   }>(task.dependencies ?? { blockedBy: [], blocking: [] });
+
+  // Local copy of workspace tags (can grow if user creates a tag from picker)
+  const [localWorkspaceTags, setLocalWorkspaceTags] = useState<WorkspaceTag[]>(workspaceTags);
+
+  useEffect(() => {
+    setLocalWorkspaceTags(workspaceTags);
+  }, [workspaceTags]);
 
   // Modal states
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -149,6 +163,13 @@ export function TaskDrawer({
     onClose();
   };
 
+  // ─── Tag handlers ─────────────────────────────────────────────────────
+
+  const handleTagCreated = (tag: WorkspaceTag) => {
+    setLocalWorkspaceTags((prev) => [...prev, tag]);
+    onTagsChanged?.();
+  };
+
   // ─── Existing handlers ─────────────────────────────────────────────────────
 
   const addAttachment = (file: DrawerAttachment) => {
@@ -199,7 +220,7 @@ export function TaskDrawer({
           status,
           priority,
           dueDate,
-          tags,
+          tagIds: tags.map((t) => t.id),
           description,
           assigneeIds: assignees.map(a => a.id),
           subtasks,
@@ -263,7 +284,16 @@ export function TaskDrawer({
             excludeUserIds={task.creatorId ? [task.creatorId] : []}
           />
 
-          <TagInput tags={tags} suggestions={tagSuggestions} onChange={setTags} readOnly={readOnly} />
+          <TagPicker
+            selectedTags={tags}
+            workspaceTags={localWorkspaceTags}
+            onChange={setTags}
+            canManageTags={canManageTags}
+            onTagCreated={handleTagCreated}
+            readOnly={readOnly}
+            workspaceId={workspaceId}
+            workspaceSlug={workspaceSlug}
+          />
 
           <DescriptionEditor description={description} onChange={setDescription} readOnly={readOnly} />
 
