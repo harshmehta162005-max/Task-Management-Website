@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 
 type Props = {
@@ -21,18 +21,48 @@ export function CreateProjectModalWrapper({ open, onClose }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = () => {
-    if (!name.trim()) return;
-    setToast("Project created");
-    const projectId = name.toLowerCase().replace(/\s+/g, "-") || "new-project";
-    setTimeout(() => {
-      setToast(null);
-      onClose();
-      router.push(`/${ws}/projects/${projectId}`);
-      setName("");
-      setDescription("");
-    }, 600);
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [description]);
+
+  const handleSubmit = async () => {
+    if (!name.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceSlug: ws,
+          name: name.trim(),
+          description: description.trim(),
+          members: [] // API automatically adds creator as owner
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setToast("Project created!");
+        setTimeout(() => {
+          window.location.href = `/${ws}/projects/${data.id}`;
+        }, 600);
+      } else {
+        const err = await res.json();
+        setToast(err.error || "Failed to create project");
+        setTimeout(() => setToast(null), 3000);
+      }
+    } catch (e) {
+      setToast("An error occurred");
+      setTimeout(() => setToast(null), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!open || !mounted) return null;
@@ -59,11 +89,13 @@ export function CreateProjectModalWrapper({ open, onClose }: Props) {
           <div>
             <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Description</label>
             <textarea
+              ref={textareaRef}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-100"
+              className="mt-2 w-full resize-none overflow-hidden rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-100"
               placeholder="Optional short description"
+              style={{ minHeight: "80px" }}
             />
           </div>
         </div>
@@ -76,9 +108,11 @@ export function CreateProjectModalWrapper({ open, onClose }: Props) {
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
+            disabled={isSubmitting || !name.trim()}
+            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
           >
-            Create project
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Creating..." : "Create project"}
           </button>
         </div>
         {toast && (

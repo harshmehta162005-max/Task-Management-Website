@@ -111,10 +111,24 @@ export default function SettingsMembersPage() {
     }
   };
 
-  const handleResend = (id: string) => {
+  const handleResend = async (id: string) => {
+    const invite = invites.find(i => i.id === id);
+    if (!invite) return;
+    
+    // Optimistic UI update
     setInvites((prev) =>
       prev.map((inv) => (inv.id === id ? { ...inv, invitedAt: "just now (resent)" } : inv))
     );
+
+    try {
+      await fetch(`/api/workspaces/${workspaceSlug}/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: invite.email, role: invite.role }),
+      });
+    } catch (err) {
+      console.error("Failed to resend invite:", err);
+    }
   };
 
   const handleRevoke = (id: string) => {

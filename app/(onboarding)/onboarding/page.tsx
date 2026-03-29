@@ -75,7 +75,25 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleInvitesContinue = () => {
+  const handleInvitesContinue = async () => {
+    if (invites.length > 0) {
+      try {
+        const slug = sessionStorage.getItem("onboarding_workspace_slug");
+        if (slug) {
+          await Promise.all(
+            invites.map((invite) =>
+              fetch(`/api/workspaces/${slug}/invite`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: invite.email, role: invite.role }),
+              })
+            )
+          );
+        }
+      } catch (err) {
+        console.error("Failed to send invites during onboarding:", err);
+      }
+    }
     setToast(invites.length ? "Invites sent" : "Skipped invites");
     setCurrentStep(3);
   };
