@@ -57,6 +57,15 @@ export const TaskPriority = {
 export type TaskPriority = (typeof TaskPriority)[keyof typeof TaskPriority]
 
 
+export const AssigneeWorkStatus = {
+  TODO: 'TODO',
+  IN_PROGRESS: 'IN_PROGRESS',
+  SUBMITTED: 'SUBMITTED'
+} as const
+
+export type AssigneeWorkStatus = (typeof AssigneeWorkStatus)[keyof typeof AssigneeWorkStatus]
+
+
 export const NotificationType = {
   MENTION: 'MENTION',
   ASSIGNED: 'ASSIGNED',

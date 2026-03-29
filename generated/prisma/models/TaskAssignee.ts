@@ -28,6 +28,9 @@ export type TaskAssigneeMinAggregateOutputType = {
   id: string | null
   taskId: string | null
   userId: string | null
+  workStatus: $Enums.AssigneeWorkStatus | null
+  startedAt: Date | null
+  submittedAt: Date | null
   assignedAt: Date | null
 }
 
@@ -35,6 +38,9 @@ export type TaskAssigneeMaxAggregateOutputType = {
   id: string | null
   taskId: string | null
   userId: string | null
+  workStatus: $Enums.AssigneeWorkStatus | null
+  startedAt: Date | null
+  submittedAt: Date | null
   assignedAt: Date | null
 }
 
@@ -42,6 +48,9 @@ export type TaskAssigneeCountAggregateOutputType = {
   id: number
   taskId: number
   userId: number
+  workStatus: number
+  startedAt: number
+  submittedAt: number
   assignedAt: number
   _all: number
 }
@@ -51,6 +60,9 @@ export type TaskAssigneeMinAggregateInputType = {
   id?: true
   taskId?: true
   userId?: true
+  workStatus?: true
+  startedAt?: true
+  submittedAt?: true
   assignedAt?: true
 }
 
@@ -58,6 +70,9 @@ export type TaskAssigneeMaxAggregateInputType = {
   id?: true
   taskId?: true
   userId?: true
+  workStatus?: true
+  startedAt?: true
+  submittedAt?: true
   assignedAt?: true
 }
 
@@ -65,6 +80,9 @@ export type TaskAssigneeCountAggregateInputType = {
   id?: true
   taskId?: true
   userId?: true
+  workStatus?: true
+  startedAt?: true
+  submittedAt?: true
   assignedAt?: true
   _all?: true
 }
@@ -145,6 +163,9 @@ export type TaskAssigneeGroupByOutputType = {
   id: string
   taskId: string
   userId: string
+  workStatus: $Enums.AssigneeWorkStatus
+  startedAt: Date | null
+  submittedAt: Date | null
   assignedAt: Date
   _count: TaskAssigneeCountAggregateOutputType | null
   _min: TaskAssigneeMinAggregateOutputType | null
@@ -173,6 +194,9 @@ export type TaskAssigneeWhereInput = {
   id?: Prisma.StringFilter<"TaskAssignee"> | string
   taskId?: Prisma.StringFilter<"TaskAssignee"> | string
   userId?: Prisma.StringFilter<"TaskAssignee"> | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFilter<"TaskAssignee"> | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.DateTimeNullableFilter<"TaskAssignee"> | Date | string | null
+  submittedAt?: Prisma.DateTimeNullableFilter<"TaskAssignee"> | Date | string | null
   assignedAt?: Prisma.DateTimeFilter<"TaskAssignee"> | Date | string
   task?: Prisma.XOR<Prisma.TaskScalarRelationFilter, Prisma.TaskWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -182,6 +206,9 @@ export type TaskAssigneeOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  workStatus?: Prisma.SortOrder
+  startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  submittedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   task?: Prisma.TaskOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
@@ -195,6 +222,9 @@ export type TaskAssigneeWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.TaskAssigneeWhereInput | Prisma.TaskAssigneeWhereInput[]
   taskId?: Prisma.StringFilter<"TaskAssignee"> | string
   userId?: Prisma.StringFilter<"TaskAssignee"> | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFilter<"TaskAssignee"> | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.DateTimeNullableFilter<"TaskAssignee"> | Date | string | null
+  submittedAt?: Prisma.DateTimeNullableFilter<"TaskAssignee"> | Date | string | null
   assignedAt?: Prisma.DateTimeFilter<"TaskAssignee"> | Date | string
   task?: Prisma.XOR<Prisma.TaskScalarRelationFilter, Prisma.TaskWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -204,6 +234,9 @@ export type TaskAssigneeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  workStatus?: Prisma.SortOrder
+  startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  submittedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   _count?: Prisma.TaskAssigneeCountOrderByAggregateInput
   _max?: Prisma.TaskAssigneeMaxOrderByAggregateInput
@@ -217,11 +250,17 @@ export type TaskAssigneeScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"TaskAssignee"> | string
   taskId?: Prisma.StringWithAggregatesFilter<"TaskAssignee"> | string
   userId?: Prisma.StringWithAggregatesFilter<"TaskAssignee"> | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusWithAggregatesFilter<"TaskAssignee"> | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TaskAssignee"> | Date | string | null
+  submittedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TaskAssignee"> | Date | string | null
   assignedAt?: Prisma.DateTimeWithAggregatesFilter<"TaskAssignee"> | Date | string
 }
 
 export type TaskAssigneeCreateInput = {
   id?: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
   task: Prisma.TaskCreateNestedOneWithoutAssigneesInput
   user: Prisma.UserCreateNestedOneWithoutTaskAssignmentsInput
@@ -231,11 +270,17 @@ export type TaskAssigneeUncheckedCreateInput = {
   id?: string
   taskId: string
   userId: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
 }
 
 export type TaskAssigneeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   task?: Prisma.TaskUpdateOneRequiredWithoutAssigneesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTaskAssignmentsNestedInput
@@ -245,6 +290,9 @@ export type TaskAssigneeUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   taskId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -252,11 +300,17 @@ export type TaskAssigneeCreateManyInput = {
   id?: string
   taskId: string
   userId: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
 }
 
 export type TaskAssigneeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -264,6 +318,9 @@ export type TaskAssigneeUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   taskId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -286,6 +343,9 @@ export type TaskAssigneeCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  workStatus?: Prisma.SortOrder
+  startedAt?: Prisma.SortOrder
+  submittedAt?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
 }
 
@@ -293,6 +353,9 @@ export type TaskAssigneeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  workStatus?: Prisma.SortOrder
+  startedAt?: Prisma.SortOrder
+  submittedAt?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
 }
 
@@ -300,6 +363,9 @@ export type TaskAssigneeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  workStatus?: Prisma.SortOrder
+  startedAt?: Prisma.SortOrder
+  submittedAt?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
 }
 
@@ -387,8 +453,15 @@ export type TaskAssigneeUncheckedUpdateManyWithoutTaskNestedInput = {
   deleteMany?: Prisma.TaskAssigneeScalarWhereInput | Prisma.TaskAssigneeScalarWhereInput[]
 }
 
+export type EnumAssigneeWorkStatusFieldUpdateOperationsInput = {
+  set?: $Enums.AssigneeWorkStatus
+}
+
 export type TaskAssigneeCreateWithoutUserInput = {
   id?: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
   task: Prisma.TaskCreateNestedOneWithoutAssigneesInput
 }
@@ -396,6 +469,9 @@ export type TaskAssigneeCreateWithoutUserInput = {
 export type TaskAssigneeUncheckedCreateWithoutUserInput = {
   id?: string
   taskId: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
 }
 
@@ -432,11 +508,17 @@ export type TaskAssigneeScalarWhereInput = {
   id?: Prisma.StringFilter<"TaskAssignee"> | string
   taskId?: Prisma.StringFilter<"TaskAssignee"> | string
   userId?: Prisma.StringFilter<"TaskAssignee"> | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFilter<"TaskAssignee"> | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.DateTimeNullableFilter<"TaskAssignee"> | Date | string | null
+  submittedAt?: Prisma.DateTimeNullableFilter<"TaskAssignee"> | Date | string | null
   assignedAt?: Prisma.DateTimeFilter<"TaskAssignee"> | Date | string
 }
 
 export type TaskAssigneeCreateWithoutTaskInput = {
   id?: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutTaskAssignmentsInput
 }
@@ -444,6 +526,9 @@ export type TaskAssigneeCreateWithoutTaskInput = {
 export type TaskAssigneeUncheckedCreateWithoutTaskInput = {
   id?: string
   userId: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
 }
 
@@ -476,11 +561,17 @@ export type TaskAssigneeUpdateManyWithWhereWithoutTaskInput = {
 export type TaskAssigneeCreateManyUserInput = {
   id?: string
   taskId: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
 }
 
 export type TaskAssigneeUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   task?: Prisma.TaskUpdateOneRequiredWithoutAssigneesNestedInput
 }
@@ -488,23 +579,35 @@ export type TaskAssigneeUpdateWithoutUserInput = {
 export type TaskAssigneeUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   taskId?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TaskAssigneeUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   taskId?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TaskAssigneeCreateManyTaskInput = {
   id?: string
   userId: string
+  workStatus?: $Enums.AssigneeWorkStatus
+  startedAt?: Date | string | null
+  submittedAt?: Date | string | null
   assignedAt?: Date | string
 }
 
 export type TaskAssigneeUpdateWithoutTaskInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutTaskAssignmentsNestedInput
 }
@@ -512,12 +615,18 @@ export type TaskAssigneeUpdateWithoutTaskInput = {
 export type TaskAssigneeUncheckedUpdateWithoutTaskInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TaskAssigneeUncheckedUpdateManyWithoutTaskInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  workStatus?: Prisma.EnumAssigneeWorkStatusFieldUpdateOperationsInput | $Enums.AssigneeWorkStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -527,6 +636,9 @@ export type TaskAssigneeSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   taskId?: boolean
   userId?: boolean
+  workStatus?: boolean
+  startedAt?: boolean
+  submittedAt?: boolean
   assignedAt?: boolean
   task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -536,6 +648,9 @@ export type TaskAssigneeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   taskId?: boolean
   userId?: boolean
+  workStatus?: boolean
+  startedAt?: boolean
+  submittedAt?: boolean
   assignedAt?: boolean
   task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -545,6 +660,9 @@ export type TaskAssigneeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   taskId?: boolean
   userId?: boolean
+  workStatus?: boolean
+  startedAt?: boolean
+  submittedAt?: boolean
   assignedAt?: boolean
   task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -554,10 +672,13 @@ export type TaskAssigneeSelectScalar = {
   id?: boolean
   taskId?: boolean
   userId?: boolean
+  workStatus?: boolean
+  startedAt?: boolean
+  submittedAt?: boolean
   assignedAt?: boolean
 }
 
-export type TaskAssigneeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "userId" | "assignedAt", ExtArgs["result"]["taskAssignee"]>
+export type TaskAssigneeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "userId" | "workStatus" | "startedAt" | "submittedAt" | "assignedAt", ExtArgs["result"]["taskAssignee"]>
 export type TaskAssigneeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -581,6 +702,9 @@ export type $TaskAssigneePayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: string
     taskId: string
     userId: string
+    workStatus: $Enums.AssigneeWorkStatus
+    startedAt: Date | null
+    submittedAt: Date | null
     assignedAt: Date
   }, ExtArgs["result"]["taskAssignee"]>
   composites: {}
@@ -1010,6 +1134,9 @@ export interface TaskAssigneeFieldRefs {
   readonly id: Prisma.FieldRef<"TaskAssignee", 'String'>
   readonly taskId: Prisma.FieldRef<"TaskAssignee", 'String'>
   readonly userId: Prisma.FieldRef<"TaskAssignee", 'String'>
+  readonly workStatus: Prisma.FieldRef<"TaskAssignee", 'AssigneeWorkStatus'>
+  readonly startedAt: Prisma.FieldRef<"TaskAssignee", 'DateTime'>
+  readonly submittedAt: Prisma.FieldRef<"TaskAssignee", 'DateTime'>
   readonly assignedAt: Prisma.FieldRef<"TaskAssignee", 'DateTime'>
 }
     

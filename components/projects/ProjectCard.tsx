@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { MoreHorizontal, FolderKanban, Archive, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, FolderKanban, Archive, Pencil, Trash2, ArchiveRestore } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useState, useRef, useEffect, MouseEvent as ReactMouseEvent } from "react";
 import type { ReactNode } from "react";
 import type { Project } from "./types";
 
@@ -8,9 +9,23 @@ type Props = {
   project: Project;
   href: string;
   isManager?: boolean;
+  onArchive?: () => void;
 };
 
-export function ProjectCard({ project, href, isManager }: Props) {
+export function ProjectCard({ project, href, isManager, onArchive }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [menuOpen]);
+
   const {
     name,
     description,
@@ -35,24 +50,40 @@ export function ProjectCard({ project, href, isManager }: Props) {
       <div>
         <div className="mb-4 flex items-start justify-between">
           <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", accentBg, accentColor)}>
-            <span className="material-symbols-outlined text-2xl">{icon || "folder_open"}</span>
+            <span className="text-2xl font-bold uppercase">{icon ? (icon === "folder_open" ? name.charAt(0) : icon) : name.charAt(0)}</span>
           </div>
-          <div className="relative">
-            <button className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100">
+          <div className="relative" ref={menuRef}>
+            <button 
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setMenuOpen(!menuOpen);
+              }}
+            >
               <MoreHorizontal className="h-4 w-4" />
             </button>
-            {/* Context menu UI only; would be a dropdown in real app */}
-            <div className="pointer-events-none absolute right-0 top-10 hidden min-w-[180px] rounded-xl border border-slate-200 bg-white p-2 text-sm shadow-lg group-hover:pointer-events-auto group-hover:block dark:border-white/10 dark:bg-[#0f172a]">
-              {isManager ? (
-                <>
-                  <MenuItem icon={<Pencil className="h-4 w-4" />} label="Edit" />
-                  <MenuItem icon={<Archive className="h-4 w-4" />} label="Archive" />
-                  <MenuItem icon={<Trash2 className="h-4 w-4" />} label="Delete" danger />
-                </>
-              ) : (
-                <MenuItem icon={<FolderKanban className="h-4 w-4" />} label="View details" />
-              )}
-            </div>
+            
+            {menuOpen && (
+              <div 
+                className="absolute right-0 top-10 z-10 min-w-[180px] rounded-xl border border-slate-200 bg-white p-2 text-sm shadow-lg dark:border-white/10 dark:bg-[#0f172a]"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              >
+                {isManager ? (
+                  <>
+                    <MenuItem icon={<Pencil className="h-4 w-4" />} label="Edit" onClick={() => { setMenuOpen(false); }} />
+                    <MenuItem 
+                      icon={project.status === "archived" ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />} 
+                      label={project.status === "archived" ? "Make Active" : "Archive"} 
+                      onClick={() => { onArchive?.(); setMenuOpen(false); }} 
+                    />
+                    <MenuItem icon={<Trash2 className="h-4 w-4" />} label="Delete" danger onClick={() => { setMenuOpen(false); }} />
+                  </>
+                ) : (
+                  <MenuItem icon={<FolderKanban className="h-4 w-4" />} label="View details" onClick={() => { setMenuOpen(false); }} />
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -111,16 +142,17 @@ export function ProjectCard({ project, href, isManager }: Props) {
   );
 }
 
-function MenuItem({ icon, label, danger }: { icon: ReactNode; label: string; danger?: boolean }) {
+function MenuItem({ icon, label, danger, onClick }: { icon: ReactNode; label: string; danger?: boolean; onClick?: () => void }) {
   return (
-    <div
+    <button
+      onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5",
+        "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5",
         danger && "text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/10"
       )}
     >
       {icon}
       <span>{label}</span>
-    </div>
+    </button>
   );
 }

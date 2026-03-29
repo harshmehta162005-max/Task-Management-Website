@@ -2132,6 +2132,9 @@ export const TaskAssigneeScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
   userId: 'userId',
+  workStatus: 'workStatus',
+  startedAt: 'startedAt',
+  submittedAt: 'submittedAt',
   assignedAt: 'assignedAt'
 } as const
 
@@ -2487,6 +2490,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AssigneeWorkStatus'
+ */
+export type EnumAssigneeWorkStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssigneeWorkStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AssigneeWorkStatus[]'
+ */
+export type ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssigneeWorkStatus[]'>
     
 
 

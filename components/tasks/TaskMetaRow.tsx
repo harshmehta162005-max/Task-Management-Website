@@ -19,13 +19,9 @@ export function TaskMetaRow({ status, priority, dueDate, onStatusChange, onPrior
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <Field label="Status">
-        <Select
-          value={status}
-          onChange={(val) => { if (!readOnly) onStatusChange(val as DrawerStatus) }}
-          options={statusOptions.map((s) => ({ value: s, label: labelize(s) }))}
-          disabled={readOnly}
-          portal={false}
-        />
+        <div className="flex h-10 w-full items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-500 opacity-80 cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+          {labelize(status)}
+        </div>
       </Field>
       <Field label="Priority">
         <Select
@@ -51,7 +47,7 @@ export function TaskMetaRow({ status, priority, dueDate, onStatusChange, onPrior
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
       {children}
     </div>
   );

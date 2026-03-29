@@ -206,15 +206,22 @@ export default function ProjectPage() {
   };
 
   const updateTaskStatus = async (id: string, status: Task["status"]) => {
+    const originalTasks = tasks;
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
     try {
-      await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, workspaceSlug }),
       });
+      if (!res.ok) {
+        const { error } = await res.json();
+        setTasks(originalTasks);
+        alert(error || "You don't have permission to manually update task statuses. Assignees must submit their work instead.");
+      }
     } catch (err) {
       console.error("Failed to update task status:", err);
+      setTasks(originalTasks);
     }
   };
 

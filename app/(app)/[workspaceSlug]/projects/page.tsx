@@ -79,6 +79,21 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleArchive = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "archived" : "active";
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceSlug, status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to change archive status");
+      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus as any } : p)));
+    } catch (err) {
+      console.error("Error changing project status:", err);
+    }
+  };
+
   return (
     <main className="min-h-screen px-4 py-8 text-slate-900 dark:text-slate-100 sm:px-6 lg:px-8">
       <ProjectsHeader
@@ -95,6 +110,7 @@ export default function ProjectsPage() {
         isManager={true}
         onCreate={handleCreate}
         workspaceSlug={workspaceSlug}
+        onArchive={handleArchive}
       />
 
       <CreateProjectModal open={showCreate} onClose={handleCloseModal} onSubmit={handleSubmit} />

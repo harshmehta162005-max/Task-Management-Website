@@ -7,6 +7,7 @@ import { AttachmentSection } from "@/components/tasks/AttachmentSection";
 import { DrawerAttachment, DrawerAssignee, WorkspaceTag } from "@/components/tasks/task-drawer/types";
 import { AssigneeSelector } from "@/components/tasks/AssigneeSelector";
 import { TagPicker } from "@/components/tasks/TagPicker";
+import { DescriptionEditor } from "@/components/tasks/DescriptionEditor";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { useUser } from "@clerk/nextjs";
 
@@ -45,6 +46,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dbUserId, setDbUserId] = useState<string>("");
 
   // Fetch projects, tags, and permissions when modal opens
   useEffect(() => {
@@ -82,6 +84,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
         if (results[2]?.ok) {
           const perms = await results[2].json();
           setCanManageTags(perms.permissions?.includes("settings.tags") ?? false);
+          if (perms.dbUserId) setDbUserId(perms.dbUserId);
         }
       } catch {
         // silent
@@ -286,34 +289,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
                 </section>
               </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                {/* Status */}
-                <section>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Status
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setStatus("TODO")}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${status === "TODO"
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-slate-200 bg-slate-100 text-slate-500 dark:border-white/10 dark:bg-slate-800"
-                        }`}
-                    >
-                      To Do
-                    </button>
-                    <button
-                      onClick={() => setStatus("IN_PROGRESS")}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${status === "IN_PROGRESS"
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-slate-200 bg-slate-100 text-slate-500 dark:border-white/10 dark:bg-slate-800"
-                        }`}
-                    >
-                      Active
-                    </button>
-                  </div>
-                </section>
-
+              <div className="w-full">
                 {/* Priority */}
                 <section>
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -336,25 +312,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
 
               {/* Description */}
               <section>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Description
-                </label>
-                <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
-                  <div className="flex gap-1 border-b border-slate-200 bg-slate-50 p-2 dark:border-white/10 dark:bg-slate-800/50">
-                    <button className="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"><Bold className="h-4 w-4" /></button>
-                    <button className="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"><Italic className="h-4 w-4" /></button>
-                    <button className="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"><List className="h-4 w-4" /></button>
-                    <button className="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"><Link2 className="h-4 w-4" /></button>
-                    <button className="ml-auto rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"><Code className="h-4 w-4" /></button>
-                  </div>
-                  <textarea
-                    className="w-full resize-none border-none bg-transparent p-4 text-sm outline-none placeholder:text-slate-500 focus:ring-0 dark:text-slate-300 dark:placeholder:text-slate-600"
-                    placeholder="Write detailed task requirements..."
-                    rows={4}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
+                <DescriptionEditor description={description} onChange={setDescription} readOnly={false} />
               </section>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -369,7 +327,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
                           : []
                       }
                       onChange={setSelectedAssignees}
-                      excludeUserIds={user?.id ? [user.id] : []}
+                      excludeUserIds={dbUserId ? [dbUserId] : []}
                     />
                   </div>
                 </section>

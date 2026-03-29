@@ -232,11 +232,20 @@ enum TaskPriority {
 
 // ─── TASK ASSIGNEE ───────────────────────────────────────────────────────────
 
+enum AssigneeWorkStatus {
+  TODO
+  IN_PROGRESS
+  SUBMITTED
+}
+
 model TaskAssignee {
-  id         String   @id @default(cuid())
-  taskId     String
-  userId     String
-  assignedAt DateTime @default(now())
+  id          String             @id @default(cuid())
+  taskId      String
+  userId      String
+  workStatus  AssigneeWorkStatus @default(TODO)
+  startedAt   DateTime?
+  submittedAt DateTime?
+  assignedAt  DateTime           @default(now())
 
   // Relations
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)

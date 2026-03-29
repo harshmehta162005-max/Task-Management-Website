@@ -22,6 +22,7 @@ export async function GET(
       permissions: ctx.permissions,
       isOwner: ctx.isOwner,
       role: (ctx.membership as Record<string, unknown>).role ?? null,
+      dbUserId: ctx.user.id,
     });
   } catch (error) {
     return handleApiError(error);

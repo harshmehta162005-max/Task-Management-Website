@@ -138,6 +138,30 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  // Global fetch interceptor to catch 403 Permission Denied errors automatically everywhere
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (response.status === 403) {
+        try {
+          const resClone = response.clone();
+          const data = await resClone.json();
+          showToast("error", data.error || "You do not have permission to perform this action.");
+        } catch {
+          showToast("error", "You do not have permission to perform this action.");
+        }
+      }
+      return response;
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [showToast]);
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}

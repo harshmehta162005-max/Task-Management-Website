@@ -1,7 +1,7 @@
-export type DrawerStatus = "TODO" | "IN_PROGRESS" | "BLOCKED" | "DONE";
+export type DrawerStatus = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "BLOCKED" | "DONE";
 export type DrawerPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export type DrawerAssignee = { id: string; name: string; avatar?: string };
+export type DrawerAssignee = { id: string; name: string; avatar?: string; workStatus?: "TODO" | "IN_PROGRESS" | "SUBMITTED" | string; };
 export type DrawerAttachment = { id: string; name: string; size: string; type?: string; uploading?: boolean };
 export type DrawerComment = {
   id: string;
@@ -34,4 +34,5 @@ export type DrawerTask = {
   projectId?: string;
   creatorId?: string;
   isCreator?: boolean;
+  currentUserId?: string;
 };

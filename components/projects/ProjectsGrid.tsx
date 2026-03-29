@@ -9,9 +9,10 @@ type Props = {
   isManager: boolean;
   onCreate: () => void;
   workspaceSlug: string;
+  onArchive?: (id: string, currentStatus: string) => void;
 };
 
-export function ProjectsGrid({ projects, isLoading, isManager, onCreate, workspaceSlug }: Props) {
+export function ProjectsGrid({ projects, isLoading, isManager, onCreate, workspaceSlug, onArchive }: Props) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -34,6 +35,7 @@ export function ProjectsGrid({ projects, isLoading, isManager, onCreate, workspa
           project={project}
           isManager={isManager}
           href={`/${workspaceSlug}/projects/${project.id}`}
+          onArchive={onArchive ? () => onArchive(project.id, project.status) : undefined}
         />
       ))}
     </div>

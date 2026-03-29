@@ -69,11 +69,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
       projectId: task.projectId,
       creatorId: task.creatorId,
       isCreator: currentDbUserId === task.creatorId,
+      currentUserId: currentDbUserId,
       dueDate: task.dueDate?.toISOString() ?? null,
       assignees: task.assignees.map((a) => ({
         id: a.user.id,
         name: a.user.name ?? "",
         avatar: a.user.avatarUrl ?? "",
+        workStatus: a.workStatus,
       })),
       tags: task.tags.map((tt) => ({ id: tt.tag.id, name: tt.tag.name, color: tt.tag.color })),
       comments: task.comments.map((c) => ({
@@ -110,7 +112,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { taskId } = await params;
     const body = await req.json();
-    const { title, description, status, priority, dueDate, tagIds, assigneeIds, subtasks, dependencies, attachments, workspaceSlug } = body;
+    const { 
+      title, description, status, priority, dueDate, tagIds, assigneeIds, 
+      subtasks, dependencies, attachments, workspaceSlug,
+      updateAssigneeWorkStatus, userId, workStatus 
+    } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
     const ctx = await checkPermission(workspaceSlug, P_TASK_EDIT);
@@ -133,23 +139,133 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
     const { workspace, user } = ctx;
 
+    // ── INTERCEPT: Assignee Work Status Update ──
+    if (updateAssigneeWorkStatus) {
+      if (user.id !== userId && !ctx.isOwner) {
+        throw new ApiError(403, "You can only update your own work status");
+      }
+
+      const taskWithAssignees = await db.task.findUnique({
+        where: { id: taskId },
+        include: { assignees: true, project: { select: { name: true, workspaceId: true } } }
+      });
+      
+      const assignee = taskWithAssignees?.assignees.find((a) => a.userId === userId);
+      if (!assignee) throw new ApiError(404, "Assignee not found on this task");
+
+      let startedAt = assignee.startedAt;
+      let submittedAt = assignee.submittedAt;
+
+      if (workStatus === "IN_PROGRESS" && assignee.workStatus !== "IN_PROGRESS") {
+        startedAt = startedAt || new Date();
+      }
+      if (workStatus === "SUBMITTED" && assignee.workStatus !== "SUBMITTED") {
+        submittedAt = new Date();
+      }
+
+      await db.taskAssignee.update({
+        where: { id: assignee.id },
+        data: { workStatus, startedAt, submittedAt },
+      });
+
+      const updatedAssignees = await db.taskAssignee.findMany({ where: { taskId } });
+      const { deriveTaskStatus } = await import("@/lib/tasks/deriveTaskStatus");
+      const newTaskStatus = deriveTaskStatus(existingTask.status, updatedAssignees);
+
+      if (newTaskStatus !== existingTask.status) {
+        const updatedTask = await db.task.update({
+          where: { id: taskId },
+          data: { status: newTaskStatus },
+          include: { project: { select: { name: true, workspaceId: true } } }
+        });
+
+        if (newTaskStatus === "IN_REVIEW") {
+          await createNotification({
+            type: "SYSTEM", category: "personal",
+            title: `Ready for Review: "${updatedTask.title}"`,
+            body: `All assignees have submitted their work for task in ${updatedTask.project.name}`,
+            userId: existingTask.creatorId, actorId: user.id,
+            workspaceId: workspace.id, linkUrl: `/${workspaceSlug}/projects?taskId=${taskId}`,
+          });
+        }
+
+        // Trigger user-defined Automations & generic status change notifications
+        await runAutomations(
+          "status_change", 
+          { ...existingTask, status: newTaskStatus as any }, 
+          { ...existingTask.project, id: existingTask.projectId }, 
+          workspace, 
+          user.id
+        ).catch(e => console.error("Automation error:", e));
+
+        await notifyTaskAssignees(taskId, user.id, {
+          type: "STATUS_CHANGE",
+          category: "personal",
+          title: `"${existingTask.title}" moved to ${newTaskStatus}`,
+          body: `${user.name ?? "Assignee"} moved the task from ${existingTask.status} to ${newTaskStatus}`,
+          actorId: user.id,
+          workspaceId: workspace.id,
+          linkUrl: `/${workspaceSlug}/projects?taskId=${taskId}`,
+        });
+      }
+
+      return Response.json({ success: true, newTaskStatus, assigneeWorkStatus: workStatus });
+    }
+    // ──────────────────────────────────────────────
+
+    const isTaskOwner = ctx.isOwner || existingTask.creatorId === user.id;
+    let finalStatus = status;
+    if (status !== undefined && !isTaskOwner) {
+      finalStatus = undefined; // Silently ignore status updates from non-owners
+    }
+
     const updated = await db.task.update({
       where: { id: taskId },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
-        ...(status !== undefined && { status }),
+        ...(finalStatus !== undefined && { status: finalStatus }),
         ...(priority !== undefined && { priority }),
         ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
-        ...(assigneeIds !== undefined && {
-          assignees: {
-            deleteMany: {},
-            create: assigneeIds.map((id: string) => ({ userId: id })),
-          },
-        }),
       },
-      select: { id: true, title: true, status: true, priority: true, dueDate: true, updatedAt: true },
+      select: { id: true, title: true, status: true, priority: true, dueDate: true, updatedAt: true, projectId: true },
     });
+
+    let assigneesChanged = false;
+    let toAddForNotify: string[] = [];
+
+    // Manually sync assignees to prevent wiping their workStatus
+    if (assigneeIds !== undefined && Array.isArray(assigneeIds)) {
+      const currentAssignees = await db.taskAssignee.findMany({ where: { taskId } });
+      const currentIds = currentAssignees.map(a => a.userId);
+      
+      const toAdd = assigneeIds.filter((id: string) => !currentIds.includes(id));
+      const toRemove = currentIds.filter(id => !assigneeIds.includes(id));
+      toAddForNotify = toAdd;
+
+      if (toRemove.length > 0) {
+        await db.taskAssignee.deleteMany({ where: { taskId, userId: { in: toRemove } } });
+        assigneesChanged = true;
+      }
+      if (toAdd.length > 0) {
+        await db.taskAssignee.createMany({
+          data: toAdd.map((id: string) => ({ taskId, userId: id }))
+        });
+        assigneesChanged = true;
+      }
+    }
+
+    // If assignees changed and status wasn't explicitly forced by owner, re-derive it
+    if (assigneesChanged && finalStatus === undefined) {
+      const { deriveTaskStatus } = await import("@/lib/tasks/deriveTaskStatus");
+      const currentAssignees = await db.taskAssignee.findMany({ where: { taskId } });
+      const newDerivedStatus = deriveTaskStatus(updated.status, currentAssignees);
+      
+      if (newDerivedStatus !== updated.status) {
+        await db.task.update({ where: { id: taskId }, data: { status: newDerivedStatus } });
+        updated.status = newDerivedStatus;
+      }
+    }
 
     // Handle tags by ID — tags must already exist in workspace
     if (tagIds !== undefined && Array.isArray(tagIds)) {
@@ -247,8 +363,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const taskLink = `/${workspaceSlug}/projects?taskId=${taskId}`;
 
     // ASSIGNED: notify newly-added assignees
-    if (assigneeIds !== undefined && Array.isArray(assigneeIds)) {
-      for (const uid of assigneeIds as string[]) {
+    if (toAddForNotify.length > 0) {
+      for (const uid of toAddForNotify) {
         if (uid === user.id) continue;
         await createNotification({
           type: "ASSIGNED",
@@ -282,11 +398,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     // STATUS_CHANGE: notify assignees when status changes
-    if (status !== undefined && status !== existingTask.status) {
+    if (finalStatus !== undefined && finalStatus !== existingTask.status) {
       // Trigger user-defined Automations
       await runAutomations(
         "status_change", 
-        { ...existingTask, status }, // pass new status 
+        { ...existingTask, status: finalStatus }, // pass new status 
         { ...existingTask.project, id: existingTask.projectId }, 
         workspace, 
         user.id
@@ -295,8 +411,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       await notifyTaskAssignees(taskId, user.id, {
         type: "STATUS_CHANGE",
         category: "personal",
-        title: `"${existingTask.title}" moved to ${status}`,
-        body: `${user.name ?? "Someone"} changed the status from ${existingTask.status} to ${status}`,
+        title: `"${existingTask.title}" moved to ${finalStatus}`,
+        body: `${user.name ?? "Someone"} changed the status from ${existingTask.status} to ${finalStatus}`,
         actorId: user.id,
         workspaceId: workspace.id,
         linkUrl: taskLink,
@@ -304,7 +420,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     // TASK_COMPLETED: notify project members when task is completed
-    if (body.status === "DONE" && existingTask.status !== "DONE") {
+    if (finalStatus === "DONE" && existingTask.status !== "DONE") {
       await notifyProjectMembers(existingTask.projectId, user.id, {
         type: "TASK_COMPLETED",
         category: "project",

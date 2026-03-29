@@ -6,7 +6,7 @@ import { KanbanCard } from "./KanbanCard";
 export type KanbanTask = {
   id: string;
   title: string;
-  status: "TODO" | "IN_PROGRESS" | "BLOCKED" | "DONE";
+  status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "BLOCKED" | "DONE";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   assignees: { id: string; name: string; avatarUrl: string }[];
   dueDate?: string;
@@ -24,6 +24,7 @@ type Props = {
 const columns: { id: KanbanTask["status"]; title: string; wip?: string }[] = [
   { id: "TODO", title: "To Do" },
   { id: "IN_PROGRESS", title: "In Progress" },
+  { id: "IN_REVIEW", title: "In Review" },
   { id: "BLOCKED", title: "Blocked" },
   { id: "DONE", title: "Done" },
 ];
@@ -35,6 +36,7 @@ export function KanbanBoard({ tasks, onMove, onTaskClick }: Props) {
     const map: Record<KanbanTask["status"], KanbanTask[]> = {
       TODO: [],
       IN_PROGRESS: [],
+      IN_REVIEW: [],
       BLOCKED: [],
       DONE: [],
     };

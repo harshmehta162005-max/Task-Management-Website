@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
         id: a.user.id,
         name: a.user.name ?? "",
         avatarUrl: a.user.avatarUrl ?? "",
+        workStatus: a.workStatus,
       })),
       tags: t.tags.map((tt) => ({ id: tt.tag.id, name: tt.tag.name, color: tt.tag.color })),
       dueDate: t.dueDate?.toISOString() ?? null,
@@ -68,6 +69,8 @@ export async function GET(req: NextRequest) {
       commentCount: t._count.comments,
       subtaskCount: t._count.subtasks,
       isCompleted: t.status === "DONE",
+      creatorId: t.creatorId,
+      currentUserId: user.id,
     }));
 
     return Response.json(result);

@@ -55,7 +55,7 @@ export function AssigneeSelector({ assignees, workspaceMembers, onChange, readOn
 
   return (
     <div className="space-y-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
         Assignees ({assignees.length})
       </p>
 

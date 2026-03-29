@@ -124,12 +124,12 @@ export function TagPicker({
 
   return (
     <div className="space-y-2" ref={containerRef}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
         Tags
       </p>
 
       {/* Selected tag chips */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         {selectedTags.map((tag) => (
           <span
             key={tag.id}
@@ -190,7 +190,7 @@ export function TagPicker({
             </div>
 
             {/* Tag list */}
-            <div className="max-h-56 overflow-y-auto p-1.5" style={{ scrollbarWidth: "thin" }}>
+            <div className="max-h-56 overflow-y-auto p-1.5 space-y-1" style={{ scrollbarWidth: "thin" }}>
               {filtered.length === 0 ? (
                 <p className="px-3 py-4 text-center text-xs text-slate-400">
                   {search ? "No tags found" : "No tags yet"}

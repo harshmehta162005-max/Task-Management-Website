@@ -113,7 +113,7 @@ export default function MyTasksPage() {
       await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, workspaceSlug }),
       });
     } catch (err) {
       console.error("Failed to toggle task:", err);
@@ -121,13 +121,38 @@ export default function MyTasksPage() {
   };
 
   const handleStartWork = async (id: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "IN_PROGRESS" } : t)));
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    setTasks((prev) => prev.map((t) => {
+      if (t.id === id) {
+        return {
+          ...t,
+          status: "IN_PROGRESS",
+          assignees: t.assignees.map(a => a.id === t.currentUserId ? { ...a, workStatus: "IN_PROGRESS" } : a)
+        };
+      }
+      return t;
+    }));
+
     try {
-      await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "IN_PROGRESS" }),
+        body: JSON.stringify({ 
+          workspaceSlug,
+          updateAssigneeWorkStatus: true,
+          workStatus: "IN_PROGRESS",
+          userId: task.currentUserId,
+          status: "IN_PROGRESS" 
+        }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.newTaskStatus) {
+           setTasks(prev => prev.map(t => t.id === id ? { ...t, status: data.newTaskStatus } : t));
+        }
+      }
     } catch (err) {
       console.error("Failed to start work:", err);
     }
@@ -137,6 +162,56 @@ export default function MyTasksPage() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("taskId", id);
     router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleSubmitReview = async (id: string) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === id) {
+          return {
+            ...t,
+            // Optimistically update assignee, but DON'T force task status to IN_REVIEW yet
+            assignees: t.assignees.map((a) =>
+              a.id === t.currentUserId ? { ...a, workStatus: "SUBMITTED" } : a
+            ),
+          };
+        }
+        return t;
+      })
+    );
+    try {
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceSlug,
+          updateAssigneeWorkStatus: true,
+          workStatus: "SUBMITTED",
+          userId: task.currentUserId,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.newTaskStatus) { // Resync exact status from derived logic
+          setTasks(prev => prev.map(t => t.id === id ? { ...t, status: data.newTaskStatus } : t));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to submit review:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this task?")) return;
+    setTasks(prev => prev.filter(t => t.id !== id));
+    try {
+      await fetch(`/api/tasks/${id}?workspaceSlug=${workspaceSlug}`, { method: 'DELETE' });
+    } catch (error) {
+      console.error('Failed to delete task', error);
+    }
   };
 
   const handleQuickAdd = async (title: string) => {
@@ -181,7 +256,7 @@ export default function MyTasksPage() {
     }
     async function loadTask() {
       try {
-        const res = await fetch(`/api/tasks/${taskIdParam}`);
+        const res = await fetch(`/api/tasks/${taskIdParam}?workspaceSlug=${workspaceSlug}`);
         if (res.ok) {
           const data = await res.json();
           setDrawerTask(data);
@@ -203,13 +278,24 @@ export default function MyTasksPage() {
 
   return (
     <div className="px-4 py-6 md:px-6">
-      <MyTasksHeader focusMode={focusMode} onToggleFocus={setFocusMode} sort={sort} onSortChange={setSort} />
+      <MyTasksHeader 
+        focusMode={focusMode} 
+        onToggleFocus={setFocusMode} 
+        sort={sort} 
+        onSortChange={setSort}
+        tasksDueToday={groups["Today"]?.length || 0}
+        tasksOverdue={groups["Overdue"]?.length || 0}
+      />
       <TaskGroupedList
         groups={groups}
         onToggleComplete={handleToggleComplete}
         onStartWork={handleStartWork}
         onOpen={handleOpen}
         onQuickAdd={handleQuickAdd}
+        onSubmitReview={handleSubmitReview}
+        onDelete={handleDelete}
+        // Basic stubs for copy/duplicate/move for edge cases, ideally implemented via toast
+        onDuplicate={() => { alert("Duplicate functionality handled in detailed view") }}
       />
       {drawerTask && (
         <TaskDrawer

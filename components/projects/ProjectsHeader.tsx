@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
@@ -22,7 +22,7 @@ export function ProjectsHeader({ query, onQueryChange, filter, onFilterChange, o
             onClick={onOpenCreate}
             className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
           >
-            <span className="material-symbols-outlined text-[20px]">add</span>
+            <Plus className="h-5 w-5" />
             <span>Create project</span>
           </button>
         </div>

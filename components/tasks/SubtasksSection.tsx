@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { X } from "lucide-react";
 import { DrawerSubtask } from "./task-drawer/types";
 
 type Props = {
@@ -19,6 +20,14 @@ export function SubtasksSection({ subtasks, onChange, readOnly = false, canCreat
     onChange(subtasks.map((s) => (s.id === id ? { ...s, completed: !s.completed } : s)));
   };
 
+  // Remove subtask
+  const remove = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (readOnly || !canCreate) return;
+    onChange(subtasks.filter((s) => s.id !== id));
+  };
+
   // Add new subtask — only allowed if canCreate is true
   const add = () => {
     const title = input.trim();
@@ -29,7 +38,7 @@ export function SubtasksSection({ subtasks, onChange, readOnly = false, canCreat
 
   return (
     <div className="space-y-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
         Subtasks ({subtasks.filter((s) => s.completed).length}/{subtasks.length})
       </p>
       <div className="space-y-2">
@@ -45,9 +54,17 @@ export function SubtasksSection({ subtasks, onChange, readOnly = false, canCreat
               disabled={readOnly}
               className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <span className={s.completed ? "text-slate-400 line-through" : "text-slate-800 dark:text-slate-100"}>
+            <span className={`flex-1 ${s.completed ? "text-slate-400 line-through" : "text-slate-800 dark:text-slate-100"}`}>
               {s.title}
             </span>
+            {canCreate && !readOnly && (
+               <button 
+                 onClick={(e) => remove(s.id, e)}
+                 className="ml-2 rounded-md p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+               >
+                 <X className="h-4 w-4" />
+               </button>
+            )}
           </label>
         ))}
         {/* Only show add input if canCreate is true (owner only) */}

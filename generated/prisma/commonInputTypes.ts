@@ -311,6 +311,23 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
+export type EnumAssigneeWorkStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssigneeWorkStatus | Prisma.EnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssigneeWorkStatusFilter<$PrismaModel> | $Enums.AssigneeWorkStatus
+}
+
+export type EnumAssigneeWorkStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssigneeWorkStatus | Prisma.EnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssigneeWorkStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssigneeWorkStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAssigneeWorkStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAssigneeWorkStatusFilter<$PrismaModel>
+}
+
 export type EnumNotificationTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.NotificationType | Prisma.EnumNotificationTypeFieldRefInput<$PrismaModel>
   in?: $Enums.NotificationType[] | Prisma.ListEnumNotificationTypeFieldRefInput<$PrismaModel>
@@ -660,6 +677,23 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type NestedEnumAssigneeWorkStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssigneeWorkStatus | Prisma.EnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssigneeWorkStatusFilter<$PrismaModel> | $Enums.AssigneeWorkStatus
+}
+
+export type NestedEnumAssigneeWorkStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssigneeWorkStatus | Prisma.EnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssigneeWorkStatus[] | Prisma.ListEnumAssigneeWorkStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssigneeWorkStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssigneeWorkStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAssigneeWorkStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAssigneeWorkStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumNotificationTypeFilter<$PrismaModel = never> = {

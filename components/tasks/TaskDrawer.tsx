@@ -24,6 +24,8 @@ import { CommentInput } from "./CommentInput";
 import { ActivityLogSection } from "./ActivityLogSection";
 import { SubtasksSection } from "./SubtasksSection";
 import { DependenciesSection } from "./DependenciesSection";
+import { AssigneeWorkActions } from "./AssigneeWorkActions";
+import { TaskProgress } from "./TaskProgress";
 import { MoveToProjectModal } from "./MoveToProjectModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 
@@ -42,6 +44,7 @@ type Props = {
   onTaskDuplicated?: () => void;
   onTaskMoved?: () => void;
   onTagsChanged?: () => void;
+  currentUserId?: string;
 };
 
 export function TaskDrawer({
@@ -114,6 +117,33 @@ export function TaskDrawer({
     setSubtasks(task.subtasks || []);
     setDependencies(task.dependencies ?? { blockedBy: [], blocking: [] });
   }, [task]);
+
+  const myAssignee = useMemo(() => {
+    return assignees.find(a => a.id === task.currentUserId);
+  }, [assignees, task.currentUserId]);
+
+  const handleRejectAssignee = async (assigneeId: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          updateAssigneeWorkStatus: true,
+          userId: assigneeId,
+          workStatus: "IN_PROGRESS", 
+          workspaceSlug 
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAssignees(prev => prev.map(a => a.id === assigneeId ? { ...a, workStatus: "IN_PROGRESS" } : a));
+        if (data.newTaskStatus) setStatus(data.newTaskStatus);
+        setToast("Rejected submission");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const shareLink = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -205,19 +235,22 @@ export function TaskDrawer({
     }
   };
 
-  const handleSaveAndClose = async () => {
+  const handleSaveAndClose = async (overrideStatus?: string | any) => {
     if (readOnly) {
       onClose();
       return;
     }
     setIsSaving(true);
+    
+    const finalStatus = typeof overrideStatus === "string" ? overrideStatus : status;
+    
     try {
       await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          status,
+          status: finalStatus,
           priority,
           dueDate,
           tagIds: tags.map((t) => t.id),
@@ -276,6 +309,51 @@ export function TaskDrawer({
             readOnly={readOnly}
           />
 
+          {(assignees.length > 0 || status === "IN_REVIEW") && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between bg-slate-50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+              <TaskProgress assignees={assignees} />
+              
+              {myAssignee && (
+                <AssigneeWorkActions
+                  taskId={task.id}
+                  userId={task.currentUserId!}
+                  workStatus={myAssignee.workStatus as any ?? "TODO"}
+                  workspaceSlug={workspaceSlug}
+                  onStatusUpdated={(newSt) => {
+                    setAssignees(prev => prev.map(a => a.id === task.currentUserId ? { ...a, workStatus: newSt } : a))
+                  }}
+                  onTaskStatusDerived={(newSt) => setStatus(newSt as any)}
+                />
+              )}
+            </div>
+          )}
+
+          {status === "IN_REVIEW" && !readOnly && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+              <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-400">Owner Review Required</h4>
+              <p className="text-sm text-emerald-700/80 dark:text-emerald-400/80 mb-4 mt-1">
+                All assignees have submitted their work for this task. Please review their submissions.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button 
+                  onClick={() => handleSaveAndClose("DONE")} 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition"
+                >
+                  Approve & Complete
+                </button>
+                {assignees.map(a => (
+                  <button 
+                    key={a.id} 
+                    onClick={() => handleRejectAssignee(a.id)} 
+                    className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-medium transition hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Reject {a.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <AssigneeSelector
             assignees={assignees}
             workspaceMembers={workspaceMembers}
@@ -308,7 +386,7 @@ export function TaskDrawer({
             taskId={task.id}
             workspaceMembers={workspaceMembers}
             readOnly={readOnly}
-            excludeUserIds={assignees.map(a => a.id)}
+            excludeUserIds={[...assignees.map(a => a.id), ...(task.creatorId ? [task.creatorId] : [])]}
           />
 
           {/* Activity toggle — contains activity items AND posted comments */}

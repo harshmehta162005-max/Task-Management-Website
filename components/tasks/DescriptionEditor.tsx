@@ -73,7 +73,7 @@ export function DescriptionEditor({ description, onChange, readOnly = false }: P
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Description</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Description</p>
       <div className="overflow-hidden rounded-2xl bg-slate-50 dark:bg-white/5">
         {isEditing ? (
           <>
