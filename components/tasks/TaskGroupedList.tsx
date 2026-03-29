@@ -14,20 +14,29 @@ type Props = {
   onMove?: (id: string) => void;
 };
 
-const GROUP_ORDER = ["Overdue", "Today", "This Week", "Upcoming", "No Due Date"];
+const GROUP_CONFIG: { key: string; emoji: string; accentColor: string }[] = [
+  { key: "Overdue", emoji: "🔴", accentColor: "rose" },
+  { key: "Due Today", emoji: "🟡", accentColor: "amber" },
+  { key: "Upcoming", emoji: "🟢", accentColor: "emerald" },
+  { key: "Waiting for You", emoji: "⏳", accentColor: "amber" },
+  { key: "Completed This Week", emoji: "✅", accentColor: "emerald" },
+  { key: "No Due Date", emoji: "📋", accentColor: "slate" },
+];
 
 export function TaskGroupedList({ groups, onToggleComplete, onStartWork, onOpen, onQuickAdd, onSubmitReview, onDelete, onDuplicate, onMove }: Props) {
   return (
-    <div className="space-y-8">
-      {GROUP_ORDER.map((key) => {
+    <div className="space-y-1">
+      {GROUP_CONFIG.map(({ key, emoji, accentColor }) => {
         const tasks = groups[key] || [];
-        // Hide completely empty groups, but always show Today to allow quick-adds
-        if (tasks.length === 0 && key !== "Today") return null;
+        // Hide completely empty groups, but always show Due Today to allow quick-adds
+        if (tasks.length === 0 && key !== "Due Today") return null;
 
         return (
           <div key={key}>
             <TaskGroupCard
               title={key}
+              emoji={emoji}
+              accentColor={accentColor}
               tasks={tasks}
               onToggleComplete={onToggleComplete}
               onStartWork={onStartWork}
@@ -37,7 +46,7 @@ export function TaskGroupedList({ groups, onToggleComplete, onStartWork, onOpen,
               onDuplicate={onDuplicate}
               onMove={onMove}
             />
-            {key === "Today" && <QuickAddTask onAdd={onQuickAdd} />}
+            {key === "Due Today" && <QuickAddTask onAdd={onQuickAdd} />}
           </div>
         );
       })}

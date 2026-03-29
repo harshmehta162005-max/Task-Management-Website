@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { MyTasksHeader } from "@/components/tasks/MyTasksHeader";
 import { TaskGroupedList } from "@/components/tasks/TaskGroupedList";
@@ -11,7 +11,10 @@ import type { DrawerTask, DrawerAssignee, WorkspaceTag } from "@/components/task
 
 type Task = TaskItem & {
   dueDate: string | null;
+  updatedAt?: string;
 };
+
+type FilterTab = "all" | "dueToday" | "overdue" | "inProgress" | "waiting" | "completed" | "createdByMe";
 
 export default function MyTasksPage() {
   const { workspaceSlug } = useParams<{ workspaceSlug: string }>();
@@ -20,41 +23,45 @@ export default function MyTasksPage() {
   const taskIdParam = searchParams.get("taskId");
 
   const [loading, setLoading] = useState(true);
-  const [focusMode, setFocusMode] = useState(false);
-  const [sort, setSort] = useState("due");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<DrawerAssignee[]>([]);
   const [workspaceTags, setWorkspaceTags] = useState<WorkspaceTag[]>([]);
   const [canManageTags, setCanManageTags] = useState(false);
   const [workspaceIdStr, setWorkspaceIdStr] = useState("");
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
 
-  // Fetch tasks assigned to current user
-  useEffect(() => {
-    async function load() {
-      try {
-        const [tasksRes, membersRes] = await Promise.all([
-          fetch(`/api/tasks?workspaceSlug=${workspaceSlug}&assignee=me`),
-          fetch(`/api/workspaces/${workspaceSlug}/members?slug=${workspaceSlug}`),
-        ]);
+  // Filter state
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [projectFilter, setProjectFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
 
-        if (tasksRes.ok) {
-          const data = await tasksRes.json();
-          setTasks(data);
-        }
-        if (membersRes.ok) {
-          const data = await membersRes.json();
-          setWorkspaceMembers(data.members?.map((m: { id: string; name: string }) => ({ id: m.id, name: m.name })) ?? []);
-        }
-      } catch (err) {
-        console.error("Error loading tasks:", err);
-      } finally {
-        setLoading(false);
+  // Fetch tasks (now with myTasks=true to get assignee + creator tasks)
+  const loadTasks = useCallback(async () => {
+    try {
+      const [tasksRes, membersRes] = await Promise.all([
+        fetch(`/api/tasks?workspaceSlug=${workspaceSlug}&myTasks=true`),
+        fetch(`/api/workspaces/${workspaceSlug}/members?slug=${workspaceSlug}`),
+      ]);
+
+      if (tasksRes.ok) {
+        const data = await tasksRes.json();
+        setTasks(data);
       }
+      if (membersRes.ok) {
+        const data = await membersRes.json();
+        setWorkspaceMembers(data.members?.map((m: { id: string; name: string }) => ({ id: m.id, name: m.name })) ?? []);
+      }
+    } catch (err) {
+      console.error("Error loading tasks:", err);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [workspaceSlug]);
 
-  // Fetch workspace tags and permissions
+  useEffect(() => { loadTasks(); }, [loadTasks]);
+
+  // Fetch workspace tags, permissions, and projects
   useEffect(() => {
     async function loadTagsAndPerms() {
       try {
@@ -64,10 +71,12 @@ export default function MyTasksPage() {
         const wsId = wsData.id;
         setWorkspaceIdStr(wsId);
 
-        const [tagsRes, permsRes] = await Promise.all([
+        const [tagsRes, permsRes, projRes] = await Promise.all([
           fetch(`/api/workspaces/${wsId}/tags?workspaceSlug=${workspaceSlug}`),
           fetch(`/api/workspaces/${workspaceSlug}/permissions`),
+          fetch(`/api/projects?workspaceSlug=${workspaceSlug}`),
         ]);
+
         if (tagsRes.ok) {
           const tags = await tagsRes.json();
           setWorkspaceTags(tags.map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
@@ -76,6 +85,10 @@ export default function MyTasksPage() {
           const perms = await permsRes.json();
           setCanManageTags(perms.permissions?.includes("settings.tags") ?? false);
         }
+        if (projRes.ok) {
+          const projData = await projRes.json();
+          setProjects(projData.map((p: any) => ({ id: p.id, name: p.name })));
+        }
       } catch {
         // silent
       }
@@ -83,25 +96,150 @@ export default function MyTasksPage() {
     loadTagsAndPerms();
   }, [workspaceSlug]);
 
-  const filteredTasks = useMemo(() => {
-    let next = [...tasks];
-    if (focusMode) {
-      next = next.filter((t) => !t.isCompleted);
-    }
-    switch (sort) {
-      case "priority":
-        next.sort((a, b) => priorityRank(b.priority) - priorityRank(a.priority));
-        break;
-      case "updated":
-        break;
-      default:
-        next.sort((a, b) => dueSort(a.dueDate, b.dueDate));
-    }
-    return next;
-  }, [tasks, focusMode, sort]);
+  // ── Computed summary stats ──
+  const summaryStats = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const endOfToday = startOfDay + 24 * 60 * 60 * 1000 - 1;
+    const startOfWeek = startOfDay - now.getDay() * 24 * 60 * 60 * 1000;
 
-  const groups = useMemo(() => groupTasks(filteredTasks), [filteredTasks]);
+    let dueToday = 0;
+    let overdue = 0;
+    let inProgress = 0;
+    let waitingForYou = 0;
+    let completedThisWeek = 0;
 
+    tasks.forEach((t) => {
+      const dueTs = t.dueDate ? new Date(t.dueDate).getTime() : null;
+      const updTs = t.updatedAt ? new Date(t.updatedAt).getTime() : 0;
+
+      if (dueTs !== null && dueTs < startOfDay && t.status !== "DONE") overdue++;
+      if (dueTs !== null && dueTs >= startOfDay && dueTs <= endOfToday && t.status !== "DONE") dueToday++;
+      if (t.status === "IN_PROGRESS") inProgress++;
+      if (t.status === "DONE" && updTs >= startOfWeek) completedThisWeek++;
+
+      // Waiting for You logic
+      const isOwner = t.creatorId === t.currentUserId;
+      const me = t.assignees?.find((a) => a.id === t.currentUserId);
+      if (!isOwner && me && me.workStatus !== "SUBMITTED" && t.status !== "DONE") {
+        waitingForYou++;
+      }
+      if (isOwner && t.assignees?.some((a) => a.workStatus === "SUBMITTED") && t.status === "IN_REVIEW") {
+        waitingForYou++;
+      }
+    });
+
+    return { dueToday, overdue, inProgress, waitingForYou, completedThisWeek };
+  }, [tasks]);
+
+  // ── Filtered + grouped tasks ──
+  const filteredAndGrouped = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const endOfToday = startOfDay + 24 * 60 * 60 * 1000 - 1;
+    const endOfWeek = startOfDay + 7 * 24 * 60 * 60 * 1000;
+    const startOfWeek = startOfDay - now.getDay() * 24 * 60 * 60 * 1000;
+
+    let filtered = [...tasks];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter((t) => t.title.toLowerCase().includes(q) || t.projectName.toLowerCase().includes(q));
+    }
+
+    // Project filter
+    if (projectFilter) {
+      filtered = filtered.filter((t) => t.projectId === projectFilter);
+    }
+
+    // Priority filter
+    if (priorityFilter) {
+      filtered = filtered.filter((t) => t.priority === priorityFilter);
+    }
+
+    // Tab filter
+    if (activeTab !== "all") {
+      filtered = filtered.filter((t) => {
+        const dueTs = t.dueDate ? new Date(t.dueDate).getTime() : null;
+        const updTs = t.updatedAt ? new Date(t.updatedAt).getTime() : 0;
+        const isOwner = t.creatorId === t.currentUserId;
+        const me = t.assignees?.find((a) => a.id === t.currentUserId);
+        const hasSubmitted = t.assignees?.some((a) => a.workStatus === "SUBMITTED");
+
+        switch (activeTab) {
+          case "dueToday":
+            return dueTs !== null && dueTs >= startOfDay && dueTs <= endOfToday && t.status !== "DONE";
+          case "overdue":
+            return dueTs !== null && dueTs < startOfDay && t.status !== "DONE";
+          case "inProgress":
+            return t.status === "IN_PROGRESS";
+          case "waiting":
+            return (
+              (!isOwner && !!me && me.workStatus !== "SUBMITTED" && t.status !== "DONE") ||
+              (isOwner && !!hasSubmitted && t.status === "IN_REVIEW")
+            );
+          case "completed":
+            return t.status === "DONE" && updTs >= startOfWeek;
+          case "createdByMe":
+            return t.creatorId === t.currentUserId;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Sort by due date
+    filtered.sort((a, b) => dueSort(a.dueDate, b.dueDate));
+
+    // Group tasks
+    const groups: Record<string, Task[]> = {
+      Overdue: [],
+      "Due Today": [],
+      Upcoming: [],
+      "Waiting for You": [],
+      "Completed This Week": [],
+      "No Due Date": [],
+    };
+
+    filtered.forEach((task) => {
+      const dueTs = task.dueDate ? new Date(task.dueDate).getTime() : null;
+      const updTs = task.updatedAt ? new Date(task.updatedAt).getTime() : 0;
+      const isOwner = task.creatorId === task.currentUserId;
+      const me = task.assignees?.find((a) => a.id === task.currentUserId);
+      const hasSubmitted = task.assignees?.some((a) => a.workStatus === "SUBMITTED");
+
+      // Completed this week → separate bucket
+      if (task.status === "DONE" && updTs >= startOfWeek) {
+        groups["Completed This Week"].push(task);
+        return;
+      }
+
+      // Waiting for You → separate bucket
+      const isWaiting =
+        (!isOwner && !!me && me.workStatus !== "SUBMITTED" && task.status !== "DONE") ||
+        (isOwner && !!hasSubmitted && task.status === "IN_REVIEW");
+      if (isWaiting && activeTab === "all") {
+        groups["Waiting for You"].push(task);
+        return;
+      }
+
+      // Time-based grouping
+      if (!task.dueDate) {
+        groups["No Due Date"].push(task);
+      } else if (dueTs! < startOfDay) {
+        groups.Overdue.push(task);
+      } else if (dueTs! <= endOfToday) {
+        groups["Due Today"].push(task);
+      } else {
+        groups.Upcoming.push(task);
+      }
+    });
+
+    return groups;
+  }, [tasks, activeTab, searchQuery, projectFilter, priorityFilter]);
+
+  // ── Handlers ──
   const handleToggleComplete = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
@@ -110,13 +248,23 @@ export default function MyTasksPage() {
       prev.map((t) => (t.id === id ? { ...t, isCompleted: !t.isCompleted, status: newStatus } : t))
     );
     try {
-      await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus, workspaceSlug }),
       });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Toggle Complete failed:", res.status, errorText);
+        alert(`Failed to save! API Error: ${res.status} ${errorText}`);
+        // Revert optimistic update
+        setTasks((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, isCompleted: !t.isCompleted, status: task.status } : t))
+        );
+      }
     } catch (err) {
       console.error("Failed to toggle task:", err);
+      alert("Network error toggling task");
     }
   };
 
@@ -136,25 +284,33 @@ export default function MyTasksPage() {
     }));
 
     try {
+      console.log("Sending PATCH for start work", { workspaceSlug, userId: task.currentUserId });
       const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           workspaceSlug,
           updateAssigneeWorkStatus: true,
           workStatus: "IN_PROGRESS",
           userId: task.currentUserId,
-          status: "IN_PROGRESS" 
+          status: "IN_PROGRESS"
         }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.newTaskStatus) {
-           setTasks(prev => prev.map(t => t.id === id ? { ...t, status: data.newTaskStatus } : t));
+          setTasks(prev => prev.map(t => t.id === id ? { ...t, status: data.newTaskStatus } : t));
         }
+      } else {
+        const errorText = await res.text();
+        console.error("Start work failed:", res.status, errorText);
+        alert(`Failed to start work! API Error: ${res.status} ${errorText}`);
+        // Refresh to revert optimistic update
+        loadTasks();
       }
     } catch (err) {
       console.error("Failed to start work:", err);
+      alert("Network error starting work");
     }
   };
 
@@ -173,7 +329,6 @@ export default function MyTasksPage() {
         if (t.id === id) {
           return {
             ...t,
-            // Optimistically update assignee, but DON'T force task status to IN_REVIEW yet
             assignees: t.assignees.map((a) =>
               a.id === t.currentUserId ? { ...a, workStatus: "SUBMITTED" } : a
             ),
@@ -195,12 +350,18 @@ export default function MyTasksPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.newTaskStatus) { // Resync exact status from derived logic
+        if (data.newTaskStatus) {
           setTasks(prev => prev.map(t => t.id === id ? { ...t, status: data.newTaskStatus } : t));
         }
+      } else {
+        const errorText = await res.text();
+        console.error("Submit review failed:", res.status, errorText);
+        alert(`Failed to submit! API Error: ${res.status} ${errorText}`);
+        loadTasks();
       }
     } catch (err) {
       console.error("Failed to submit review:", err);
+      alert("Network error submitting review");
     }
   };
 
@@ -216,7 +377,6 @@ export default function MyTasksPage() {
 
   const handleQuickAdd = async (title: string) => {
     try {
-      // Find first project in workspace for the task
       const projRes = await fetch(`/api/projects?workspaceSlug=${workspaceSlug}`);
       const projects = await projRes.json();
       const projectId = projects[0]?.id;
@@ -278,23 +438,26 @@ export default function MyTasksPage() {
 
   return (
     <div className="px-4 py-6 md:px-6">
-      <MyTasksHeader 
-        focusMode={focusMode} 
-        onToggleFocus={setFocusMode} 
-        sort={sort} 
-        onSortChange={setSort}
-        tasksDueToday={groups["Today"]?.length || 0}
-        tasksOverdue={groups["Overdue"]?.length || 0}
+      <MyTasksHeader
+        stats={summaryStats}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        projectFilter={projectFilter}
+        onProjectFilterChange={setProjectFilter}
+        priorityFilter={priorityFilter}
+        onPriorityFilterChange={setPriorityFilter}
+        projects={projects}
       />
       <TaskGroupedList
-        groups={groups}
+        groups={filteredAndGrouped}
         onToggleComplete={handleToggleComplete}
         onStartWork={handleStartWork}
         onOpen={handleOpen}
         onQuickAdd={handleQuickAdd}
         onSubmitReview={handleSubmitReview}
         onDelete={handleDelete}
-        // Basic stubs for copy/duplicate/move for edge cases, ideally implemented via toast
         onDuplicate={() => { alert("Duplicate functionality handled in detailed view") }}
       />
       {drawerTask && (
@@ -313,41 +476,9 @@ export default function MyTasksPage() {
   );
 }
 
-function priorityRank(p: Task["priority"]) {
-  return { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }[p];
-}
-
 function dueSort(a: string | null, b: string | null) {
   if (!a && !b) return 0;
   if (!a) return 1;
   if (!b) return -1;
   return new Date(a).getTime() - new Date(b).getTime();
-}
-
-function groupTasks(tasks: Task[]) {
-  const groups: Record<string, Task[]> = {
-    Overdue: [],
-    Today: [],
-    "This Week": [],
-    Upcoming: [],
-    "No Due Date": [],
-  };
-  const today = new Date();
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-  const endOfToday = startOfDay + 24 * 60 * 60 * 1000 - 1;
-  const endOfWeek = startOfDay + 7 * 24 * 60 * 60 * 1000;
-
-  tasks.forEach((task) => {
-    if (!task.dueDate) {
-      groups["No Due Date"].push(task);
-      return;
-    }
-    const dueTs = new Date(task.dueDate).getTime();
-    if (dueTs < startOfDay) groups.Overdue.push(task);
-    else if (dueTs <= endOfToday) groups.Today.push(task);
-    else if (dueTs <= endOfWeek) groups["This Week"].push(task);
-    else groups.Upcoming.push(task);
-  });
-
-  return groups;
 }

@@ -8,6 +8,7 @@ import { P_TASK_EDIT, P_TASK_DELETE } from "@/lib/rbac/permissions";
 import { createNotification, notifyTaskAssignees, notifyProjectMembers } from "@/lib/notifications/createNotification";
 import { runAutomations } from "@/lib/automations/engine";
 import fs from "fs";
+import { deriveTaskStatus } from "@/lib/tasks/deriveTaskStatus";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -114,11 +115,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const body = await req.json();
     const { 
       title, description, status, priority, dueDate, tagIds, assigneeIds, 
-      subtasks, dependencies, attachments, workspaceSlug,
+      subtasks, dependencies, attachments, workspaceSlug: bodySlug,
       updateAssigneeWorkStatus, userId, workStatus 
     } = body;
 
-    if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
+    const workspaceSlug = bodySlug || req.nextUrl.searchParams.get("workspaceSlug");
+
+    if (!workspaceSlug) {
+      console.error("PATCH /api/tasks/[taskId] missing workspaceSlug");
+      throw new ApiError(400, "workspaceSlug is required");
+    }
     const ctx = await checkPermission(workspaceSlug, P_TASK_EDIT);
 
     const existingTask = await db.task.findFirst({
@@ -169,7 +175,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       });
 
       const updatedAssignees = await db.taskAssignee.findMany({ where: { taskId } });
-      const { deriveTaskStatus } = await import("@/lib/tasks/deriveTaskStatus");
       const newTaskStatus = deriveTaskStatus(existingTask.status, updatedAssignees);
 
       if (newTaskStatus !== existingTask.status) {
@@ -257,7 +262,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     // If assignees changed and status wasn't explicitly forced by owner, re-derive it
     if (assigneesChanged && finalStatus === undefined) {
-      const { deriveTaskStatus } = await import("@/lib/tasks/deriveTaskStatus");
       const currentAssignees = await db.taskAssignee.findMany({ where: { taskId } });
       const newDerivedStatus = deriveTaskStatus(updated.status, currentAssignees);
       
@@ -445,7 +449,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     return Response.json(updated);
   } catch (error: any) {
-    fs.writeFileSync("api-error.log", error.stack || error.toString());
+    console.error("Error in PATCH /api/tasks/[taskId]:", error.stack || error.toString());
+    require("fs").writeFileSync("api-error.log", error.stack || error.toString());
     return handleApiError(error);
   }
 }

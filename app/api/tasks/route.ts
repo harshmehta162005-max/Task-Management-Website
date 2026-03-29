@@ -7,6 +7,9 @@ import { checkProjectMember } from "@/lib/rbac/checkProjectMember";
 import { P_TASK_CREATE } from "@/lib/rbac/permissions";
 import { createNotification, notifyProjectMembers } from "@/lib/notifications/createNotification";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * GET /api/tasks?workspaceSlug=xxx[&projectId=xxx][&assignee=me]
  * List tasks with filters.
@@ -20,13 +23,20 @@ export async function GET(req: NextRequest) {
     const { workspace, user } = await resolveWorkspace(slug);
     const projectId = sp.get("projectId");
     const assigneeFilter = sp.get("assignee");
+    const myTasks = sp.get("myTasks");
 
     // Build where clause
     const where: Record<string, unknown> = {
       project: { workspaceId: workspace.id },
     };
     if (projectId) where.projectId = projectId;
-    if (assigneeFilter === "me") {
+    if (myTasks === "true") {
+      // Fetch tasks where user is assignee OR creator (for owner approval flow)
+      where.OR = [
+        { assignees: { some: { userId: user.id } } },
+        { creatorId: user.id },
+      ];
+    } else if (assigneeFilter === "me") {
       where.assignees = { some: { userId: user.id } };
     }
 

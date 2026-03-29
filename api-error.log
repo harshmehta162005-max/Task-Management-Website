@@ -1,6 +1,10 @@
-ApiError: workspaceSlug is required
-    at PATCH (webpack-internal:///(rsc)/./app/api/tasks/[taskId]/route.ts:200:35)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at consumeBody (node:internal/deps/undici/undici:5725:9)
+    at NextRequest.json (node:internal/deps/undici/undici:5665:18)
+    at PATCH (webpack-internal:///(rsc)/./app/api/tasks/[taskId]/route.ts:200:32)
     at async AppRouteRouteModule.do (C:\Users\harsh\OneDrive\Desktop\Task_Management\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:24:33911)
     at async AppRouteRouteModule.handle (C:\Users\harsh\OneDrive\Desktop\Task_Management\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:24:41240)
     at async doRender (C:\Users\harsh\OneDrive\Desktop\Task_Management\node_modules\next\dist\server\base-server.js:1517:42)
