@@ -1,11 +1,9 @@
-
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Calendar, Flag } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { DrawerAssignee } from "@/components/tasks/task-drawer/types";
 import { cn } from "@/lib/utils/cn";
 import { Select } from "@/components/ui/Select";
 
@@ -16,7 +14,7 @@ type Props = {
 
 type Project = { id: string; name: string };
 
-export function CreateTaskModal({ open, onClose }: Props) {
+export function CreatePersonalTaskModal({ open, onClose }: Props) {
   const router = useRouter();
   const params = useParams<{ workspaceSlug: string }>();
   const ws = params?.workspaceSlug ?? "workspace";
@@ -25,15 +23,15 @@ export function CreateTaskModal({ open, onClose }: Props) {
   useEffect(() => setMounted(true), []);
 
   const [title, setTitle] = useState("");
-  const [projectId, setProjectId] = useState("");
-  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [description, setDescription] = useState("");
+  const [projectId, setProjectId] = useState("none");
+  const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "DONE">("TODO");
   const [due, setDue] = useState("");
-  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT">("MEDIUM");
   const [toast, setToast] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
-  const [members, setMembers] = useState<DrawerAssignee[]>([]);
   const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
@@ -41,23 +39,10 @@ export function CreateTaskModal({ open, onClose }: Props) {
     async function load() {
       setFetching(true);
       try {
-        const [projRes, memberRes] = await Promise.all([
-          fetch(`/api/projects?workspaceSlug=${ws}`),
-          fetch(`/api/workspaces/${ws}/members`)
-        ]);
+        const projRes = await fetch(`/api/projects?workspaceSlug=${ws}`);
         if (projRes.ok) {
           const data = await projRes.json();
           setProjects(data.map((p: any) => ({ id: p.id, name: p.name })));
-          if (data.length > 0 && !projectId) setProjectId(data[0].id);
-        }
-        if (memberRes.ok) {
-          const data = await memberRes.json();
-          const mems = (data.members || data).map((m: any) => ({
-            id: m.id,
-            name: m.name || "User",
-            avatarUrl: m.avatarUrl || ""
-          }));
-          setMembers(mems);
         }
       } catch {
         // quiet fail
@@ -66,16 +51,10 @@ export function CreateTaskModal({ open, onClose }: Props) {
       }
     }
     load();
-  }, [open, ws, projectId]);
-
-  const toggleAssignee = (id: string) => {
-    setAssigneeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
-  const assignees = useMemo(() => members.filter((m) => assigneeIds.includes(m.id)), [assigneeIds]);
+  }, [open, ws]);
 
   const handleSubmit = async () => {
-    if (!title.trim() || !projectId || isSubmitting) return;
+    if (!title.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -84,25 +63,32 @@ export function CreateTaskModal({ open, onClose }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspaceSlug: ws,
-          projectId,
+          projectId, // 'none' translates to private Personal Task in backend
           title: title.trim(),
+          description: description.trim() ? description.trim() : null,
+          status,
           priority,
           dueDate: due || null,
-          assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined
+          assigneeIds: [], // Backend auto-assigns creator
         }),
       });
 
       if (res.ok) {
         setToast("Task created");
         const data = await res.json();
+        
+        // Dispatch custom event so the 'My Tasks' dashboard can instantly reload its task list
+        window.dispatchEvent(new CustomEvent("personal-task-created"));
+        
         setTimeout(() => {
-          router.push(`/${ws}/projects/${projectId}?taskId=${data.id}`);
           setToast(null);
           onClose();
           setTitle("");
-          setAssigneeIds([]);
-          setDue("");
+          setDescription("");
+          setProjectId("none");
+          setStatus("TODO");
           setPriority("MEDIUM");
+          setDue("");
         }, 600);
       } else {
         setToast("Failed to create task");
@@ -116,65 +102,77 @@ export function CreateTaskModal({ open, onClose }: Props) {
 
   if (!open || !mounted) return null;
 
+  const projectOptions = [
+    { value: "none", label: "None (Personal Task)" },
+    ...projects.map((p) => ({ value: p.id, label: p.name }))
+  ];
+
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-10 backdrop-blur-sm sm:items-center">
-
-      {/* Removed overflow-hidden */}
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-[#0f172a]">
-
-        {/* Added rounded-t-2xl */}
+        
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800 rounded-t-2xl">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create Task</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create Personal Task</h3>
           <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Removed max-h-[70vh] overflow-y-auto */}
         <div className="space-y-4 px-5 py-4">
           <div>
             <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Title</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Design system update"
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-[#0f172a] dark:text-slate-100"
+              placeholder="e.g. Schedule doctor appointment"
+              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-[#151a23] dark:text-slate-100"
             />
           </div>
+
+          <div>
+            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add optional notes here..."
+              rows={3}
+              className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-[#151a23] dark:text-slate-100"
+            />
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Project</label>
-              <Select
-                value={projectId}
-                onChange={setProjectId}
-                options={projects.map((p) => ({ value: p.id, label: p.name }))}
-                portal={false}
-              />
+              <div className="mt-2">
+                <Select
+                  value={projectId}
+                  onChange={setProjectId}
+                  options={projectOptions}
+                  portal={false}
+                />
+              </div>
             </div>
+            
             <div>
-              <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Assignees</label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {members.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => toggleAssignee(m.id)}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold",
-                      assigneeIds.includes(m.id)
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
-                    )}
-                  >
-                    {m.name}
-                  </button>
-                ))}
+              <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Initial Status</label>
+              <div className="mt-2">
+                 <Select
+                  value={status}
+                  onChange={(val) => setStatus(val as any)}
+                  options={[
+                    { value: "TODO", label: "To Do" },
+                    { value: "IN_PROGRESS", label: "In Progress" },
+                  ]}
+                  portal={false}
+                />
               </div>
             </div>
           </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Due date</label>
-              <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-[#0f172a]">
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm dark:border-slate-700 dark:bg-[#151a23]">
                 <Calendar className="h-4 w-4 text-slate-400" />
                 <div className="relative flex-1">
                   <input
@@ -188,16 +186,16 @@ export function CreateTaskModal({ open, onClose }: Props) {
             </div>
             <div>
               <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Priority</label>
-              <div className="mt-2 flex gap-2">
-                {(["LOW", "MEDIUM", "HIGH"] as const).map((p) => (
+              <div className="mt-2 flex gap-1">
+                {(["LOW", "MEDIUM", "HIGH", "URGENT"] as const).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPriority(p)}
                     className={cn(
-                      "flex-1 rounded-lg border px-3 py-2 text-xs font-bold transition",
+                      "flex-1 rounded-lg border px-2 py-2 text-[10px] sm:text-[11px] font-bold transition",
                       priority === p
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-white/5"
+                        ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                        : "border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-white/5"
                     )}
                   >
                     {p}
@@ -208,22 +206,22 @@ export function CreateTaskModal({ open, onClose }: Props) {
           </div>
         </div>
 
-        {/* Added rounded-b-2xl */}
-        <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-[#0f172a]/60 rounded-b-2xl">
+        <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-[#10141d] rounded-b-2xl">
           <button
             onClick={onClose}
-            className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+            className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/10 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isSubmitting || !title.trim()}
+            className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
           >
             {isSubmitting ? "Creating..." : "Create task"}
           </button>
         </div>
+        
         {toast && (
           <div className="absolute bottom-4 right-4 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-xl">
             {toast}

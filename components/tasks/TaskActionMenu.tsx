@@ -42,7 +42,7 @@ export function TaskActionMenu({ onCopy, onDuplicate, onMove, onDelete, isManage
         <MoreVertical className="h-5 w-5" />
       </button>
       {open && (
-        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-[#0f172a]">
+        <div className="absolute right-0 z-[999] mt-2 w-48 rounded-xl border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-[#0f172a]">
           <MenuItem icon={<Copy className="h-4 w-4" />} label="Copy link" onClick={() => handle(onCopy)} />
           <MenuItem icon={<FolderPlus className="h-4 w-4" />} label="Move to project" onClick={() => handle(onMove)} />
           <MenuItem icon={<Layers className="h-4 w-4" />} label="Duplicate" onClick={() => handle(onDuplicate)} />

@@ -26,18 +26,27 @@ export async function GET(req: NextRequest) {
     const myTasks = sp.get("myTasks");
 
     // Build where clause
-    const where: Record<string, unknown> = {
+    const where: any = {
       project: { workspaceId: workspace.id },
     };
     if (projectId) where.projectId = projectId;
+
     if (myTasks === "true") {
       // Fetch tasks where user is assignee OR creator (for owner approval flow)
       where.OR = [
         { assignees: { some: { userId: user.id } } },
         { creatorId: user.id },
       ];
-    } else if (assigneeFilter === "me") {
-      where.assignees = { some: { userId: user.id } };
+    } else {
+      // Force hide personal tasks everywhere EXCEPT My Tasks page
+      where.project = {
+        workspaceId: workspace.id,
+        NOT: { name: "Personal Tasks", visibility: "PRIVATE" }
+      };
+      
+      if (assigneeFilter === "me") {
+        where.assignees = { some: { userId: user.id } };
+      }
     }
 
     const tasks = await db.task.findMany({
@@ -99,17 +108,45 @@ export async function POST(req: NextRequest) {
     const { workspaceSlug, projectId, title, description, priority, dueDate, assigneeIds, status, tagIds, subtasks, attachments } = body;
 
     if (!workspaceSlug) throw new ApiError(400, "workspaceSlug is required");
-    if (!projectId) throw new ApiError(400, "projectId is required");
     if (!title) throw new ApiError(400, "Title is required");
 
     const ctx = await checkPermission(workspaceSlug, P_TASK_CREATE);
-    if (!ctx.isOwner) {
-      await checkProjectMember(ctx.user.id, projectId);
-    }
     const { user, workspace } = ctx;
 
+    let finalProjectId = projectId;
+    let isPersonalTask = false;
+
+    if (!finalProjectId || finalProjectId === "none") {
+      isPersonalTask = true;
+      let personalProject = await db.project.findFirst({
+        where: { 
+          workspaceId: workspace.id, 
+          name: "Personal Tasks", 
+          visibility: "PRIVATE",
+          members: { some: { userId: user.id } }
+        }
+      });
+
+      if (!personalProject) {
+        personalProject = await db.project.create({
+          data: {
+            name: "Personal Tasks",
+            description: "Automatically generated for personal tasks",
+            visibility: "PRIVATE",
+            workspaceId: workspace.id,
+            members: { create: { userId: user.id, role: "OWNER" } }
+          }
+        });
+      }
+      finalProjectId = personalProject.id;
+    }
+
+    if (!ctx.isOwner) {
+      await checkProjectMember(ctx.user.id, finalProjectId);
+    }
+
     const project = await db.project.findFirst({
-      where: { id: projectId, workspaceId: workspace.id },
+      where: { id: finalProjectId, workspaceId: workspace.id },
     });
     if (!project) throw new ApiError(404, "Project not found in this workspace");
 
@@ -127,9 +164,9 @@ export async function POST(req: NextRequest) {
         priority: priority || "MEDIUM",
         dueDate: dueDate ? new Date(dueDate) : null,
         position: (maxPos._max.position ?? 0) + 1,
-        projectId,
+        projectId: finalProjectId,
         creatorId: user.id,
-        assignees: assigneeIds?.length
+        assignees: (assigneeIds?.length && !isPersonalTask)
           ? { create: assigneeIds.map((userId: string) => ({ userId })) }
           : { create: { userId: user.id } },
         ...(subtasks && subtasks.length > 0 && {
@@ -138,7 +175,7 @@ export async function POST(req: NextRequest) {
               title: st.text,
               status: st.done ? "DONE" : "TODO",
               priority: "MEDIUM",
-              projectId,
+              projectId: finalProjectId,
               creatorId: user.id,
             }))
           }
@@ -178,45 +215,47 @@ export async function POST(req: NextRequest) {
     }
 
     // Log activity
-    await db.activity.create({
-      data: {
-        action: `created task "${task.title}"`,
-        entityType: "TASK",
-        entityId: task.id,
-        metadata: { projectId, projectName: task.project.name },
-        actorId: user.id,
-        workspaceId: workspace.id,
-      },
-    });
+    if (!isPersonalTask) {
+      await db.activity.create({
+        data: {
+          action: `created task "${task.title}"`,
+          entityType: "TASK",
+          entityId: task.id,
+          metadata: { projectId: finalProjectId, projectName: task.project.name },
+          actorId: user.id,
+          workspaceId: workspace.id,
+        },
+      });
 
-    // ── Notifications ──
-    const taskLink = `/${workspaceSlug}/projects?taskId=${task.id}`;
+      // ── Notifications ──
+      const taskLink = `/${workspaceSlug}/projects?taskId=${task.id}`;
 
-    // ASSIGNED: notify assignees (except creator)
-    for (const a of task.assignees) {
-      if (a.user.id === user.id) continue;
-      await createNotification({
-        type: "ASSIGNED",
-        category: "personal",
-        title: `You were assigned to "${task.title}"`,
-        body: `${user.name ?? "Someone"} assigned you to a task in ${task.project.name}`,
-        userId: a.user.id,
+      // ASSIGNED: notify assignees (except creator)
+      for (const a of task.assignees) {
+        if (a.user.id === user.id) continue;
+        await createNotification({
+          type: "ASSIGNED",
+          category: "personal",
+          title: `You were assigned to "${task.title}"`,
+          body: `${user.name ?? "Someone"} assigned you to a task in ${task.project.name}`,
+          userId: a.user.id,
+          actorId: user.id,
+          workspaceId: workspace.id,
+          linkUrl: taskLink,
+        });
+      }
+
+      // TASK_CREATED: notify project members
+      await notifyProjectMembers(finalProjectId, user.id, {
+        type: "TASK_CREATED",
+        category: "project",
+        title: `New task: "${task.title}"`,
+        body: `${user.name ?? "Someone"} created a task in ${task.project.name}`,
         actorId: user.id,
         workspaceId: workspace.id,
         linkUrl: taskLink,
       });
     }
-
-    // TASK_CREATED: notify project members
-    await notifyProjectMembers(projectId, user.id, {
-      type: "TASK_CREATED",
-      category: "project",
-      title: `New task: "${task.title}"`,
-      body: `${user.name ?? "Someone"} created a task in ${task.project.name}`,
-      actorId: user.id,
-      workspaceId: workspace.id,
-      linkUrl: taskLink,
-    });
 
     return Response.json(
       {

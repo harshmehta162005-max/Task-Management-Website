@@ -37,6 +37,7 @@ type Props = {
   priorityFilter: string;
   onPriorityFilterChange: (v: string) => void;
   projects: { id: string; name: string }[];
+  onOpenCreateModal: () => void;
 };
 
 const SUMMARY_CARDS = [
@@ -209,6 +210,7 @@ export function MyTasksHeader({
   priorityFilter,
   onPriorityFilterChange,
   projects,
+  onOpenCreateModal,
 }: Props) {
   const hour = new Date().getHours();
   let greeting = "Good evening";
@@ -223,13 +225,23 @@ export function MyTasksHeader({
   return (
     <header className="mb-8 space-y-6">
       {/* ── Greeting ── */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100" style={{ fontFamily: "Manrope, sans-serif" }}>
-          {greeting}
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400" style={{ fontFamily: "Inter, sans-serif" }}>
-          Here&apos;s your briefing. Let&apos;s get things done.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100" style={{ fontFamily: "Manrope, sans-serif" }}>
+            {greeting}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400" style={{ fontFamily: "Inter, sans-serif" }}>
+            Here&apos;s your briefing. Let&apos;s get things done.
+          </p>
+        </div>
+        <button
+          onClick={onOpenCreateModal}
+          className="flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+          style={{ fontFamily: "Inter, sans-serif" }}
+        >
+          <span className="text-[16px] leading-none">+</span>
+          Personal Task
+        </button>
       </div>
 
       {/* ── Summary Cards ── */}

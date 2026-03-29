@@ -91,12 +91,14 @@ export function TaskRow({ task, onToggleComplete, onStartWork, onOpen, onSubmitR
   const isOwner = task.creatorId === task.currentUserId;
   const me = task.assignees?.find((a) => a.id === task.currentUserId);
   const isSubmitted = me?.workStatus === "SUBMITTED";
-  const waitingLabel = computeWaitingLabel(task);
+  const isPersonalTask = task.projectName === "Personal Tasks";
+  const waitingLabel = isPersonalTask ? null : computeWaitingLabel(task);
 
   return (
     <div
       className={cn(
         "group flex items-center justify-between px-4 py-3 transition-all duration-200 cursor-pointer",
+        "first:rounded-t-2xl last:rounded-b-2xl",
         "hover:bg-slate-50/80 dark:hover:bg-[#242434]/60",
         waitingLabel && "bg-amber-500/[0.03] dark:bg-amber-500/[0.03]"
       )}
@@ -169,7 +171,7 @@ export function TaskRow({ task, onToggleComplete, onStartWork, onOpen, onSubmitR
         <AssigneeProgress assignees={task.assignees} />
 
         {/* ASSIGNEE: TODO -> Hover "Start" */}
-        {!!me && !isSubmitted && task.status === "TODO" && (
+        {!isPersonalTask && !!me && !isSubmitted && task.status === "TODO" && (
           <button
             type="button"
             onClick={(e) => {
@@ -183,7 +185,7 @@ export function TaskRow({ task, onToggleComplete, onStartWork, onOpen, onSubmitR
         )}
 
         {/* ASSIGNEE: IN_PROGRESS -> Persistent "Submit" */}
-        {!!me && !isSubmitted && task.status === "IN_PROGRESS" && onSubmitReview && (
+        {!isPersonalTask && !!me && !isSubmitted && task.status === "IN_PROGRESS" && onSubmitReview && (
           <button
             type="button"
             onClick={(e) => {
@@ -197,14 +199,14 @@ export function TaskRow({ task, onToggleComplete, onStartWork, onOpen, onSubmitR
         )}
 
         {/* ASSIGNEE: IN_REVIEW -> Read-only badge */}
-        {isSubmitted && !isOwner && task.status !== "DONE" && (
+        {!isPersonalTask && isSubmitted && !isOwner && task.status !== "DONE" && (
           <span className="rounded-lg bg-amber-500/10 px-3 py-1.5 text-[11px] font-bold tracking-wide text-amber-600 dark:text-amber-400 ring-1 ring-inset ring-amber-500/20">
             In Review
           </span>
         )}
 
         {/* OWNER: IN_REVIEW -> Persistent "Approve" */}
-        {isOwner && task.status === "IN_REVIEW" && (
+        {!isPersonalTask && isOwner && task.status === "IN_REVIEW" && (
           <button
             type="button"
             onClick={(e) => {
@@ -218,28 +220,35 @@ export function TaskRow({ task, onToggleComplete, onStartWork, onOpen, onSubmitR
         )}
 
         {/* OWNER: TODO/IN_PROGRESS -> "View Task" */}
-        {isOwner && !me && task.status !== "DONE" && task.status !== "IN_REVIEW" && (
+        {!isPersonalTask && isOwner && !me && task.status !== "DONE" && task.status !== "IN_REVIEW" && (
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onOpen(task.id);
             }}
-            className="z-10 opacity-0 group-hover:opacity-100 rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-bold tracking-wide text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="opacity-0 group-hover:opacity-100 rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-bold tracking-wide text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             View Task
           </button>
         )}
 
-        <div className="z-10 cursor-pointer" onClick={(e) => e.stopPropagation()}>
-          <TaskActionMenu
-            onCopy={() => {}}
-            onDelete={onDelete ? () => onDelete(task.id) : undefined}
-            onDuplicate={onDuplicate ? () => onDuplicate(task.id) : undefined}
-            onMove={onMove ? () => onMove(task.id) : undefined}
-            isManager={isOwner}
-          />
-        </div>
+        {!isPersonalTask && (
+          <div className="cursor-pointer" onClick={(e) => e.stopPropagation()}>
+            <TaskActionMenu
+              onCopy={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set("taskId", task.id);
+                navigator.clipboard?.writeText(url.toString());
+                alert("Link copied to clipboard!");
+              }}
+              onDelete={onDelete ? () => onDelete(task.id) : undefined}
+              onDuplicate={onDuplicate ? () => onDuplicate(task.id) : undefined}
+              onMove={onMove ? () => onMove(task.id) : undefined}
+              isManager={isOwner}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

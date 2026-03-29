@@ -63,7 +63,7 @@ export function TaskGroupCard({ title, emoji, accentColor, helper, tasks, onTogg
 
       {/* Task List */}
       {isExpanded && (
-        <div className="flex flex-col gap-px rounded-2xl bg-white/60 dark:bg-[#1e1e2d]/40 overflow-hidden">
+        <div className="flex flex-col gap-px rounded-2xl bg-white/60 dark:bg-[#1e1e2d]/40">
           {tasks.length ? (
             tasks.map((task) => (
               <TaskRow

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, ClipboardList, LayoutDashboard, Sparkles, UserPlus } from "lucide-react";
-import { CreateTaskModal } from "./CreateTaskModal";
+import { Plus, LayoutDashboard, Sparkles, UserPlus, User } from "lucide-react";
+import { CreatePersonalTaskModal } from "./CreatePersonalTaskModal";
 import { CreateProjectModalWrapper } from "./CreateProjectModalWrapper";
 import { ExtractTasksFromNotesModal } from "./ExtractTasksFromNotesModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 
-type ActionKey = "task" | "project" | "extract" | "invite";
+type ActionKey = "personal-task" | "project" | "extract" | "invite";
 
 export function QuickCreateMenu() {
   const [open, setOpen] = useState(false);
@@ -39,10 +39,10 @@ export function QuickCreateMenu() {
   const actions = useMemo(
     () => [
       {
-        key: "task" as const,
-        label: "Create Task",
-        description: "Add a new task",
-        icon: ClipboardList,
+        key: "personal-task" as const,
+        label: "Personal Task",
+        description: "Add a task just for yourself",
+        icon: User,
       },
       {
         key: "project" as const,
@@ -106,7 +106,7 @@ export function QuickCreateMenu() {
         )}
       </div>
 
-      <CreateTaskModal open={active === "task"} onClose={() => setActive(null)} />
+      <CreatePersonalTaskModal open={active === "personal-task"} onClose={() => setActive(null)} />
       <CreateProjectModalWrapper open={active === "project"} onClose={() => setActive(null)} />
       <ExtractTasksFromNotesModal open={active === "extract"} onClose={() => setActive(null)} />
       <InviteMemberModal open={active === "invite"} onClose={() => setActive(null)} />

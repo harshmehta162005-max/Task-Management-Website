@@ -14,7 +14,11 @@ export async function GET(req: NextRequest) {
     const { workspace } = await resolveWorkspace(slug);
 
     const projects = await db.project.findMany({
-      where: { workspaceId: workspace.id },
+      where: { 
+        workspaceId: workspace.id,
+        // Hide auto-generated Personal Tasks projects from the main dashboard
+        NOT: { name: "Personal Tasks", visibility: "PRIVATE" }
+      },
       orderBy: { createdAt: "desc" },
       include: {
         members: {

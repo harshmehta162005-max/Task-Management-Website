@@ -6,6 +6,9 @@ import { MyTasksHeader } from "@/components/tasks/MyTasksHeader";
 import { TaskGroupedList } from "@/components/tasks/TaskGroupedList";
 import { MyTasksSkeleton } from "@/components/tasks/MyTasksSkeleton";
 import { TaskDrawer } from "@/components/tasks/TaskDrawer";
+import { CreatePersonalTaskModal } from "@/components/create/CreatePersonalTaskModal";
+import { EditPersonalTaskModal } from "@/components/create/EditPersonalTaskModal";
+import { MoveToProjectModal } from "@/components/tasks/MoveToProjectModal";
 import type { TaskItem } from "@/components/tasks/TaskRow";
 import type { DrawerTask, DrawerAssignee, WorkspaceTag } from "@/components/tasks/task-drawer/types";
 
@@ -35,6 +38,7 @@ export default function MyTasksPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
+  const [isPersonalModalOpen, setIsPersonalModalOpen] = useState(false);
 
   // Fetch tasks (now with myTasks=true to get assignee + creator tasks)
   const loadTasks = useCallback(async () => {
@@ -60,6 +64,14 @@ export default function MyTasksPage() {
   }, [workspaceSlug]);
 
   useEffect(() => { loadTasks(); }, [loadTasks]);
+
+  useEffect(() => {
+    const handlePersonalTaskCreated = () => {
+      loadTasks();
+    };
+    window.addEventListener("personal-task-created", handlePersonalTaskCreated);
+    return () => window.removeEventListener("personal-task-created", handlePersonalTaskCreated);
+  }, [loadTasks]);
 
   // Fetch workspace tags, permissions, and projects
   useEffect(() => {
@@ -377,17 +389,12 @@ export default function MyTasksPage() {
 
   const handleQuickAdd = async (title: string) => {
     try {
-      const projRes = await fetch(`/api/projects?workspaceSlug=${workspaceSlug}`);
-      const projects = await projRes.json();
-      const projectId = projects[0]?.id;
-      if (!projectId) return;
-
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspaceSlug,
-          projectId,
+          projectId: "none",
           title,
           dueDate: new Date().toISOString(),
         }),
@@ -395,6 +402,7 @@ export default function MyTasksPage() {
       if (res.ok) {
         const newTask = await res.json();
         setTasks((prev) => [newTask, ...prev]);
+        window.dispatchEvent(new CustomEvent("personal-task-created"));
       }
     } catch (err) {
       console.error("Failed to create task:", err);
@@ -408,6 +416,27 @@ export default function MyTasksPage() {
   };
 
   const [drawerTask, setDrawerTask] = useState<DrawerTask | undefined>();
+  const [taskToMove, setTaskToMove] = useState<{ id: string; projectId: string } | null>(null);
+
+  const handleDuplicateFromMenu = async (id: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${id}/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceSlug }),
+      });
+      if (res.ok) {
+        loadTasks();
+      }
+    } catch (err) {
+      console.error("Failed to duplicate task:", err);
+    }
+  };
+
+  const handleMoveInitiate = (id: string) => {
+    const t = tasks.find(tsk => tsk.id === id);
+    if (t) setTaskToMove({ id: t.id, projectId: t.projectId });
+  };
 
   useEffect(() => {
     if (!taskIdParam) {
@@ -436,6 +465,9 @@ export default function MyTasksPage() {
     );
   }
 
+  const clickedTaskInfo = taskIdParam ? tasks.find(t => t.id === taskIdParam) : null;
+  const isPersonalTask = clickedTaskInfo?.projectName === "Personal Tasks";
+
   return (
     <div className="px-4 py-6 md:px-6">
       <MyTasksHeader
@@ -449,6 +481,7 @@ export default function MyTasksPage() {
         priorityFilter={priorityFilter}
         onPriorityFilterChange={setPriorityFilter}
         projects={projects}
+        onOpenCreateModal={() => setIsPersonalModalOpen(true)}
       />
       <TaskGroupedList
         groups={filteredAndGrouped}
@@ -458,9 +491,10 @@ export default function MyTasksPage() {
         onQuickAdd={handleQuickAdd}
         onSubmitReview={handleSubmitReview}
         onDelete={handleDelete}
-        onDuplicate={() => { alert("Duplicate functionality handled in detailed view") }}
+        onDuplicate={handleDuplicateFromMenu}
+        onMove={handleMoveInitiate}
       />
-      {drawerTask && (
+      {taskIdParam && !isPersonalTask && drawerTask && (
         <TaskDrawer
           open
           task={drawerTask}
@@ -470,6 +504,31 @@ export default function MyTasksPage() {
           canManageTags={canManageTags}
           workspaceId={workspaceIdStr}
           workspaceSlug={workspaceSlug}
+        />
+      )}
+      {taskIdParam && isPersonalTask && (
+        <EditPersonalTaskModal
+          taskId={taskIdParam}
+          open
+          onClose={closeDrawer}
+        />
+      )}
+      <CreatePersonalTaskModal 
+        open={isPersonalModalOpen} 
+        onClose={() => setIsPersonalModalOpen(false)} 
+      />
+      
+      {taskToMove && (
+        <MoveToProjectModal
+          open={!!taskToMove}
+          onClose={() => setTaskToMove(null)}
+          taskId={taskToMove.id}
+          currentProjectId={taskToMove.projectId}
+          workspaceSlug={workspaceSlug}
+          onMoved={() => {
+            setTaskToMove(null);
+            loadTasks();
+          }}
         />
       )}
     </div>
