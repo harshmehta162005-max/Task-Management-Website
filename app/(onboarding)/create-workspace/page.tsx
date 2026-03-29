@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { WorkspaceCreateCard } from "@/components/onboarding/WorkspaceCreateCard";
 import { LogoUploader } from "@/components/onboarding/LogoUploader";
 import { SlugInput } from "@/components/onboarding/SlugInput";
@@ -81,8 +80,6 @@ export default function CreateWorkspacePage() {
   return (
     <div className="min-h-screen w-full bg-background-light px-4 py-8 text-slate-900 dark:bg-background-dark dark:text-slate-100">
       <div className="mx-auto flex w-full max-w-[640px] flex-col gap-6">
-        <StepIndicator current={1} total={3} label="Create Workspace" />
-
         <WorkspaceCreateCard error={error}>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">

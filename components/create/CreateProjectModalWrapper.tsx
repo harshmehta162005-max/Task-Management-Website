@@ -8,9 +8,10 @@ import { useRouter, useParams } from "next/navigation";
 type Props = {
   open: boolean;
   onClose: () => void;
+  initialName?: string;
 };
 
-export function CreateProjectModalWrapper({ open, onClose }: Props) {
+export function CreateProjectModalWrapper({ open, onClose, initialName }: Props) {
   const router = useRouter();
   const params = useParams<{ workspaceSlug: string }>();
   const ws = params?.workspaceSlug ?? "workspace";
@@ -18,7 +19,12 @@ export function CreateProjectModalWrapper({ open, onClose }: Props) {
 
   useEffect(() => setMounted(true), []);
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName || "");
+  
+  useEffect(() => {
+    if (open && initialName) setName(initialName);
+    else if (!open) setName("");
+  }, [open, initialName]);
   const [description, setDescription] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Folder, User, CheckSquare, Clock, X } from "lucide-react";
+import { Folder, User, CheckSquare, Clock, X, Loader2, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { CreatePersonalTaskModal } from "@/components/create/CreatePersonalTaskModal";
+import { CreateProjectModalWrapper } from "@/components/create/CreateProjectModalWrapper";
 import { useSearch } from "./SearchProvider";
 import { SearchInput } from "./SearchInput";
 import { SearchResults, ResultItem } from "./SearchResults";
@@ -14,12 +16,165 @@ export function GlobalCommandPalette() {
   const router = useRouter();
   const params = useParams<{ workspaceSlug: string }>();
   const ws = params?.workspaceSlug ?? "workspace";
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [fetchedResults, setFetchedResults] = useState<ResultItem[]>([]);
+  const [recent, setRecent] = useState<ResultItem[]>([]);
+  const [createType, setCreateType] = useState<"task" | "project" | null>(null);
 
-  // focus input when opened
+  // load recents from localStorage once
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem(`recent_searches_${ws}`);
+        if (stored) {
+          // Re-hydrate functions are impossible from JSON, so we just rebuild the ResultItem structure
+          const parsed = JSON.parse(stored);
+          const rebuilt: ResultItem[] = parsed.map((item: any) => ({
+            ...item,
+            icon: item.group === "Projects" ? <Folder className="h-4 w-4" /> : item.group === "Tasks" ? <Clock className="h-4 w-4" /> : <User className="h-4 w-4" />,
+            onSelect: () => handleSelect(item),
+          }));
+          setRecent(rebuilt);
+        }
+      }
+    } catch { }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ws]);
+
+  const saveRecent = (item: ResultItem) => {
+    try {
+      const stored = localStorage.getItem(`recent_searches_${ws}`);
+      let parsed = stored ? JSON.parse(stored) : [];
+      // remove duplicate
+      parsed = parsed.filter((p: any) => p.id !== item.id);
+      
+      // strip non-serializable jsx and function
+      const serializable = {
+        id: item.id,
+        title: item.title,
+        subtitle: item.subtitle,
+        group: item.group,
+        url: (item as any).url,
+      };
+      
+      parsed.unshift(serializable);
+      parsed = parsed.slice(0, 5); // Keep top 5
+      localStorage.setItem(`recent_searches_${ws}`, JSON.stringify(parsed));
+      
+      const rebuilt: ResultItem[] = parsed.map((item: any) => ({
+        ...item,
+        icon: item.group === "Projects" ? <Folder className="h-4 w-4" /> : item.group === "Tasks" ? <Clock className="h-4 w-4" /> : <User className="h-4 w-4" />,
+        onSelect: () => handleSelect(item),
+      }));
+      setRecent(rebuilt);
+    } catch { }
+  };
+
+  const handleSelect = (item: any) => {
+    saveRecent(item);
+    if (item.url) router.push(item.url);
+    setOpen(false);
+  };
+
+  // Debounced API fetch
+  useEffect(() => {
+    if (!query) {
+      setFetchedResults([]);
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    const delay = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/workspaces/${ws}/search?q=${encodeURIComponent(query)}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        
+        const items: ResultItem[] = [];
+        
+        data.projects?.forEach((p: any) => {
+          items.push({
+            id: `project-${p.id}`,
+            title: p.name,
+            subtitle: "Project",
+            icon: <Folder className="h-4 w-4" />,
+            group: "Projects",
+            active: false,
+            url: `/${ws}/projects/${p.id}`,
+            onSelect: function() { handleSelect(this) },
+          } as any);
+        });
+        
+        data.tasks?.forEach((t: any) => {
+          items.push({
+            id: `task-${t.id}`,
+            title: t.title,
+            subtitle: `Status: ${t.status} • Project: ${t.projectName}`,
+            icon: <CheckSquare className="h-4 w-4" />,
+            group: "Tasks",
+            active: false,
+            url: `/${ws}/projects/${t.projectId}?taskId=${t.id}`,
+            onSelect: function() { handleSelect(this) },
+          } as any);
+        });
+
+        data.members?.forEach((m: any) => {
+          items.push({
+            id: `member-${m.id}`,
+            title: m.name || m.email,
+            subtitle: m.email,
+            icon: <User className="h-4 w-4" />,
+            group: "Members",
+            active: false,
+            url: `/${ws}/settings/members?memberId=${m.id}`,
+            onSelect: function() { handleSelect(this) },
+          } as any);
+        });
+
+        setFetchedResults(items);
+      } catch {
+        // silently fail search
+      } finally {
+        // Always add the Create Actions at the bottom
+        setFetchedResults(prev => {
+           const actions: any[] = [
+             {
+               id: "create-action-task",
+               title: `Create task "${query}"`,
+               subtitle: "Personal Task",
+               icon: <Plus className="h-4 w-4" />,
+               group: "Actions",
+               active: false,
+               onSelect: () => setCreateType("task"),
+             },
+             {
+               id: "create-action-project",
+               title: `Create project "${query}"`,
+               subtitle: "Workspace Project",
+               icon: <Plus className="h-4 w-4" />,
+               group: "Actions",
+               active: false,
+               onSelect: () => setCreateType("project"),
+             }
+           ];
+           return [...prev, ...actions];
+        });
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delay);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, ws]);
+
+  // Handle Focus, Esc, Click Outside
   useEffect(() => {
     if (open) {
       const t = setTimeout(() => inputRef.current?.focus(), 10);
@@ -29,7 +184,6 @@ export function GlobalCommandPalette() {
     setActiveIndex(0);
   }, [open]);
 
-  // close on escape
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -39,7 +193,6 @@ export function GlobalCommandPalette() {
     return () => window.removeEventListener("keydown", handler);
   }, [open, setOpen]);
 
-  // click outside to close
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -51,140 +204,18 @@ export function GlobalCommandPalette() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open, setOpen]);
 
-  const tasks = useMemo(
-    () => [
-      { id: "task_1", title: "Fix mobile nav crash", projectId: "mobile-app", status: "IN_PROGRESS", dueDate: "Tomorrow" },
-      { id: "task_2", title: "Draft Q4 roadmap", projectId: "strategy", status: "TODO", dueDate: "Friday" },
-      { id: "task_3", title: "Design empty state", projectId: "design-system", status: "DONE", dueDate: "Yesterday" },
-    ],
-    []
-  );
-  const projects = useMemo(
-    () => [
-      { id: "mobile-app", name: "Mobile App" },
-      { id: "design-system", name: "Design System" },
-      { id: "strategy", name: "Strategy & Ops" },
-    ],
-    []
-  );
-  const members = useMemo(
-    () => [
-      { id: "alex", name: "Alex Rivera", email: "alex@acme.com" },
-      { id: "sarah", name: "Sarah Chen", email: "sarah@acme.com" },
-      { id: "marcus", name: "Marcus Wright", email: "marcus@acme.com" },
-    ],
-    []
-  );
-
-  const filteredItems: ResultItem[] = useMemo(() => {
-    const q = query.toLowerCase();
-    const match = (text: string) => text.toLowerCase().includes(q);
-    const items: ResultItem[] = [];
-
-    tasks
-      .filter((t) => match(t.title))
-      .forEach((t) =>
-        items.push({
-          id: `task-${t.id}`,
-          title: t.title,
-          subtitle: `Status: ${t.status}`,
-          icon: <CheckSquare className="h-4 w-4" />,
-          group: "Tasks",
-          active: false,
-          onSelect: () => {
-            router.push(`/${ws}/projects/${t.projectId}?taskId=${t.id}`);
-            setOpen(false);
-          },
-        })
-      );
-
-    projects
-      .filter((p) => match(p.name))
-      .forEach((p) =>
-        items.push({
-          id: `project-${p.id}`,
-          title: p.name,
-          subtitle: "Project",
-          icon: <Folder className="h-4 w-4" />,
-          group: "Projects",
-          active: false,
-          onSelect: () => {
-            router.push(`/${ws}/projects/${p.id}`);
-            setOpen(false);
-          },
-        })
-      );
-
-    members
-      .filter((m) => match(m.name) || match(m.email))
-      .forEach((m) =>
-        items.push({
-          id: `member-${m.id}`,
-          title: m.name,
-          subtitle: m.email,
-          icon: <User className="h-4 w-4" />,
-          group: "Members",
-          active: false,
-          onSelect: () => {
-            router.push(`/${ws}/settings/members?memberId=${m.id}`);
-            setOpen(false);
-          },
-        })
-      );
-
-    return items;
-  }, [members, projects, query, router, setOpen, tasks, ws]);
-
-  // reset active index on open/query change
+  // reset active index on empty query or new results
   useEffect(() => {
     setActiveIndex(0);
-  }, [query, open]);
+  }, [query, open, fetchedResults]);
 
-  const itemsWithActive = filteredItems.map((item, idx) => ({ ...item, active: idx === activeIndex }));
 
-  const recent: ResultItem[] = useMemo(
-    () => [
-      {
-        id: "recent-project",
-        title: "Mobile App",
-        subtitle: "Project",
-        icon: <Folder className="h-4 w-4" />,
-        group: "Projects",
-        active: activeIndex === 0,
-        onSelect: () => {
-          router.push(`/${ws}/projects/mobile-app`);
-          setOpen(false);
-        },
-      },
-      {
-        id: "recent-task",
-        title: "Fix mobile nav crash",
-        subtitle: "Task · Mobile App",
-        icon: <Clock className="h-4 w-4" />,
-        group: "Tasks",
-        active: activeIndex === 1,
-        onSelect: () => {
-          router.push(`/${ws}/projects/mobile-app?taskId=task_1`);
-          setOpen(false);
-        },
-      },
-      {
-        id: "recent-member",
-        title: "Sarah Chen",
-        subtitle: "Member",
-        icon: <User className="h-4 w-4" />,
-        group: "Members",
-        active: activeIndex === 2,
-        onSelect: () => {
-          router.push(`/${ws}/settings/members?memberId=sarah`);
-          setOpen(false);
-        },
-      },
-    ],
-    [activeIndex, router, setOpen, ws]
-  );
-
-  const selectable = query ? itemsWithActive : recent;
+  const selectable = query ? fetchedResults : recent;
+  
+  const selectableWithActive = selectable.map((item, idx) => ({
+    ...item,
+    active: idx === activeIndex,
+  }));
 
   // arrow key navigation + enter
   useEffect(() => {
@@ -192,20 +223,20 @@ export function GlobalCommandPalette() {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActiveIndex((prev) => (selectable.length ? (prev + 1) % selectable.length : 0));
+        setActiveIndex((prev) => (selectableWithActive.length ? (prev + 1) % selectableWithActive.length : 0));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setActiveIndex((prev) => (selectable.length ? (prev - 1 + selectable.length) % selectable.length : 0));
+        setActiveIndex((prev) => (selectableWithActive.length ? (prev - 1 + selectableWithActive.length) % selectableWithActive.length : 0));
       } else if (e.key === "Enter") {
-        if (selectable[activeIndex]) {
+        if (selectableWithActive[activeIndex]) {
           e.preventDefault();
-          selectable[activeIndex].onSelect();
+          selectableWithActive[activeIndex].onSelect();
         }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [activeIndex, open, selectable]);
+  }, [activeIndex, open, selectableWithActive]);
 
   const content = useMemo(
     () => (
@@ -213,8 +244,7 @@ export function GlobalCommandPalette() {
         <div
           ref={containerRef}
           className={cn(
-            "w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-[#0f172a]",
-            "ring-1 ring-white/40 dark:ring-white/5"
+            "flex max-h-fit w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ring-1 ring-white/40 dark:border-slate-800 dark:bg-[#0f172a] dark:ring-white/5",
           )}
           role="dialog"
           aria-modal="true"
@@ -227,6 +257,7 @@ export function GlobalCommandPalette() {
               placeholder="Search tasks, projects, members…"
               aria-label="Global search"
             />
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
             <button
               onClick={() => setOpen(false)}
               className="hidden h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/5 sm:flex"
@@ -236,19 +267,34 @@ export function GlobalCommandPalette() {
             </button>
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto p-3">
-            <SearchResults items={itemsWithActive} recent={recent} query={query} />
+          <div className="flex-1 overflow-y-auto p-3">
+             <SearchResults 
+               items={query ? selectableWithActive : []} 
+               recent={!query ? selectableWithActive : []} 
+               query={query} 
+               onCreateTask={() => { setCreateType("task"); setOpen(false); }}
+               onCreateProject={() => { setCreateType("project"); setOpen(false); }}
+             />
           </div>
 
-          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-4 py-3 text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
             <div className="flex items-center gap-3">
-              <kbd className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                Enter
-              </kbd>
-              <span>to select</span>
+              <span className="flex items-center gap-1.5">
+                <kbd className="rounded-lg border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  Enter
+                </kbd>
+                <span>to select</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <kbd className="rounded-lg border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  ↓↑
+                </kbd>
+                <span>to navigate</span>
+              </span>
             </div>
+            
             <div className="flex items-center gap-3">
-              <kbd className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <kbd className="rounded-lg border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 Esc
               </kbd>
               <span>to close</span>
@@ -257,10 +303,18 @@ export function GlobalCommandPalette() {
         </div>
       </div>
     ),
-    [activeIndex, itemsWithActive, query, recent, setOpen]
+    [selectableWithActive, query, setOpen, loading]
   );
 
-  if (!open) return null;
+  // if neither is open, don't render anything globally
+  if (!open && !createType) return null;
   if (typeof document === "undefined") return null;
-  return createPortal(content, document.body);
+  
+  return (
+    <>
+      {open && createPortal(content, document.body)}
+      <CreatePersonalTaskModal open={createType === "task"} onClose={() => { setCreateType(null); setOpen(false); }} initialTitle={query} />
+      <CreateProjectModalWrapper open={createType === "project"} onClose={() => { setCreateType(null); setOpen(false); }} initialName={query} />
+    </>
+  );
 }

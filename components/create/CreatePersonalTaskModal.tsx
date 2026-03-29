@@ -10,11 +10,12 @@ import { Select } from "@/components/ui/Select";
 type Props = {
   open: boolean;
   onClose: () => void;
+  initialTitle?: string;
 };
 
 type Project = { id: string; name: string };
 
-export function CreatePersonalTaskModal({ open, onClose }: Props) {
+export function CreatePersonalTaskModal({ open, onClose, initialTitle }: Props) {
   const router = useRouter();
   const params = useParams<{ workspaceSlug: string }>();
   const ws = params?.workspaceSlug ?? "workspace";
@@ -22,7 +23,12 @@ export function CreatePersonalTaskModal({ open, onClose }: Props) {
 
   useEffect(() => setMounted(true), []);
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(initialTitle || "");
+  
+  useEffect(() => {
+    if (open && initialTitle) setTitle(initialTitle);
+    else if (!open) setTitle("");
+  }, [open, initialTitle]);
   const [description, setDescription] = useState("");
   const [projectId, setProjectId] = useState("none");
   const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "DONE">("TODO");
