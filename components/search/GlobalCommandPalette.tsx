@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Folder, User, CheckSquare, Clock, X, Loader2, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { CreatePersonalTaskModal } from "@/components/create/CreatePersonalTaskModal";
+import { AssignTaskModal } from "@/components/dashboard/AssignTaskModal";
 import { CreateProjectModalWrapper } from "@/components/create/CreateProjectModalWrapper";
 import { useSearch } from "./SearchProvider";
 import { SearchInput } from "./SearchInput";
@@ -16,10 +16,10 @@ export function GlobalCommandPalette() {
   const router = useRouter();
   const params = useParams<{ workspaceSlug: string }>();
   const ws = params?.workspaceSlug ?? "workspace";
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ export function GlobalCommandPalette() {
         }
       }
     } catch { }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ws]);
 
   const saveRecent = (item: ResultItem) => {
@@ -53,7 +53,7 @@ export function GlobalCommandPalette() {
       let parsed = stored ? JSON.parse(stored) : [];
       // remove duplicate
       parsed = parsed.filter((p: any) => p.id !== item.id);
-      
+
       // strip non-serializable jsx and function
       const serializable = {
         id: item.id,
@@ -62,11 +62,11 @@ export function GlobalCommandPalette() {
         group: item.group,
         url: (item as any).url,
       };
-      
+
       parsed.unshift(serializable);
       parsed = parsed.slice(0, 5); // Keep top 5
       localStorage.setItem(`recent_searches_${ws}`, JSON.stringify(parsed));
-      
+
       const rebuilt: ResultItem[] = parsed.map((item: any) => ({
         ...item,
         icon: item.group === "Projects" ? <Folder className="h-4 w-4" /> : item.group === "Tasks" ? <Clock className="h-4 w-4" /> : <User className="h-4 w-4" />,
@@ -89,16 +89,15 @@ export function GlobalCommandPalette() {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     const delay = setTimeout(async () => {
+      let items: ResultItem[] = [];
       try {
         const res = await fetch(`/api/workspaces/${ws}/search?q=${encodeURIComponent(query)}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
-        
-        const items: ResultItem[] = [];
-        
+
         data.projects?.forEach((p: any) => {
           items.push({
             id: `project-${p.id}`,
@@ -108,10 +107,10 @@ export function GlobalCommandPalette() {
             group: "Projects",
             active: false,
             url: `/${ws}/projects/${p.id}`,
-            onSelect: function() { handleSelect(this) },
+            onSelect: function () { handleSelect(this) },
           } as any);
         });
-        
+
         data.tasks?.forEach((t: any) => {
           items.push({
             id: `task-${t.id}`,
@@ -121,7 +120,7 @@ export function GlobalCommandPalette() {
             group: "Tasks",
             active: false,
             url: `/${ws}/projects/${t.projectId}?taskId=${t.id}`,
-            onSelect: function() { handleSelect(this) },
+            onSelect: function () { handleSelect(this) },
           } as any);
         });
 
@@ -134,44 +133,41 @@ export function GlobalCommandPalette() {
             group: "Members",
             active: false,
             url: `/${ws}/settings/members?memberId=${m.id}`,
-            onSelect: function() { handleSelect(this) },
+            onSelect: function () { handleSelect(this) },
           } as any);
         });
-
-        setFetchedResults(items);
       } catch {
         // silently fail search
       } finally {
         // Always add the Create Actions at the bottom
-        setFetchedResults(prev => {
-           const actions: any[] = [
-             {
-               id: "create-action-task",
-               title: `Create task "${query}"`,
-               subtitle: "Personal Task",
-               icon: <Plus className="h-4 w-4" />,
-               group: "Actions",
-               active: false,
-               onSelect: () => setCreateType("task"),
-             },
-             {
-               id: "create-action-project",
-               title: `Create project "${query}"`,
-               subtitle: "Workspace Project",
-               icon: <Plus className="h-4 w-4" />,
-               group: "Actions",
-               active: false,
-               onSelect: () => setCreateType("project"),
-             }
-           ];
-           return [...prev, ...actions];
-        });
+        const actions: any[] = [
+          {
+            id: "create-action-task",
+            title: `Create task "${query}"`,
+            subtitle: "Personal Task",
+            icon: <Plus className="h-4 w-4" />,
+            group: "Actions",
+            active: false,
+            onSelect: () => setCreateType("task"),
+          },
+          {
+            id: "create-action-project",
+            title: `Create project "${query}"`,
+            subtitle: "Workspace Project",
+            icon: <Plus className="h-4 w-4" />,
+            group: "Actions",
+            active: false,
+            onSelect: () => setCreateType("project"),
+          }
+        ];
+
+        setFetchedResults([...items, ...actions]);
         setLoading(false);
       }
     }, 300);
 
     return () => clearTimeout(delay);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, ws]);
 
   // Handle Focus, Esc, Click Outside
@@ -211,7 +207,7 @@ export function GlobalCommandPalette() {
 
 
   const selectable = query ? fetchedResults : recent;
-  
+
   const selectableWithActive = selectable.map((item, idx) => ({
     ...item,
     active: idx === activeIndex,
@@ -268,13 +264,13 @@ export function GlobalCommandPalette() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3">
-             <SearchResults 
-               items={query ? selectableWithActive : []} 
-               recent={!query ? selectableWithActive : []} 
-               query={query} 
-               onCreateTask={() => { setCreateType("task"); setOpen(false); }}
-               onCreateProject={() => { setCreateType("project"); setOpen(false); }}
-             />
+            <SearchResults
+              items={query ? selectableWithActive : []}
+              recent={!query ? selectableWithActive : []}
+              query={query}
+              onCreateTask={() => { setCreateType("task"); setOpen(false); }}
+              onCreateProject={() => { setCreateType("project"); setOpen(false); }}
+            />
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-4 py-3 text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
@@ -292,7 +288,7 @@ export function GlobalCommandPalette() {
                 <span>to navigate</span>
               </span>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <kbd className="rounded-lg border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 Esc
@@ -309,11 +305,11 @@ export function GlobalCommandPalette() {
   // if neither is open, don't render anything globally
   if (!open && !createType) return null;
   if (typeof document === "undefined") return null;
-  
+
   return (
     <>
       {open && createPortal(content, document.body)}
-      <CreatePersonalTaskModal open={createType === "task"} onClose={() => { setCreateType(null); setOpen(false); }} initialTitle={query} />
+      <AssignTaskModal workspaceSlug={ws} open={createType === "task"} onClose={() => { setCreateType(null); setOpen(false); }} initialTitle={query} />
       <CreateProjectModalWrapper open={createType === "project"} onClose={() => { setCreateType(null); setOpen(false); }} initialName={query} />
     </>
   );

@@ -19,9 +19,10 @@ type Props = {
   onClose: () => void;
   onCreated?: () => void;
   defaultProjectId?: string;
+  initialTitle?: string;
 };
 
-export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defaultProjectId }: Props) {
+export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defaultProjectId, initialTitle }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
 
@@ -98,7 +99,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
-      setTitle("");
+      setTitle(initialTitle || "");
       setDescription("");
       setProjectId(defaultProjectId || "");
       setDueDate(undefined);
@@ -110,7 +111,7 @@ export function AssignTaskModal({ workspaceSlug, open, onClose, onCreated, defau
       setAttachments([]);
       setError(null);
     }
-  }, [open]);
+  }, [open, initialTitle, defaultProjectId]);
 
   // Close on Escape
   useEffect(() => {
