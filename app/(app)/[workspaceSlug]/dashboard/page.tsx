@@ -105,7 +105,7 @@ export default function DashboardPage() {
             ...t,
             priority: ({ URGENT: "Urgent", HIGH: "High", MEDIUM: "Medium", LOW: "Low" }[t.priority] ?? t.priority) as "Low" | "Medium" | "High" | "Urgent",
           }))} workspaceSlug={workspaceSlug} />
-          <ProjectsOverview projects={data.projects} />
+          <ProjectsOverview projects={data.projects} workspaceSlug={workspaceSlug} />
           {isManagerView && (
             <AttentionPanel overdue={data.attentionOverdue} blocked={data.attentionBlocked} overloaded={data.attentionOverloaded} />
           )}

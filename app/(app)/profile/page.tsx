@@ -1,36 +1,28 @@
-"use client";
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db/prisma";
+import { currentUser } from "@clerk/nextjs/server";
 
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileInfoCard } from "@/components/profile/ProfileInfoCard";
-import { AvatarCard } from "@/components/profile/AvatarCard";
-import { PasswordCard } from "@/components/profile/PasswordCard";
-import { PreferencesCard } from "@/components/profile/PreferencesCard";
-import { SessionsCard } from "@/components/profile/SessionsCard";
-import { DeleteAccountCard } from "@/components/profile/DeleteAccountCard";
-import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
-import { useCurrentUser } from "@/components/providers/UserProvider";
+export default async function GlobalProfileRedirect() {
+  const clerkUser = await currentUser();
+  if (!clerkUser) {
+    redirect("/sign-in");
+  }
 
-const sessions = [
-  { id: "s1", device: 'MacBook Pro 16"', browser: "Chrome", location: "New Delhi, India", lastActive: "Active now", active: true },
-  { id: "s2", device: "iPhone 15 Pro", browser: "TeamOS iOS App", location: "Mumbai, India", lastActive: "3 hours ago" },
-];
+  // Find user and their workspaces
+  const user = await db.user.findUnique({
+    where: { clerkId: clerkUser.id },
+    include: {
+      workspaceMembers: {
+        include: { workspace: true },
+        take: 1,
+        orderBy: { joinedAt: "desc" },
+      },
+    },
+  });
 
-export default function ProfilePage() {
-  const { user, isLoading } = useCurrentUser();
+  if (user?.workspaceMembers[0]) {
+    redirect(`/${user.workspaceMembers[0].workspace.slug}/profile`);
+  }
 
-  if (isLoading || !user) return <ProfileSkeleton />;
-
-  return (
-    <div className="workspace-bg min-h-screen">
-      <main className="mx-auto max-w-[900px] px-4 py-8 space-y-6">
-        <ProfileHeader />
-        <ProfileInfoCard initialName={user.name ?? ""} initialEmail={user.email} onSave={() => {}} />
-        <AvatarCard initialAvatar={user.avatarUrl ?? undefined} name={user.name ?? "User"} />
-        <PasswordCard />
-        <PreferencesCard timezone={user.timezone} language={user.language} onTimezoneChange={() => {}} onLanguageChange={() => {}} />
-        <SessionsCard sessions={sessions} />
-        <DeleteAccountCard email={user.email} />
-      </main>
-    </div>
-  );
+  redirect("/onboarding");
 }

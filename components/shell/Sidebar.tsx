@@ -113,7 +113,7 @@ export function Sidebar({ variant = "desktop" }: SidebarProps) {
 
       <div className="mt-auto border-t border-slate-200 p-4 dark:border-slate-800">
         <Link
-          href="/profile"
+          href={`/${params.workspaceSlug}/profile`}
           className="group flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           <div className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-slate-300 text-white ring-2 ring-primary/20 dark:bg-slate-700">

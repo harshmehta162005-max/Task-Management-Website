@@ -52,15 +52,11 @@ export function MyTasksToday({ tasks, workspaceSlug }: Props) {
         </Link>
       </div>
       <div className="divide-y divide-slate-200 dark:divide-white/10">
-        {tasks.map((task) => (
+        {tasks.slice(0, 5).map((task) => (
           <div
             key={task.id}
             className="flex items-center gap-4 p-4 transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02]"
           >
-            <input
-              type="checkbox"
-              className="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-primary dark:border-white/20"
-            />
             <div className="flex-1">
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{task.title}</p>
               <div className="mt-1 flex items-center gap-2">
