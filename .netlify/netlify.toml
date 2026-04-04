@@ -1,0 +1,82 @@
+headersOrigin = "inline"
+redirectsOrigin = "inline"
+
+[images]
+remote_images = ["^(?:https:\\/\\/img\\.clerk\\.com(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)|$))$", "^(?:https:\\/\\/images\\.clerk\\.dev(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)|$))$", "^(?:https:\\/\\/api\\.dicebear\\.com(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)|$))$"]
+
+[functions]
+
+[functions."*"]
+
+[[plugins]]
+origin = "config"
+package = "@netlify/plugin-nextjs"
+
+[plugins.inputs]
+
+[build]
+publish = "C:\\Users\\harsh\\OneDrive\\Desktop\\Task_Management\\.next"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "npm run build"
+
+[build.environment]
+NODE_VERSION = "22"
+NPM_FLAGS = "--legacy-peer-deps"
+GEMINI_API_KEY = "AIzaSyDuVjPTJpl_w8FCb6_NEp8NNLRNt-HxUis"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_Y2xhc3NpYy1tYXN0b2Rvbi0xMi5jbGVyay5hY2NvdW50cy5kZXYk"
+CLERK_SECRET_KEY = "sk_test_vsdvSLoOdEndFMjNZtkQvAvUKMBQ9cT5AVoU5Nbb0w"
+DATABASE_URL = "postgresql://neondb_owner:npg_7OC0SJyMzgbq@ep-holy-base-any07hxw-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/workspace-selector"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/create-workspace"
+RESEND_API_KEY = "re_67F4udaj_FFBTsQ8xdmSvP2Py3538Q8JZ"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[headers]]
+for = "/_next/static/*"
+
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+from = "/_next/image"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200.0
+force = false
+
+[redirects.query]
+url = ":url"
+w = ":width"
+q = ":quality"
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/_ipx/*"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200.0
+force = false
+
+[redirects.query]
+url = ":url"
+w = ":width"
+q = ":quality"
+
+[redirects.conditions]
+
+[redirects.headers]
