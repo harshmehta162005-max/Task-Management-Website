@@ -16,9 +16,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# netlify build artifacts
-.netlify/
-
 # misc
 .DS_Store
 *.pem
