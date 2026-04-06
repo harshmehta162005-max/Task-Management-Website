@@ -1,0 +1,10 @@
+
+[build.environment]
+  NODE_VERSION = "22"
+  NPM_FLAGS = "--legacy-peer-deps"
+  # ⚠️ ALL secrets (API keys, DB URL, etc.) must be set via Netlify Dashboard
+  # Go to: Site Settings > Environment Variables
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/workspace-selector"
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/create-workspace"
